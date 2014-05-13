@@ -162,7 +162,7 @@ int execute_cmd(const char * fmt, ...) {
 
 const int call_array_size = 512;
 int call_counter[call_array_size] = { 0 };
-
+static char LANG_NAME[BUFFER_SIZE];
 void init_syscalls_limits(int lang) {
 	int i;
 	memset(call_counter, 0, sizeof(call_counter));
@@ -1653,6 +1653,9 @@ void init_parameters(int argc, char ** argv, int & solution_id,int & runner_id) 
         }
         DEBUG = (argc > 4);
 		record_call = (argc > 5);
+		if (argc > 5) {
+			strcpy(LANG_NAME, argv[5]);
+		}
         if (argc > 3)
                 strcpy(oj_home, argv[3]);
         else

@@ -818,8 +818,8 @@ int compile(int lang) {
                 LIM.rlim_cur = 600;
                 setrlimit(RLIMIT_CPU, &LIM);
 
-                LIM.rlim_max = 900 * STD_MB;
-                LIM.rlim_cur = 900 * STD_MB;
+                LIM.rlim_max = 100 * STD_MB;
+                LIM.rlim_cur = 100 * STD_MB;
                 setrlimit(RLIMIT_FSIZE, &LIM);
 
                 LIM.rlim_max =  STD_MB<<10;
@@ -831,6 +831,10 @@ int compile(int lang) {
                 } else {
                         freopen("ce.txt", "w", stdout);
                 }
+				while(setgid(1536)!=0) sleep(1);
+				while(setuid(1536)!=0) sleep(1);
+				while(setresuid(1536, 1536, 1536)!=0) sleep(1);
+
                 switch (lang) {
                 case 0:
                         execvp(CP_C[0], (char * const *) CP_C);

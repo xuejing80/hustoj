@@ -305,9 +305,9 @@ void find_next_nonspace(int & c1, int & c2, FILE *& f1, FILE *& f2, int & ret) {
                                         c2 = fgetc(f2);
                                 } while (isspace(c2));
                                 continue;
-                        } else if ((c1 == '\r' && c2 == '\n')) {
+                        } else if ((c1 == '\r'||(oi_mode&&isspace(c1))) && c2 == '\n') {  //oi_mode忽略行尾空格
                                 c1 = fgetc(f1);
-                        } else if ((c2 == '\r' && c1 == '\n')) {
+                        } else if ((c2 == '\r'||(oi_mode&&isspace(c2))) && c1 == '\n') {  //oi_mode忽略行尾空格
                                 c2 = fgetc(f2);
                         } else {
                                 if (DEBUG)

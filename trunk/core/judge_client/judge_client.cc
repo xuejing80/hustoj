@@ -160,8 +160,9 @@ int execute_cmd(const char * fmt, ...) {
         return ret;
 }
 
+const int call_array_size = 512;
+int call_counter[call_array_size] = { 0 };
 
-int call_counter[512];
 void init_syscalls_limits(int lang) {
 	int i;
 	memset(call_counter, 0, sizeof(call_counter));

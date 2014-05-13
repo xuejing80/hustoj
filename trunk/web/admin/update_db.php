@@ -122,6 +122,40 @@ $csql[18]="CREATE TABLE  `custominput` (  `solution_id` int(11) NOT NULL DEFAULT
 $tsql[19]="ALTER TABLE `loginlog` ADD INDEX `user_time_index`(`user_id`, `time`);";
 $csql[19]="";
 
+$tsql[20]="select lint_error from solution";
+$csql[20]="ALTER TABLE `solution` ADD COLUMN `lint_error` int(11) NOT NULL DEFAULT 0 AFTER `pass_rate`;";
+$tsql[21]="
+CREATE TABLE IF NOT EXISTS `pk` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `problem_id` int(11) NOT NULL,
+  `from` varchar(20) NOT NULL,
+  `to` varchar(20) NOT NULL,
+  `winner` varchar(20) NOT NULL,
+  `money` int(11) NOT NULL,
+  `status` int(11) NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=MyISAM  DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
+";
+$csql[21]="";
+$tsql[22]="
+CREATE TABLE IF NOT EXISTS `ErrFeature` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `regex` text NOT NULL,
+  `info` text NOT NULL,
+  `type` int(11) NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=MyISAM  DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
+
+";
+$csql[22]="";
+
+$tsql[23]="select money from users";
+$csql[23]="ALTER TABLE `users` ADD COLUMN `money` int(11) NOT NULL DEFAULT 0 AFTER `school`;";
+
+$tsql[24]="select problem_id from users";
+$csql[24]="ALTER TABLE `users` ADD COLUMN `problem_id` int(11) NOT NULL DEFAULT 0 AFTER `money`;";
+
+
 if(isset($_POST['do'])){
 	require_once("../include/check_post_key.php");
 	echo "Executing...<br>";

@@ -49,7 +49,7 @@ function make_link($_action,$_dir,$_item=NULL,$_order=NULL,$_srt=NULL,$_lang=NUL
 	if($_srt==NULL) $_srt=$GLOBALS["srt"];
 	if($_lang==NULL) $_lang=(isset($GLOBALS["lang"])?$GLOBALS["lang"]:NULL);
 	
-	$link=$GLOBALS["script_name"]."?action=".$_action;
+	$link="http://hz.wkjsj.org/oj/admin/quixplorer/index.php"."?action=".$_action;
 	if($_dir!=NULL) $link.="&dir=".urlencode($_dir);
 	if($_item!=NULL) $link.="&item=".urlencode($_item);
 	if($_order!=NULL) $link.="&order=".$_order;

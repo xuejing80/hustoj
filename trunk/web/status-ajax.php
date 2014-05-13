@@ -3,8 +3,9 @@ header("Cache-Control: no-cache, must-revalidate"); // HTTP/1.1
 header("Expires: Sat, 26 Jul 1997 05:00:00 GMT"); // Date in the past
 
 ////////////////////////////Common head
-        $cache_time=2;
-        $OJ_CACHE_SHARE=false;
+        $cache_time=5;
+        $OJ_CACHE_SHARE=true;
+ require_once('./include/cache_start.php');
     require_once('./include/db_info.inc.php');
         require_once('./include/setlang.php');
         $view_title= "$MSG_STATUS";
@@ -50,8 +51,12 @@ if (isset($_GET['solution_id'])){
 		}
 		$result=mysql_query($sql);
 		$row=mysql_fetch_array($result);
-		if($row)	
+		if($row){	
+		       if(strpos($_SERVER['HTTP_USER_AGENT'], "MSIE"))
+			echo str_replace("\n","<br>",htmlspecialchars(str_replace("\n\r","\n",$row['error'])));
+		       else
 			echo htmlspecialchars(str_replace("\n\r","\n",$row['error']));
+		}
     $sql="delete from custominput where solution_id=".$solution_id;
     mysql_query($sql);     
 		//echo $sql.$res;
@@ -61,6 +66,6 @@ if (isset($_GET['solution_id'])){
 }
 
 if(!$OJ_MEMCACHE)mysql_free_result($result);
-
+ require_once('./include/cache_end.php');
 ?>
 

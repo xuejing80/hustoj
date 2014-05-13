@@ -11,7 +11,6 @@
 <html>
 <head>
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-	<link rel=stylesheet href='./include/<?php echo isset($OJ_CSS)?$OJ_CSS:"hoj.css" ?>' type='text/css'>
 </head>
 <?php if(isset($_GET['cid']))
 	$cid=intval($_GET['cid']);

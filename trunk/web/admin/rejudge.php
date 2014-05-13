@@ -1,6 +1,6 @@
 <?php require("admin-header.php");
 
-if (!(isset($_SESSION['administrator']))){
+if (!(isset($_SESSION['administrator'])||isset($_SESSION['problem_editor']))){
 	echo "<a href='../loginpage.php'>Please Login First!</a>";
 	exit(1);
 }?>
@@ -8,6 +8,8 @@ if (!(isset($_SESSION['administrator']))){
 	require_once("../include/check_post_key.php");
 	if (isset($_POST['rjpid'])){
 		$rjpid=intval($_POST['rjpid']);
+		$sql="UPDATE `users` SET `money`=money-100 WHERE user_id in (select distinct user_id from solution where result=4 and problem_id=".$rjpid.")";
+		mysql_query($sql) or die(mysql_error());
 		$sql="UPDATE `solution` SET `result`=1 WHERE `problem_id`=".$rjpid;
 		mysql_query($sql) or die(mysql_error());
 		$sql="delete from `sim` WHERE `s_id` in (select solution_id from solution where `problem_id`=".$rjpid.")";

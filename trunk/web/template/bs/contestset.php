@@ -10,7 +10,7 @@
 <div id=main>
 
 <center>
-<table width=90%><h2>Contest List</h2>ServerTime:<span id=nowdate></span><tr class=toprow align=center><td width=10%>ID<td width=50%>Name<td width=30%>Status<td width=10%>Private</tr>
+<table width=90%><h2>Contest List</h2>ServerTime:<span id=nowdate></span><tr class=toprow align=center><td width=10%>ID<td width=50%>Name<td width=30%>Status<td width=10%>Private<td>Owner</tr>
 
 	<tbody>
 			<?php 

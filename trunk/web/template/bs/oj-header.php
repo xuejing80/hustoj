@@ -1,9 +1,10 @@
+<link rel=stylesheet href='bootstrap/css/bootstrap.css' type='text/css'>
 <div id=head>
 <h2><img id=logo src="<?php echo "template/".$OJ_TEMPLATE?>/image/logo.png"><span class="red"><?php echo $OJ_NAME?></span></h2>
 </div><!--end head-->
 <div id=subhead>
 	  <div id=menu class=navbar>
-	  <?php $ACTIVE="btn-warning";?>
+	  <?php $ACTIVE="btn-danger";?>
 		<a  class='btn'  href="<?php echo $OJ_HOME?>"><i class="icon-home"></i>
 		<?php echo $MSG_HOME?>						
 		</a>
@@ -21,6 +22,9 @@
 		
 		<a class='btn <?php if ($url=="ranklist.php") echo "  $ACTIVE";?>' href="ranklist.php">
 		<i class="icon-signal"></i><?php echo $MSG_RANKLIST?></a>
+		
+		<a class='btn <?php if ($url=="moneylist.php") echo "  $ACTIVE";?>' href="moneylist.php">
+		<i class=icon-fire></i>$挑战者$</a>
 		
 		<a class='btn <?php if ($url=="contest.php") echo "  $ACTIVE";?>'  href="contest.php">
 		<i class="icon-fire"></i><?php echo checkcontest($MSG_CONTEST)?></a>

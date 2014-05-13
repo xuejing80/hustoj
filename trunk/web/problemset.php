@@ -30,7 +30,7 @@ if (isset($_GET['page'])){
             $row=mysql_fetch_array($result);
             $page=intval($row[0]);
     }
-    if(!is_numeric($page))
+    if(!is_numeric($page)||$page<0)
         $page='1';
 }
   //end of remember page
@@ -90,7 +90,7 @@ else{
 	) ";
 
 }
-$sql.=" ORDER BY `problem_id`";
+$sql.=" or problem_id=1000 ORDER BY `problem_id`";
 
 
 $result=mysql_query($sql) or die(mysql_error());

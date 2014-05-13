@@ -11,8 +11,8 @@
 	<table align=center width=90%>
 		<thead>
 		<tr><td colspan=3 align=left>
-			<form action=userinfo.php>
-				<?php echo $MSG_USER?><input name=user>
+			<form action=ranklist.php>
+				按学号前缀查询班级排名<input name=user>
 				<input type=submit value=Go>
 			</form></td><td colspan=3 align=right>
 			<a href=ranklist.php?scope=d>Day</a>

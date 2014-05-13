@@ -6,7 +6,7 @@ if (!(isset($_SESSION['administrator']))){
 }
 echo "<title>Privilege List</title>"; 
 echo "<center><h2>Privilege List</h2></center>";
-$sql="select * FROM privilege where rightstr in ('administrator','source_browser','contest_creator','http_judge','problem_editor') ";
+$sql="select * FROM privilege where rightstr in ('administrator','source_browser','contest_creator','http_judge','problem_editor','password_setter') order by user_id ";
 $result=mysql_query($sql) or die(mysql_error());
 echo "<center><table class='table table-striped' width=60% border=1>";
 echo "<thead><tr><td>user<td>right<td>defunc</tr></thead>";

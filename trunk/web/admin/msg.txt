@@ -1,1 +1,14 @@
-<a href=submitpage.php?id=0&sid=1016>IDE测试</a>
+<h1>校内访问请尽量使用<a href=http://oj.acm.zj.cn>内网地址</a>，以免给学校外网出口带来过多压力。</h1>
+<br><a href="ff.exe">本站推荐使用火狐浏览器访问</a><br>
+
+<b>java初学者注意，Scanner input=new Scanner(System.in)只能使用一次，无论多少输入，都必须用同一个Scanner对象。否则会读取不到输入内容。</b>
+<br>
+<strong>如果遇到链接被重置，请使用<a href="https://oj.acm.zj.cn">加密方式</a>访问本站</strong><br>
+
+校队训练题在<a href=http://oj.zjicm.acm.zj.cn/vjudge/contest/toListContest.action>Vjudge</a>
+忘记密码请询问任课教师重置密码。
+<br>参考链接
+<a href=http://linux.die.net/man/3/>C标准库</a>   
+<a href=http://www.cplusplus.com/reference/algorithm/>STL algorithm</a>   
+<a href=http://docs.oracle.com/javase/6/docs/api/java/util/package-summary.html>java.util.*</a> <br>
+

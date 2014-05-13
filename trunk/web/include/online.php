@@ -72,8 +72,18 @@ class online{
 	function __construct()
 	{
 		$this->ip = mysql_real_escape_string($_SERVER['REMOTE_ADDR']);
+		if( !empty( $_SERVER['HTTP_X_FORWARDED_FOR'] ) ){
+
+		    $REMOTE_ADDR = $_SERVER['HTTP_X_FORWARDED_FOR'];
+
+		    $tmp_ip = explode( ',', $REMOTE_ADDR );
+
+		    $this->ip = $tmp_ip[0];
+
+    		}
 		$this->ua = mysql_real_escape_string(htmlspecialchars($_SERVER['HTTP_USER_AGENT']));
-		$this->uri = mysql_real_escape_string($_SERVER['PHP_SELF']);
+                $this->uri = mysql_real_escape_string("<a href=userinfo.php?user=".$_SESSION['user_id'].">".$_SESSION['user_id']."</a>@".$_SERVER['PHP_SELF']);
+		
 		if(isset($_SERVER['HTTP_REFERER'])){
 			$this->refer = mysql_real_escape_string(htmlspecialchars($_SERVER['HTTP_REFERER']));
 	    }
@@ -102,7 +112,7 @@ class online{
 	{
 		$ret = array();
 		
-		$sql = 'SELECT * FROM online';
+		$sql = 'SELECT * FROM online order by uri';
 		$res = mysql_query($sql);
 		//$sql = 'ALTER TABLE `jol`.`online` ENGINE = MEMORY';
 		//$res = mysql_query($sql);

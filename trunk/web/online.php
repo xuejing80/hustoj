@@ -39,7 +39,7 @@ if (isset($_SESSION['administrator'])){
 				$view_online[$i][0]= "<a href='userinfo.php?user=".$row[0]."'>".$row[0]."</a>";
 				$view_online[$i][1]=$row[1];
 				$view_online[$i][2]=$row[2];
-				$view_online[$i][3]=$row[3];
+				$view_online[$i][3]=substr($row[3],0,10);
 				
 				$i++;
 		}

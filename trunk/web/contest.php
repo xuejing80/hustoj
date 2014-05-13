@@ -91,7 +91,7 @@
 				$view_private=$row->private;
 				if ($row->private && !isset($_SESSION['c'.$cid])) $contest_ok=false;
 				if ($row->defunct=='Y') $contest_ok=false;
-				if (isset($_SESSION['administrator'])) $contest_ok=true;
+				if (isset($_SESSION['administrator'])||isset($_SESSION['contest_creator'])) $contest_ok=true;
 									
 				$now=time();
 				$start_time=strtotime($row->start_time);
@@ -114,7 +114,7 @@
 				require("template/".$OJ_TEMPLATE."/error.php");
 				exit(0);
 			}
-			$sql="select * from (SELECT `problem`.`title` as `title`,`problem`.`problem_id` as `pid`,source as source
+			$sql="select * from (SELECT `problem`.`title` as `title`,`problem`.`problem_id` as `pid`,source as source,contest_problem.num as pnum
 
 		FROM `contest_problem`,`problem`
 
@@ -124,6 +124,7 @@
                 ) problem
                 left join (select problem_id pid1,count(1) accepted from solution where result=4 and contest_id=$cid group by pid1) p1 on problem.pid=p1.pid1
                 left join (select problem_id pid2,count(1) submit from solution where contest_id=$cid  group by pid2) p2 on problem.pid=p2.pid2
+		order by pnum
                 
                 ";
 
@@ -149,7 +150,8 @@
 
 }else{
 
-  $sql="SELECT * FROM `contest` WHERE `defunct`='N' ORDER BY `contest_id` DESC limit 100";
+  $sql="SELECT * FROM `contest` WHERE `defunct`='N' ORDER BY `contest_id` DESC limit 1000";
+  $sql="select *  from contest left join (select * from privilege where rightstr like 'm%') p on concat('m',contest_id)=rightstr order by contest_id desc limit 1000;";
 			$result=mysql_query($sql);
 			
 			$view_contest=Array();
@@ -191,6 +193,7 @@
                                         $view_contest[$i][4]= "<span class=blue>$MSG_Public</span>";
                                 else
                                         $view_contest[$i][5]= "<span class=red>$MSG_Private</span>";
+				$view_contest[$i][6]=$row->user_id;
 
 
 			

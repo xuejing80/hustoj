@@ -13,6 +13,10 @@
                 $scope='y';
 
         $rank = 0;
+        if(isset($_GET['user'])){
+	      $user_id=mysql_real_escape_string($_GET['user']);
+              $where="where user_id like '$user_id%'";
+        }
         if(isset( $_GET ['start'] ))
                 $rank = intval ( $_GET ['start'] );
 
@@ -24,7 +28,7 @@
                 if ($rank < 0)
                         $rank = 0;
 
-                $sql = "SELECT `user_id`,`nick`,`solved`,`submit` FROM `users` ORDER BY `solved` DESC,submit,reg_time  LIMIT  " . strval ( $rank ) . ",$page_size";
+                $sql = "SELECT `user_id`,`nick`,`solved`,`submit` FROM `users` $where ORDER BY `solved` DESC,submit,reg_time  LIMIT  " . strval ( $rank ) . ",$page_size";
 
                 if($scope){
                         $s="";

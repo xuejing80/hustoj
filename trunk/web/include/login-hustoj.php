@@ -6,7 +6,19 @@
 		$pass2 = 'No Saved';
 		session_destroy();
 		session_start();
-		$sql="INSERT INTO `loginlog` VALUES('$user_id','$pass2','".$_SERVER['REMOTE_ADDR']."',NOW())";
+                 $ip = mysql_real_escape_string($_SERVER['REMOTE_ADDR']);
+                if( !empty( $_SERVER['HTTP_X_FORWARDED_FOR'] ) ){
+
+                    $REMOTE_ADDR = $_SERVER['HTTP_X_FORWARDED_FOR'];
+
+                    $tmp_ip = explode( ',', $REMOTE_ADDR );
+
+                    $ip = $tmp_ip[0];
+
+                }
+
+
+		$sql="INSERT INTO `loginlog` VALUES('$user_id','$pass2','".$ip."',NOW())";
 		@mysql_query($sql) or die(mysql_error());
 		$sql="SELECT `user_id`,`password` FROM `users` WHERE `user_id`='".$user_id."'";
 		$result=mysql_query($sql);

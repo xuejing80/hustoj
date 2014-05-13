@@ -66,7 +66,7 @@
 						if (!$isuser || $isadmin)echo "<div style=\"border-left:10px solid gray\"><font color=red><i>Notice : <br>This reply is blocked by administrator.</i></font></div>";
 						if ($isuser || $isadmin) echo nl2br(htmlspecialchars($row->content));
 					}
-			?>
+			?></p>
 		</div>
 		<div style="text-align:left; clear:both; margin:10px 30px; font-weight:bold; color:red"></div>
 	</td>

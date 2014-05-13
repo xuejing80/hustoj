@@ -13,11 +13,15 @@
 
 <body>
 <hr>
+<h4>
 <ol>
 	<li>
 		<a class='btn btn-primary' href="watch.php" target="main"><b><?php echo $MSG_SEEOJ?></b></a>
 <?php if (isset($_SESSION['administrator'])){
 	?>
+        <li>
+                <a class='btn btn-primary' href="CEREhelp" target="main"><b><?php echo '错误提示'?></b></a>
+        
 	<li>
 		<a class='btn btn-primary' href="news_add_page.php" target="main"><b><?php echo $MSG_ADD.$MSG_NEWS?></b></a>
 	<li>
@@ -55,7 +59,7 @@ if (isset($_SESSION['administrator'])||isset( $_SESSION['password_setter'] )){
 ?><li>
 	<a class='btn btn-primary' href="changepass.php" target="main"><b><?php echo $MSG_SETPASSWORD?></b></a>
 <?php }
-if (isset($_SESSION['administrator'])){
+if (isset($_SESSION['administrator'])||isset($_SESSION['problem_editor'])){
 ?><li>
 	<a class='btn btn-primary' href="rejudge.php" target="main"><b><?php echo $MSG_REJUDGE?></b></a>
 <?php }
@@ -93,13 +97,21 @@ if (isset($OJ_ONLINE)&&$OJ_ONLINE){
 	<a class='btn btn-primary' href="http://code.google.com/p/hustoj/" target="_blank"><b>HUSTOJ</b></a>
 <li>
 	<a class='btn btn-primary' href="http://code.google.com/p/freeproblemset/" target="_blank"><b>FreeProblemSet</b></a>
+<li>
+	<a class='btn btn-primary' href="nonet.html" target="main"><b>极域断网</b></a>
 
 </ol>
 <?php if (isset($_SESSION['administrator'])&&!$OJ_SAE){
 ?>
 	<a href="problem_copy.php" target="main" title="Create your own data"><font color="eeeeee">CopyProblem</font></a> <br>
 	<a href="problem_changeid.php" target="main" title="Danger,Use it on your own risk"><font color="eeeeee">ReOrderProblem</font></a>
+   
 <?php }
 ?>
+<br>
+加题的过程比较繁琐，使用不当容易造成系统混乱，暂时不对老师开放。
+想了解系统原理请看系统<a href=../problem.php?id=1001 target=main>1001号练习题</a>。
+有加题需求的老师请将题目描述和测试数据发给10982766@qq.com。
+问题列表里是题库，竞赛和作业相当于试卷，试卷中只能使用题库已有的题目。请注意区分。
 </body>
 </html>

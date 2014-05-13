@@ -26,7 +26,7 @@ $lost_email=$_POST['email'];
    $_SESSION['lost_user_id']=$lost_user_id;
    $_SESSION['lost_key']=strtoupper(substr(MD5($user_id.rand(0,9999999)),0,16));
 
-   mail($lost_email,"DON'T REPLY THIS MAIL:Reset Password",'Your online judge password reset key is:'.$_SESSION['lost_key'], 'From: do-not-reply@hustoj.googlecode.com' );
+   mail($lost_email,"OJ系统密码重置激活","$lost_user_id:\n您好！\n您在OJ系统选择了找回密码服务,为了验证您的身份,请将下面字串输入口令重置页面以确认身份:".$_SESSION['lost_key']."\n\n\n浙江传媒学院在线评测系统", 'From: admin@hustoj.com' );
    require("template/".$OJ_TEMPLATE."/lostpassword2.php");
 
  }else{

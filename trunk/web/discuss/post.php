@@ -1,6 +1,11 @@
 <?php
         session_start();
         require_once("../include/db_info.inc.php");
+	 if (get_magic_quotes_gpc ()) {
+                $title = stripslashes ( $_POST['title']);
+                $content = stripslashes ( $_POST['content'] );
+        }
+
         if (!isset($_SESSION['user_id'])){
                 require_once("oj-header.php");
                 echo "<a href=loginpage.php>Please Login First</a>";
@@ -8,7 +13,7 @@
                 exit(0);
         }
         
-        if (strlen($_POST['content'])>5000){
+        if (strlen($_POST['content'])>500000){
                 require_once("oj-header.php");
                 echo "Your contents is too long!";
                 require_once("../oj-footer.php");
@@ -33,7 +38,7 @@
                                 $cid="'".mysql_real_escape_string($_REQUEST['cid'])."'";
                         else
                                 $cid='NULL';
-                        $sql="INSERT INTO `topic` (`title`, `author_id`, `cid`, `pid`) SELECT '".mysql_real_escape_string($_POST['title'])."', '".mysql_real_escape_string($_SESSION['user_id'])."', $cid, '".mysql_real_escape_string($pid)."'";
+                        $sql="INSERT INTO `topic` (`title`, `author_id`, `cid`, `pid`) SELECT '".mysql_real_escape_string($title)."', '".mysql_real_escape_string($_SESSION['user_id'])."', $cid, '".mysql_real_escape_string($pid)."'";
                         if($pid!=0)
                                 if($cid!='NULL')
                                         $sql.=" FROM `contest_problem` WHERE `contest_id` = $cid AND `problem_id` = '".mysql_real_escape_string($pid)."'";
@@ -54,7 +59,7 @@
         if ($_REQUEST['action']=='reply' || !is_null($tid)){
                 if(is_null($tid)) $tid=$_POST['tid'];
                 if (!is_null($tid) && array_key_exists('content', $_POST) && $_POST['content']!=''){
-                        $sql="INSERT INTO `reply` (`author_id`, `time`, `content`, `topic_id`,`ip`) SELECT '".mysql_real_escape_string($_SESSION['user_id'])."', NOW(), '".mysql_real_escape_string($_POST['content'])."', '".mysql_real_escape_string($tid)."','".$_SERVER['REMOTE_ADDR']."' FROM `topic` WHERE `tid` = '".mysql_real_escape_string($tid)."' AND `status` = 0 ";
+                        $sql="INSERT INTO `reply` (`author_id`, `time`, `content`, `topic_id`,`ip`) SELECT '".mysql_real_escape_string($_SESSION['user_id'])."', NOW(), '".mysql_real_escape_string($content)."', '".mysql_real_escape_string($tid)."','".$_SERVER['REMOTE_ADDR']."' FROM `topic` WHERE `tid` = '".mysql_real_escape_string($tid)."' AND `status` = 0 ";
                         
                         mysql_query($sql) or die (mysql_error());
                         if(mysql_affected_rows()>0)

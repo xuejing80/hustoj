@@ -19,15 +19,15 @@ if(isset($_POST['do'])){
 	$passwd=pwGen($passwd);
 	$sql="update `users` set `password`='$passwd' where `user_id`='$user_id'  and user_id not in( select user_id from privilege where rightstr='administrator') ";
 	mysql_query($sql);
-	if (mysql_affected_rows()==1) echo "Password Changed!";
-  else echo "No such user! or He/Her is an administrator!";
+	if (mysql_affected_rows()==1) echo "修改成功!";
+  else echo "用户不存在，或者是管理员所以密码不能被重置。";
 }
 ?>
 <form action='changepass.php' method=post>
-	<b>Change Password:</b><br />
-	User:<input type=text size=10 name="user_id"><br />
-	Pass:<input type=text size=10 name="passwd"><br />
+	<b>强制修改密码:</b><br />
+	学生账号:<input type=text size=10 name="user_id"><br />
+	密码重置为:<input type=text size=10 name="passwd" value="123456"><br />
 	<?php require_once("../include/set_post_key.php");?>
 	<input type='hidden' name='do' value='do'>
-	<input type=submit value='Change'>
+	<input type=submit value='进行重置'>
 </form>

@@ -14,7 +14,7 @@ if (!is_valid_user_name($user)){
 }
 $view_title=$user ."@".$OJ_NAME;
 $user_mysql=mysql_real_escape_string($user);
-$sql="SELECT `school`,`email`,`nick` FROM `users` WHERE `user_id`='$user_mysql'";
+$sql="SELECT `school`,`email`,`nick`,money FROM `users` WHERE `user_id`='$user_mysql'";
 $result=mysql_query($sql);
 $row_cnt=mysql_num_rows($result);
 if ($row_cnt==0){ 
@@ -27,6 +27,7 @@ $row=mysql_fetch_object($result);
 $school=$row->school;
 $email=$row->email;
 $nick=$row->nick;
+$money =$row->money;
 mysql_free_result($result);
 // count solved
 $sql="SELECT count(DISTINCT problem_id) as `ac` FROM `solution` WHERE `user_id`='".$user_mysql."' AND `result`=4";

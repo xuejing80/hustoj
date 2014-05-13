@@ -111,6 +111,29 @@ $location['ip'] = gethostbyname($ip); // 将输入的域名转化为IP地址
 $ip = $this->packip($location['ip']); // 将输入的IP地址转化为可比较的IP地址
 // 不合法的IP地址会被转化为255.255.255.255
 // 对分搜索
+if(preg_match('/^10\./',$location['ip'])){ 
+     $location['country']='zjicm';
+     $seg=explode('.',$location['ip']);
+     if($seg[1]=='88'){
+         $location['country']='校园无线';
+     }else{
+        switch ($seg[2]){
+         case 254: $location['country']='外网访问';
+                   break;
+         case 44 : $location['country']='X212';break;
+         case 43 : $location['country']='X506';break;
+         case 40 : $location['country']='X503';break;
+         case 44 : $location['country']='X212';break;
+         case 44 : $location['country']='X212';break;
+         case 44 : $location['country']='X212';break;
+         case 44 : $location['country']='X212';break;
+         case 44 : $location['country']='X212';break;
+         case 44 : $location['country']='X212';break;
+         case 44 : $location['country']='X212';break;
+       }
+     }
+     return $location; 
+}
 $l = 0; // 搜索的下边界
 $u = $this->totalip; // 搜索的上边界
 $findip = $this->lastip; // 如果没有找到就返回最后一条IP记录（QQWry.Dat的版本信息）

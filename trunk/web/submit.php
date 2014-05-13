@@ -21,13 +21,13 @@ if (isset($_POST['cid'])){
 			SELECT `contest_id` FROM `contest` WHERE 
 			(`end_time`>'$now' or private=1)and `defunct`='N'
 			))";
-	if(!isset($_SESSION['administrator']))
+	if(!isset($_SESSION['administrator'])&&!isset($_SESSION['problem_editor']))
 		$sql.=" and defunct='N'";
 }
 //echo $sql;	
 
 $res=mysql_query($sql);
-if ($res&&mysql_num_rows($res)<1&&!isset($_SESSION['administrator'])&&!((isset($cid)&&$cid==0)||(isset($id)&&$id==0))){
+if ($res&&mysql_num_rows($res)<1&&!isset($_SESSION['administrator'])&&!((isset($cid)&&$cid==0)||(isset($id)&&$id==0))&&!isset($_SESSION['problem_editor'])){
 		mysql_free_result($res);
 		$view_errors=  "Where do find this link? No such problem.<br>";
 		require("template/".$OJ_TEMPLATE."/error.php");
@@ -62,7 +62,7 @@ if (isset($_POST['id'])) {
 			$row=mysql_fetch_array($result);
 			$ccnt=intval($row[0]);
 			mysql_free_result($result);
-			if ($ccnt==0&&!isset($_SESSION['administrator'])){
+			if ($ccnt==0&&!isset($_SESSION['administrator'])&&!isset($_SESSION['problem_editor'])){
 				$view_errors= "You are not invited!\n";
 				require("template/".$OJ_TEMPLATE."/error.php");
 				exit(0);
@@ -97,12 +97,17 @@ $language=strval($language);
 
 
 $source=$_POST['source'];
+
 $input_text=$_POST['input_text'];
 if(get_magic_quotes_gpc()){
 	$source=stripslashes($source);
 	$input_text=stripslashes($input_text);
-
 }
+if(isset($_POST['reverse'])){
+   $source=base64_decode($source);
+}
+$source=preg_replace ( "(\r\n)", "\n", $source );
+$input_text=preg_replace ( "(\r\n)", "\n", $input_text );
 $source=mysql_real_escape_string($source);
 $input_text=mysql_real_escape_string($input_text);
 //$source=trim($source);
@@ -166,7 +171,7 @@ if((~$OJ_LANGMASK)&(1<<$language)){
 	$sql="INSERT INTO `source_code`(`solution_id`,`source`)VALUES('$insert_id','$source')";
 	mysql_query($sql);
 
-	if(!isset($pid)&&$id==0){
+	if($id==0&&(!isset($cid)||$cid==0)){
 		$sql="INSERT INTO `custominput`(`solution_id`,`input_text`)VALUES('$insert_id','$input_text')";
 		mysql_query($sql);
 	}
@@ -206,6 +211,9 @@ if((~$OJ_LANGMASK)&(1<<$language)){
   $statusURI="status.php?user_id=".$_SESSION['user_id'];
   if (isset($cid))
 	    $statusURI.="&cid=$cid";
+//       echo "reverse";
+//       return;
+//   }
 	 
    if($id!=0||$cid!=0)	
 	header("Location: $statusURI");

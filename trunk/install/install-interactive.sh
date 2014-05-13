@@ -41,7 +41,7 @@ HTTP_START="sudo /etc/init.d/httpd restart"
 echo "/usr/bin/judged" > judged
 fi
 
-sudo svn checkout http://hustoj.googlecode.com/svn/trunk/ hustoj-read-only
+sudo svn checkout https://github.com/zhblue/hustoj/branches/chinese/trunk hustoj-read-only
 
 #create user and homedir
 sudo  /usr/sbin/useradd -m -u 1536 judge

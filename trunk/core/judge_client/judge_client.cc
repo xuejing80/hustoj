@@ -180,7 +180,7 @@ void init_syscalls_limits(int lang) {
 		for (i = 0; LANG_PV[i]; i++)
 			call_counter[LANG_PV[i]] = HOJ_MAX_LIMIT;
 	} else if (lang == 3) { // Java
-		for (i = 0; LANG_JV[i]; i++)
+		for (i = 0; LANG_JV[i]||i==0; i++)
 			call_counter[LANG_JV[i]] = HOJ_MAX_LIMIT;
 	} else if (lang == 4) { // Ruby
 		for (i = 0; LANG_RV[i]; i++)

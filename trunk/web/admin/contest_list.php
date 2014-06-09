@@ -37,7 +37,7 @@ $result=mysql_query($sql) or die(mysql_error());
 
 <?php
 echo "<center><table class='table table-striped' width=100% border=1>";
-echo "<tr><td>作业编号<td>标题<td>开始时间<td>结束时间<td>公开性<td>状态<td>编辑<td>复制<td>导出题目<td>导出日志";
+echo "<tr><td>作业编号<td>标题<td>开始时间<td>结束时间<td>公开性<td>状态<td>编辑<td>延期1周<td>复制<td>导出题目<td>导出日志";
 echo "</tr>";
 for (;$row=mysql_fetch_object($result);){
         echo "<tr>";
@@ -50,6 +50,7 @@ for (;$row=mysql_fetch_object($result);){
                 echo "<td><a title='点击切换' class='btn' href=contest_pr_change.php?cid=$row->contest_id&getkey=".$_SESSION['getkey'].">".($row->private=="0"?"公开":"私有")."</a>";
                 echo "<td><a title='点击切换' class='btn'  href=contest_df_change.php?cid=$row->contest_id&getkey=".$_SESSION['getkey'].">".($row->defunct=="N"?"<span class=green>可用</span>":"<span class=red>隐藏</span>")."</a>";
                 echo "<td><a class=btn href=contest_edit.php?cid=$row->contest_id>编辑</a>";
+                echo "<td><a class=btn href=contest_delay.php?cid=$row->contest_id&getkey=".$_SESSION['getkey'].">延期</a>";
                 echo "<td><a class=btn href=contest_add.php?cid=$row->contest_id>复制</a>";
                 if(isset($_SESSION['administrator'])){
                         echo "<td><a class=btn href=\"problem_export_xml.php?cid=$row->contest_id&getkey=".$_SESSION['getkey']."\">导出题目</a>";

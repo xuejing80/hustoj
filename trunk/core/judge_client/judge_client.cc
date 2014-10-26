@@ -114,7 +114,8 @@ static char record_call=0;
 #define ZOJ_COM
 MYSQL *conn;
 
-static char lang_ext[12][8] = { "c", "cc", "pas", "java", "rb", "sh", "py", "php","pl", "cs","m","bas" };
+static char lang_ext[15][8] = { "c", "cc", "pas", "java", "rb", "sh", "py",
+        "php", "pl", "cs", "m", "bas", "scm","c","cc" };
 //static char buf[BUFFER_SIZE];
 
 long get_file_size(const char * filename) {
@@ -174,7 +175,7 @@ void init_syscalls_limits(int lang) {
                         call_counter[i] = 0;
                 }
 	}
-	 else if (lang <= 1) { // C & C++
+	 else if (lang <= 1||lang==13||lang==14) { // C & C++
 		for (i = 0; i==0||LANG_CV[i]; i++) {
 			call_counter[LANG_CV[i]] = HOJ_MAX_LIMIT;
 		}
@@ -826,6 +827,11 @@ int compile(int lang) {
     const char * CP_CS[] = { "gmcs","-warn:0", "Main.cs", NULL };
     const char * CP_OC[]={"gcc","-o","Main","Main.m","-fconstant-string-class=NSConstantString","-I","/usr/include/GNUstep/","-L","/usr/lib/GNUstep/Libraries/","-lobjc","-lgnustep-base",NULL};
     const char * CP_BS[]={"fbc","Main.bas",NULL}; 
+    const char * CP_CLANG[]={"clang", "Main.c", "-o", "Main", "-fno-asm", "-Wall",
+                    "-lm", "--static", "-std=c99", "-DONLINE_JUDGE", NULL };
+    const char * CP_CLANG_CPP[]={"clang++", "Main.cc", "-o", "Main", "-fno-asm", "-Wall",
+                    "-lm", "--static", "-std=c++0x",  "-DONLINE_JUDGE", NULL };
+
     char javac_buf[7][16];
     char *CP_J[7];
     for(int i=0;i<7;i++) CP_J[i]=javac_buf[i];
@@ -901,6 +907,12 @@ int compile(int lang) {
                 case 11:
                         execvp(CP_BS[0], (char * const *) CP_BS);
                         break;
+	        case 13:
+        	    	execvp(CP_CLANG[0], (char * const *) CP_CLANG);
+            		break;
+	        case 14:
+        	    	execvp(CP_CLANG_CPP[0], (char * const *) CP_CLANG_CPP);
+		        break;
 		default:
                         printf("nothing to do!\n");
                 }
@@ -1387,6 +1399,8 @@ void run_solution(int & lang, char * work_dir, int & time_lmt, int & usedtime,
         case 2:
 	case 10:
 	case 11:
+	case 13:
+	case 14:
                 execl("./Main", "./Main", (char *)NULL);
                 break;
         case 3:

@@ -45,7 +45,7 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <mysql/mysql.h>
-
+#include <assert.h>
 #include "okcalls.h"
 
 #define STD_MB 1048576
@@ -98,22 +98,24 @@ static int java_memory_bonus = 512;
 static char java_xms[BUFFER_SIZE];
 static char java_xmx[BUFFER_SIZE];
 static int sim_enable = 0;
-static int oi_mode=0;
-static int use_max_time=0;
+static int oi_mode = 0;
+static int use_max_time = 0;
 
-static int http_judge=0;
+static int http_judge = 0;
 static char http_baseurl[BUFFER_SIZE];
 
 static char http_username[BUFFER_SIZE];
 static char http_password[BUFFER_SIZE];
+static int shm_run = 0;
 
-static int shm_run=0;
+static char record_call = 0;
 
 //static int sleep_tmp;
 #define ZOJ_COM
 MYSQL *conn;
 
-static char lang_ext[12][8] = { "c", "cc", "pas", "java", "rb", "sh", "py", "php","pl", "cs","m","bas" };
+static char lang_ext[15][8] = { "c", "cc", "pas", "java", "rb", "sh", "py",
+        "php", "pl", "cs", "m", "bas", "scm","c","cc" };
 //static char buf[BUFFER_SIZE];
 
 long get_file_size(const char * filename)
@@ -165,93 +167,78 @@ int execute_cmd(const char * fmt, ...)
     return ret;
 }
 
-
-int call_counter[512];
-
-void init_syscalls_limits(int lang)
-{
+const int call_array_size = 512;
+int call_counter[call_array_size] = { 0 };
+static char LANG_NAME[BUFFER_SIZE];
+void init_syscalls_limits(int lang) {
     int i;
     memset(call_counter, 0, sizeof(call_counter));
     if (DEBUG)
         write_log("init_call_counter:%d", lang);
-    if (lang <= 1)   // C & C++
-    {
-        for (i = 0; LANG_CC[i]; i++)
-        {
-            call_counter[LANG_CV[i]] = LANG_CC[i];
+    if (record_call) { // C & C++
+        for (i = 0; i < call_array_size; i++) {
+            call_counter[i] = 0;
         }
+    } else if (lang <= 1||lang==13||lang==14) { // C & C++
+        for (i = 0; i==0||LANG_CV[i]; i++) {
+            call_counter[LANG_CV[i]] = HOJ_MAX_LIMIT;
+        }
+    } else if (lang == 2) { // Pascal
+        for (i = 0; i==0||LANG_PV[i]; i++)
+            call_counter[LANG_PV[i]] = HOJ_MAX_LIMIT;
+    } else if (lang == 3) { // Java
+        for (i = 0; i==0||LANG_JV[i]; i++)
+            call_counter[LANG_JV[i]] = HOJ_MAX_LIMIT;
+    } else if (lang == 4) { // Ruby
+        for (i = 0; i==0||LANG_RV[i]; i++)
+            call_counter[LANG_RV[i]] = HOJ_MAX_LIMIT;
+    } else if (lang == 5) { // Bash
+        for (i = 0; i==0||LANG_BV[i]; i++)
+            call_counter[LANG_BV[i]] = HOJ_MAX_LIMIT;
+    } else if (lang == 6) { // Python
+        for (i = 0; i==0||LANG_YV[i]; i++)
+            call_counter[LANG_YV[i]] = HOJ_MAX_LIMIT;
+    } else if (lang == 7) { // php
+        for (i = 0; i==0||LANG_PHV[i]; i++)
+            call_counter[LANG_PHV[i]] = HOJ_MAX_LIMIT;
+    } else if (lang == 8) { // perl
+        for (i = 0; i==0||LANG_PLV[i]; i++)
+            call_counter[LANG_PLV[i]] = HOJ_MAX_LIMIT;
+    } else if (lang == 9) { // mono c#
+        for (i = 0; i==0||LANG_CSV[i]; i++)
+            call_counter[LANG_CSV[i]] = HOJ_MAX_LIMIT;
+    } else if (lang == 10) { //objective c
+        for (i = 0; i==0||LANG_OV[i]; i++)
+            call_counter[LANG_OV[i]] = HOJ_MAX_LIMIT;
+    } else if (lang == 11) { //free basic
+        for (i = 0; i==0||LANG_BASICV[i]; i++)
+            call_counter[LANG_BASICV[i]] = HOJ_MAX_LIMIT;
+    } else if (lang == 12) { //scheme guile
+        for (i = 0; i==0||LANG_SV[i]; i++)
+            call_counter[LANG_SV[i]] = HOJ_MAX_LIMIT;
     }
-    else if (lang == 2)     // Pascal
-    {
-        for (i = 0; LANG_PC[i]; i++)
-            call_counter[LANG_PV[i]] = LANG_PC[i];
-    }
-    else if (lang == 3)     // Java
-    {
-        for (i = 0; LANG_JC[i]; i++)
-            call_counter[LANG_JV[i]] = LANG_JC[i];
-    }
-    else if (lang == 4)     // Ruby
-    {
-        for (i = 0; LANG_RC[i]; i++)
-            call_counter[LANG_RV[i]] = LANG_RC[i];
-    }
-    else if (lang == 5)     // Bash
-    {
-        for (i = 0; LANG_BC[i]; i++)
-            call_counter[LANG_BV[i]] = LANG_BC[i];
-    }
-    else if (lang == 6)    // Python
-    {
-        for (i = 0; LANG_YC[i]; i++)
-            call_counter[LANG_YV[i]] = LANG_YC[i];
-    }
-    else if (lang == 7)    // php
-    {
-        for (i = 0; LANG_PHC[i]; i++)
-            call_counter[LANG_PHV[i]] = LANG_PHC[i];
-    }
-    else if (lang == 8)    // perl
-    {
-        for (i = 0; LANG_PLC[i]; i++)
-            call_counter[LANG_PLV[i]] = LANG_PLC[i];
-    }
-    else if (lang == 9)    // mono c#
-    {
-        for (i = 0; LANG_CSC[i]; i++)
-            call_counter[LANG_CSV[i]] = LANG_CSC[i];
-    }
-    else if (lang==10)  //objective c
-    {
-        for (i = 0; LANG_OC[i]; i++)
-            call_counter[LANG_OV[i]] = LANG_OC[i];
-    }
-    else if (lang==11)  //free basic
-    {
-        for (i = 0; LANG_BASICC[i]; i++)
-            call_counter[LANG_BASICV[i]] = LANG_BASICC[i];
-    }
-
 
 }
 
-int after_equal(char * c)
-{
-    int i=0;
-    for(; c[i]!='\0'&&c[i]!='='; i++);
+int after_equal(char * c) {
+    int i = 0;
+    for (; c[i] != '\0' && c[i] != '='; i++)
+        ;
     return ++i;
 }
 void trim(char * c)
 {
     char buf[BUFFER_SIZE];
-    char * start,*end;
-    strcpy(buf,c);
-    start=buf;
-    while(isspace(*start)) start++;
-    end=start;
-    while(!isspace(*end)) end++;
-    *end='\0';
-    strcpy(c,start);
+    char * start, *end;
+    strcpy(buf, c);
+    start = buf;
+    while (isspace(*start))
+        start++;
+    end = start;
+    while (!isspace(*end))
+        end++;
+    *end = '\0';
+    strcpy(c, start);
 }
 bool read_buf(char * buf,const char * key,char * value)
 {
@@ -938,7 +925,11 @@ int compile(int lang)
     const char * CP_CS[] = { "gmcs","-warn:0", "Main.cs", NULL };
     const char * CP_OC[]= {"gcc","-o","Main","Main.m","-fconstant-string-class=NSConstantString","-I","/usr/include/GNUstep/","-L","/usr/lib/GNUstep/Libraries/","-lobjc","-lgnustep-base",NULL};
     const char * CP_BS[]= {"fbc","-static","Main.bas",NULL};
-    char javac_buf[4][16];
+    const char * CP_CLANG[]={"clang", "Main.c", "-o", "Main", "-fno-asm", "-Wall",
+                    "-lm", "--static", "-std=c99", "-DONLINE_JUDGE", NULL };
+    const char * CP_CLANG_CPP[]={"clang++", "Main.cc", "-o", "Main", "-fno-asm", "-Wall",
+                    "-lm", "--static", "-std=c++0x",  "-DONLINE_JUDGE", NULL };
+char javac_buf[4][16];
     char *CP_J[5];
     for(int i=0; i<4; i++) CP_J[i]=javac_buf[i];
     sprintf(CP_J[0],"javac");
@@ -971,6 +962,11 @@ int compile(int lang)
         {
             freopen("ce.txt", "w", stdout);
         }
+		execute_cmd("chown judge *");
+        while(setgid(1536)!=0) sleep(1);
+        while(setuid(1536)!=0) sleep(1);
+        while(setresuid(1536, 1536, 1536)!=0) sleep(1);
+
         switch (lang)
         {
         case 0:
@@ -1009,6 +1005,12 @@ int compile(int lang)
             break;
         case 11:
             execvp(CP_BS[0], (char * const *) CP_BS);
+            break;
+        case 13:
+            execvp(CP_CLANG[0], (char * const *) CP_CLANG);
+            break;
+        case 14:
+            execvp(CP_CLANG_CPP[0], (char * const *) CP_CLANG_CPP);
             break;
         default:
             printf("nothing to do!\n");
@@ -1521,7 +1523,9 @@ void run_solution(int & lang, char * work_dir, int & time_lmt, int & usedtime,
     case 2:
     case 10:
     case 11:
-        execl("./Main", "./Main", (char *)NULL);
+    case 13:
+    case 14:
+        execl("./Main", "./Main", (char *) NULL);
         break;
     case 3:
 //              sprintf(java_p1, "-Xms%dM", mem_lmt / 2);

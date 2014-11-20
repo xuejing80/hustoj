@@ -90,6 +90,9 @@ static char user_name[BUFFER_SIZE];
 static char password[BUFFER_SIZE];
 static char db_name[BUFFER_SIZE];
 static char oj_home[BUFFER_SIZE];
+static char data_list[BUFFER_SIZE][BUFFER_SIZE];
+static int data_list_len=0;
+
 static int port_number;
 static int max_running;
 static int sleep_time;
@@ -117,7 +120,22 @@ MYSQL *conn;
 static char lang_ext[15][8] = { "c", "cc", "pas", "java", "rb", "sh", "py",
         "php", "pl", "cs", "m", "bas", "scm","c","cc" };
 //static char buf[BUFFER_SIZE];
-
+int data_list_has(char * file){
+    for(int i=0;i<data_list_len;i++){
+        if(strcmp(data_list[i],file)==0)
+            return 1;
+    }
+    return 0;
+}
+int data_list_add(char * file){
+    if(data_list_len<BUFFER_SIZE-1){
+        strcpy(data_list[data_list_len],file);
+        data_list_len++;
+        return 0;
+    }else{
+        return 1;
+    }
+}
 long get_file_size(const char * filename) {
         struct stat f_stat;
 
@@ -1243,8 +1261,12 @@ void copy_ruby_runtime(char * work_dir) {
         copy_shell_runtime(work_dir);
         execute_cmd("mkdir %s/usr", work_dir);
         execute_cmd("mkdir %s/usr/lib", work_dir);
-        execute_cmd("cp /usr/lib/libruby* %s/usr/lib/", work_dir);
-        execute_cmd("cp /usr/bin/ruby* %s/", work_dir);
+        execute_cmd("mkdir %s/usr/lib64", work_dir);
+        execute_cmd("cp -a /usr/lib/libruby* %s/usr/lib/", work_dir);
+        execute_cmd("cp -a /usr/lib/ruby* %s/usr/lib/", work_dir);
+        execute_cmd("cp -a /usr/lib64/ruby* %s/usr/lib64/", work_dir);
+        execute_cmd("cp -a /usr/lib64/libruby* %s/usr/lib64/", work_dir);
+        execute_cmd("cp -a /usr/bin/ruby* %s/", work_dir);
 
 }
 void copy_python_runtime(char * work_dir) {
@@ -1252,8 +1274,12 @@ void copy_python_runtime(char * work_dir) {
         copy_shell_runtime(work_dir);
         execute_cmd("mkdir -p %s/usr/include", work_dir);
         execute_cmd("mkdir -p %s/usr/lib", work_dir);
+        execute_cmd("mkdir -p %s/usr/lib64", work_dir);
+        execute_cmd("mkdir -p %s/usr/local/lib", work_dir);
         execute_cmd("cp /usr/bin/python* %s/", work_dir);
         execute_cmd("cp -a /usr/lib/python* %s/usr/lib/", work_dir);
+        execute_cmd("cp -a /usr/lib64/python* %s/usr/lib64/", work_dir);
+        execute_cmd("cp -a /usr/local/lib/python* %s/usr/local/lib/", work_dir);
         execute_cmd("cp -a /usr/include/python* %s/usr/include/", work_dir);
         execute_cmd("cp -a /usr/lib/libpython* %s/usr/lib/", work_dir);
 
@@ -1857,6 +1883,7 @@ int get_test_file(char* work_dir,int p_id){
         FILE * fjobs=read_cmd_output(cmd,p_id,http_baseurl);
         while(fgets(filename,BUFFER_SIZE-1,fjobs)!=NULL){
                 sscanf(filename,"%s",filename);
+		if(http_judge&&(!data_list_has(filename))) data_list_add(filename);
                 sprintf(localfile,"%s/data/%d/%s",oj_home,p_id,filename);
                 if(DEBUG) printf("localfile[%s]\n",localfile);
                 
@@ -2121,6 +2148,8 @@ int main(int argc, char** argv) {
                 namelen = isInFile(dirp->d_name); // check if the file is *.in or not
                 if (namelen == 0)
                         continue;
+		if(http_judge&&(!data_list_has(dirp->d_name)))
+			continue;
 
                 prepare_files(dirp->d_name, namelen, infile, p_id, work_dir, outfile,
                                 userfile, runner_id);

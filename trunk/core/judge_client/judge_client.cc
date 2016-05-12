@@ -561,12 +561,12 @@ void login() {
 }
 /* write result back to database */
 void _update_solution_mysql(int solution_id, int result, int time, int memory,
-		int sim, int sim_s_id, double pass_rate) {
+		int sim, int sim_s_id, double pass_rate, char * oi_info) {
 	char sql[BUFFER_SIZE];
 	if (oi_mode) {
 		sprintf(sql,
-				"UPDATE solution SET result=%d,time=%d,memory=%d,pass_rate=%f WHERE solution_id=%d LIMIT 1%c",
-				result, time, memory, pass_rate, solution_id, 0);
+				"UPDATE solution SET result=%d,time=%d,memory=%d,pass_rate=%f,oi_info=\'{%s}\' WHERE solution_id=%d LIMIT 1%c",
+				result, time, memory, pass_rate, oi_info, solution_id, 0);
 	} else {
 		sprintf(sql,
 				"UPDATE solution SET result=%d,time=%d,memory=%d WHERE solution_id=%d LIMIT 1%c",
@@ -598,7 +598,7 @@ void _update_solution_http(int solution_id, int result, int time, int memory,
 	pclose(fjobs);
 }
 void update_solution(int solution_id, int result, int time, int memory, int sim,
-		int sim_s_id, double pass_rate) {
+		int sim_s_id, double pass_rate, char * oi_info) {
 	if (result == OJ_TL && memory == 0)
 		result = OJ_ML;
 	if (http_judge) {
@@ -606,7 +606,7 @@ void update_solution(int solution_id, int result, int time, int memory, int sim,
 				pass_rate);
 	} else {
 		_update_solution_mysql(solution_id, result, time, memory, sim, sim_s_id,
-				pass_rate);
+				pass_rate, oi_info);
 	}
 }
 /* write compile error message back to database */
@@ -2169,7 +2169,7 @@ int main(int argc, char** argv) {
 	Compile_OK = compile(lang);
 	if (Compile_OK != 0) {
 		addceinfo(solution_id);
-		update_solution(solution_id, OJ_CE, 0, 0, 0, 0, 0.0);
+		update_solution(solution_id, OJ_CE, 0, 0, 0, 0, 0.0, NULL);
 		update_user(user_id);
 		update_problem(p_id);
 		if (!http_judge)
@@ -2180,7 +2180,7 @@ int main(int argc, char** argv) {
 			write_log("compile error");
 		exit(0);
 	} else {
-		update_solution(solution_id, OJ_RI, 0, 0, 0, 0, 0.0);
+		update_solution(solution_id, OJ_RI, 0, 0, 0, 0, 0.0, NULL);
 	}
 	//exit(0);
 	// run
@@ -2207,7 +2207,7 @@ int main(int argc, char** argv) {
 	int ACflg, PEflg;
 	ACflg = PEflg = OJ_AC;
 	int namelen;
-	int usedtime = 0, topmemory = 0;
+	int usedtime = 0, topmemory = 0, oi_usedtime = 0;
 
 	//create chroot for ruby bash python
 	if (lang == 4)
@@ -2236,6 +2236,8 @@ int main(int argc, char** argv) {
 	// read files and run
 	// read files and run
 	double pass_rate = 0.0;
+	char oi_info[BUFFER_SIZE];
+	oi_info[0] = 0;
 	int num_of_test = 0;
 	int finalACflg = ACflg;
 	if (p_id == 0) {  //custom input running
@@ -2262,7 +2264,7 @@ int main(int argc, char** argv) {
 		} else {
 			addcustomout(solution_id);
 		}
-		update_solution(solution_id, OJ_TR, usedtime, topmemory >> 10, 0, 0, 0);
+		update_solution(solution_id, OJ_TR, usedtime, topmemory >> 10, 0, 0, 0, NULL);
 
 		exit(0);
 	}
@@ -2299,11 +2301,17 @@ int main(int argc, char** argv) {
 			if (use_max_time) {
 				max_case_time =
 						usedtime > max_case_time ? usedtime : max_case_time;
-				usedtime = 0;
+				oi_usedtime = usedtime;usedtime = 0;
 			}
 			//clean_session(pidApp);
 		}
 		if (oi_mode) {
+                        char temp[255];temp[0]=0;
+                        if(strlen(oi_info)==0)
+				sprintf(temp,"\"%s\":{\"result\":%d,\"memory\":%d,\"time\":%d}",dirp->d_name,ACflg,topmemory,oi_usedtime);
+                        else
+				sprintf(temp,",\"%s\":{\"result\":%d,\"memory\":%d,\"time\":%d}",dirp->d_name,ACflg,topmemory,oi_usedtime);
+                        strcat(oi_info, temp);
 			if (ACflg == OJ_AC) {
 				++pass_rate;
 			}
@@ -2339,10 +2347,10 @@ int main(int argc, char** argv) {
 		if (num_of_test > 0)
 			pass_rate /= num_of_test;
 		update_solution(solution_id, finalACflg, usedtime, topmemory >> 10, sim,
-				sim_s_id, pass_rate);
+				sim_s_id, pass_rate, oi_info);
 	} else {
 		update_solution(solution_id, ACflg, usedtime, topmemory >> 10, sim,
-				sim_s_id, 0);
+				sim_s_id, 0, NULL);
 	}
 	if ((oi_mode && finalACflg == OJ_WA) || ACflg == OJ_WA) {
 		if (DEBUG)

@@ -129,6 +129,7 @@ CREATE TABLE  `solution` (
   `judgetime` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   `pass_rate` DECIMAL(2,2) UNSIGNED NOT NULL DEFAULT 0,
   `lint_error` int UNSIGNED NOT NULL DEFAULT 0,
+  `oi_info` text,
   PRIMARY KEY (`solution_id`),
   KEY `uid` (`user_id`),
   KEY `pid` (`problem_id`),

@@ -29,11 +29,11 @@
 <?php
 ?>
 <form id=simform class=form-inline action="status.php" method="get">
-<?php echo $MSG_PROBLEM_ID?>:<input class="form-control" type=text size=4 name=problem_id value='<?php echo $problem_id?>'>
-<?php echo $MSG_USER?>:<input class="form-control" type=text size=4 name=user_id value='<?php echo $user_id?>'>
+<?php echo $MSG_PROBLEM_ID?>:<input class="form-control" type=text size=4 name=problem_id value='<?php echo  htmlspecialchars($problem_id, ENT_QUOTES) ?>'>
+<?php echo $MSG_USER?>:<input class="form-control" type=text size=4 name=user_id value='<?php echo  htmlspecialchars($user_id, ENT_QUOTES) ?>'>
 <?php if (isset($cid)) echo "<input type='hidden' name='cid' value='$cid'>";?>
 <?php echo $MSG_LANG?>:<select class="form-control" size="1" name="language">
-<?php if (isset($_GET['language'])) $language=$_GET['language'];
+<?php if (isset($_GET['language'])) $language=intval($_GET['language']);
 else $language=-1;
 if ($language<0||$language>=count($language_name)) $language=-1;
 if ($language==-1) echo "<option value='-1' selected>All</option>";
@@ -103,12 +103,12 @@ echo "<input type=submit class='form-control' value='$MSG_SEARCH'></form>";
 <th ><?php echo $MSG_USER?>
 <th ><?php echo $MSG_PROBLEM?>
 <th ><?php echo $MSG_RESULT?>
-<th ><?php echo $MSG_MEMORY?>
-<th ><?php echo $MSG_TIME?>
-<th ><?php echo $MSG_LANG?>
-<th ><?php echo $MSG_CODE_LENGTH?>
+<th class='hidden-xs' ><?php echo $MSG_MEMORY?>
+<th class='hidden-xs' ><?php echo $MSG_TIME?>
+<th class='hidden-xs' ><?php echo $MSG_LANG?>
+<th class='hidden-xs' ><?php echo $MSG_CODE_LENGTH?>
 <th ><?php echo $MSG_SUBMIT_TIME?>
-<th ><?php echo $MSG_JUDGER?>
+<th class='hidden-xs' ><?php echo $MSG_JUDGER?>
 </tr>
 </thead>
 <tbody>
@@ -119,12 +119,17 @@ if ($cnt)
 echo "<tr class='oddrow'>";
 else
 echo "<tr class='evenrow'>";
+$i=0;
 foreach($row as $table_cell){
-echo "<td>";
-echo "\t".$table_cell;
-echo "</td>";
+	if($i>3&&$i!=8)
+		echo "<td class='hidden-xs'>";
+	else
+		echo "<td>";
+	echo $table_cell;
+	echo "</td>";
+	$i++;
 }
-echo "</tr>";
+echo "</tr>\n";
 $cnt=1-$cnt;
 }
 ?>
@@ -167,7 +172,8 @@ function auto_refresh(){
 		rows[i].cells[3].className="td_result";
 	//	alert(cell);
 		var sid=rows[i].cells[0].innerHTML;
-	        for(var j=0;j<4;j++){
+		
+	        for(var j=0;i<5&&j<4;j++){
 			if(cell.indexOf(judge_result[j])!=-1){
 //			   alert(sid);
 			   fresh_result(sid);

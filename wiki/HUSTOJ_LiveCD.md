@@ -1,25 +1,17 @@
 #summary 演示和安装一体化的光盘版 a all in one CD is on the way
 #labels Featured,LiveCD,Phase-Deploy
 
-下载地址:
-http://hustoj-web.stor.sinaapp.com/hustoj2000.iso
+Download:
+14.04 LTS 版本(OJ管理员admin密码hustoj)
+* http://pan.baidu.com/s/1o78D4x0
+* http://zjjr.hustoj.com/vjudge.iso 第N+1次打包,集成vjudge
+* http://zjjr.hustoj.com/hustoj2017.iso 第N次打包
+* http://zjjr.hustoj.com/hustoj2016.iso 第3次打包
+* http://pan.baidu.com/s/1pLyHG6J  第2次打包
 
-http://hz.wkjsj.org/hustoj/hustoj2000.iso
-
-md5sum:a599d9680212bc4be7338eece3ea9659
-
-http://hz.wkjsj.org/hustoj/hustoj-forever.iso
-md5sum:0da915af922fd3f08d1ba0a8031e402e
-
-http://hz.wkjsj.org/hustoj/hustoj1725.iso
-
-http://pan.baidu.com/share/link?shareid=23135&uk=2838456172
-
-http://115.com/file/beafdwqk#hustoj-1716.iso 
-
-http://115.com/file/bevd4wb8#hustoj-1655.iso
-
-http://pan.baidu.com/netdisk/singlepublic?fid=241719_3088787629
+12.04 LTS 版本
+* http://pan.baidu.com/share/link?shareid=23135&uk=2838456172
+* http://pan.baidu.com/netdisk/singlepublic?fid=241719_3088787629
 
 
 = Introduction =
@@ -38,10 +30,18 @@ In order to help people trying HUSTOJ, here is annoucing a LiveCD
 
 = Details =
 * 本光盘是一张LiveCD，即无需安装、无需硬盘，只需要有光驱、内存大于256的x86-32bit系统即可以光盘启动方式运行。*启动时看到“键盘=人形”提示，按下人任意键进入菜单选
-* 虚拟机选第一项-试用，直接进入图形登录界面，以root/ubuntu用户登录，密码freeproblemset
+
+* 虚拟机选第一项-试用，直接进入图形登录界面，以ubuntu用户登录，密码freeproblemset，需要root可以用sudo su切换root。
+
 * 物理机选第二项-安装,按照提示输入Alt+F1进入命令行，startx进入图形界面。
 
-* 进入系统后OJ自动启动，运行Firefox即可看到入口，OJ管理员帐号密码均为admin。启动后系统包含1道题目，更多题目在/fps,也可以在线下载。管理员可以导入/fps下的FPS格式的xml文件。
+* 进入系统后OJ自动启动，运行Firefox即可看到入口
+
+* 2016版OJ管理员帐号admin密码hustoj
+
+* 2017版直接注册admin账号获得管理员权限。
+
+* 启动后系统包含1道题目，可在官方群共享下载fps文件导入。
 
 * 局域网可以访问和使用OJ，网络地址可用ifconfig在 lxterminal中查询。ubuntu用户有sudo权限。
 
@@ -58,6 +58,9 @@ In order to help people trying HUSTOJ, here is annoucing a LiveCD
 LiveCD System on k6-2 System
 *K6-2-450 320M 1G-CF*
 
-<img src=http://hustoj.googlecode.com/files/k6-2-system.JPG width=800>
-<img src=http://hustoj.googlecode.com/files/k6-2-status.JPG width=800>
-<img src=http://hustoj.googlecode.com/files/k6-2-HustOJ.JPG width=800>
+![image](https://github.com/zhblue/hustoj/blob/master/wiki/k6-2-system.jpg)
+
+![image](https://github.com/zhblue/hustoj/blob/master/wiki/k6-2-status.jpg)
+
+![image](https://github.com/zhblue/hustoj/blob/master/wiki/k6-2-HustOJ.jpg)
+

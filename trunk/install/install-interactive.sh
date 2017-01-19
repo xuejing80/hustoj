@@ -27,8 +27,8 @@ fi
 #try install tools
 if uname -a|grep 'Ubuntu\|Debian'
 then 
-sudo apt-get install make flex g++ clang libmysql++-dev php apache2 mysql-server php-mysql php-gd php-cli mono-gmcs subversion
-sudo apt-get install make flex g++ clang libmysql++-dev php5 apache2 mysql-server php5-mysql php5-gd php5-cli mono-gmcs subversion
+sudo apt-get install make flex g++ clang libmysqlclient-dev libmysql++-dev php apache2 mysql-server php-mysql php-gd php-cli mono-gmcs subversion  redis-server php-redis
+sudo apt-get install make flex g++ clang libmysqlclient-dev libmysql++-dev php5 apache2 mysql-server php5-mysql php5-gd php5-cli mono-gmcs subversion  redis-server php5-redis
 sudo /etc/init.d/mysql start
 HTTP_START="sudo /etc/init.d/apache2 restart"
 
@@ -55,7 +55,7 @@ sudo ./make.sh
 cd ../..
 #install web and db
 sudo cp -R hustoj-read-only/web $WEBBASE/JudgeOnline
-sudo chmod -R 771 $WEBBASE/JudgeOnline
+sudo chmod -R 711 $WEBBASE/JudgeOnline
 sudo chown -R $APACHEUSER $WEBBASE/JudgeOnline
 sudo mysql -h localhost -u$DBUSER -p$DBPASS < db.sql
 
@@ -69,10 +69,13 @@ sudo    mkdir /home/judge/run1
 sudo    mkdir /home/judge/run2
 sudo    mkdir /home/judge/run3
 sudo cp java0.policy  judge.conf /home/judge/etc
-sudo chown -R judge /home/judge
-sudo chgrp -R $APACHEUSER /home/judge/data
-sudo chgrp -R root /home/judge/etc /home/judge/run?
-sudo chmod 775 /home/judge /home/judge/data /home/judge/etc /home/judge/run?
+
+sudo chown -R $APACHEUSER /home/judge/data
+sudo chown -R root /home/judge/log /home/judge/etc /home/judge/run?
+sudo chmod 711 /home/judge /home/judge/data
+sudo chgrp judge /home/judge/run?
+sudo chmod 771 /home/judge/run?
+
 #update database account
 SED_CMD="s/OJ_USER_NAME=root/OJ_USER_NAME=$DBUSER/g"
 SED_CMD2="s/OJ_PASSWORD=root/OJ_PASSWORD=$DBPASS/g"
@@ -82,6 +85,8 @@ SED_CMD="s/DB_USER=\\\"root\\\"/DB_USER=\\\"$DBUSER\\\"/g"
 SED_CMD2="s/DB_PASS=\\\"root\\\"/DB_PASS=\\\"$DBPASS\\\"/g"
 
 sed $SED_CMD hustoj-read-only/web/include/db_info.inc.php|sed $SED_CMD2 >$WEBBASE/JudgeOnline/include/db_info.inc.php
+
+sudo chmod -R 000 /home/judge/etc
 
 
 #boot up judged

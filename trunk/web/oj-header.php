@@ -1,5 +1,5 @@
 <?php function checkcontest($MSG_CONTEST){
-		require_once("./include/db_info.inc.php");
+	global $mysqli,$MSG_CONTEST;
       $now=strftime("%Y-%m-%d %H:%M",time());
 		$sql="SELECT count(*) FROM `contest` WHERE `end_time`>'$now' AND `defunct`='N'";
 		$result=mysqli_query($mysqli,$sql);
@@ -17,14 +17,11 @@
                         $OJ_FAQ_LINK="faqs.$OJ_LANG.php";
                 }
     }
-
 	
-
 	if($OJ_ONLINE){
 		require_once('./include/online.php');
 		$on = new online();
 	}
-
 	$url=basename($_SERVER['REQUEST_URI']);
 	$view_marquee_msg=file_get_contents($OJ_SAE?"saestor://web/msg.txt":"./admin/msg.txt");
    
@@ -32,4 +29,3 @@
    
 	require("template/".$OJ_TEMPLATE."/oj-header.php");
 ?>
-

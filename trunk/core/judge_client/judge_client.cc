@@ -52,7 +52,7 @@
 #define STD_T_LIM 2
 #define STD_F_LIM (STD_MB<<5)
 #define STD_M_LIM (STD_MB<<7)
-#define BUFFER_SIZE 512
+#define BUFFER_SIZE 5120
 
 #define OJ_WT0 0
 #define OJ_WT1 1
@@ -316,6 +316,7 @@ void init_mysql_conf() {
 		}
 		//fclose(fp);
 	}
+//	fclose(fp);
 }
 
 int isInFile(const char fname[]) {
@@ -340,10 +341,17 @@ void find_next_nonspace(int & c1, int & c2, FILE *& f1, FILE *& f2, int & ret) {
 					c2 = fgetc(f2);
 				} while (isspace(c2));
 				continue;
+#ifdef IGNORE_ESOL
+			} else if (isspace(c1) && isspace(c2)) {
+                                  while(c2=='\n'&&isspace(c1)&&c1!='\n') c1 = fgetc(f1);
+                                  while(c1=='\n'&&isspace(c2)&&c2!='\n') c2 = fgetc(f2);
+	
+#else
 			} else if ((c1 == '\r' && c2 == '\n')) {
 				c1 = fgetc(f1);
 			} else if ((c2 == '\r' && c1 == '\n')) {
-				c2 = fgetc(f2);
+				c2 = fgetc(f2);			
+#endif
 			} else {
 				if (DEBUG)
 					printf("%d=%c\t%d=%c", c1, c1, c2, c2);
@@ -566,11 +574,11 @@ void _update_solution_mysql(int solution_id, int result, int time, int memory,
 	if (oi_mode) {
 		sprintf(sql,
 				"UPDATE solution SET result=%d,time=%d,memory=%d,pass_rate=%f,oi_info=\'{%s}\' WHERE solution_id=%d LIMIT 1%c",
-				result, time, memory, pass_rate, oi_info, solution_id, 0);
+				result, time, memory, pass_rate, oi_info, http_username, solution_id, 0);
 	} else {
 		sprintf(sql,
-				"UPDATE solution SET result=%d,time=%d,memory=%d WHERE solution_id=%d LIMIT 1%c",
-				result, time, memory, solution_id, 0);
+				"UPDATE solution SET result=%d,time=%d,memory=%d,judger='%s' WHERE solution_id=%d LIMIT 1%c",
+				result, time, memory,http_username, solution_id, 0);
 	}
 	//      printf("sql= %s\n",sql);
 	if (mysql_real_query(conn, sql, strlen(sql))) {
@@ -797,7 +805,7 @@ void _update_user_mysql(char * user_id) {
 	if (mysql_real_query(conn, sql, strlen(sql)))
 		write_log(mysql_error(conn));
 	sprintf(sql,
-			"UPDATE `users` SET `submit`=(SELECT count(*) FROM `solution` WHERE `user_id`=\'%s\') WHERE `user_id`=\'%s\'",
+			"UPDATE `users` SET `submit`=(SELECT count(*) FROM `solution` WHERE `user_id`=\'%s\' and problem_id>0) WHERE `user_id`=\'%s\'",
 			user_id, user_id);
 	if (mysql_real_query(conn, sql, strlen(sql)))
 		write_log(mysql_error(conn));
@@ -845,7 +853,7 @@ void update_problem(int pid) {
 		_update_problem_mysql(pid);
 	}
 }
-int compile(int lang) {
+int compile(int lang,char * work_dir) {
 	int pid;
 
 	const char * CP_C[] = { "gcc", "Main.c", "-o", "Main", "-fno-asm", "-Wall",
@@ -853,7 +861,7 @@ int compile(int lang) {
 	const char * CP_X[] = { "g++", "Main.cc", "-o", "Main", "-fno-asm", "-Wall",
 			"-lm", "--static", "-std=c++0x", "-DONLINE_JUDGE", NULL };
 	const char * CP_P[] =
-			{ "fpc", "Main.pas", "-O2", "-Co", "-Ct", "-Ci", NULL };
+			{ "fpc", "Main.pas","-Cs32000000","-Sh", "-O2", "-Co", "-Ct", "-Ci", NULL };
 //      const char * CP_J[] = { "javac", "-J-Xms32m", "-J-Xmx256m","-encoding","UTF-8", "Main.java",NULL };
 
 	const char * CP_R[] = { "ruby", "-c", "Main.rb", NULL };
@@ -875,7 +883,7 @@ int compile(int lang) {
 	const char * CP_LUA[] = { "luac","-o","Main", "Main.lua", NULL };
 	const char * CP_JS[] = { "js24","-c", "Main.js", NULL };
 
-	char javac_buf[7][16];
+	char javac_buf[7][32];
 	char *CP_J[7];
 
 	for (int i = 0; i < 7; i++)
@@ -896,16 +904,16 @@ int compile(int lang) {
 		LIM.rlim_cur = 60;
 		setrlimit(RLIMIT_CPU, &LIM);
 		alarm(60);
-		LIM.rlim_max = 100 * STD_MB;
-		LIM.rlim_cur = 100 * STD_MB;
+		LIM.rlim_max = 10 * STD_MB;
+		LIM.rlim_cur = 10 * STD_MB;
 		setrlimit(RLIMIT_FSIZE, &LIM);
 
 		if(lang==3){
-		   LIM.rlim_max = STD_MB << 11;
-		   LIM.rlim_cur = STD_MB << 11;	
+		   LIM.rlim_max = STD_MB <<11;
+		   LIM.rlim_cur = STD_MB <<11;	
                 }else{
-		   LIM.rlim_max = STD_MB << 10;
-		   LIM.rlim_cur = STD_MB << 10;
+		   LIM.rlim_max = STD_MB *256 ;
+		   LIM.rlim_cur = STD_MB *256 ;
 		}
 		setrlimit(RLIMIT_AS, &LIM);
 		if (lang != 2 && lang != 11) {
@@ -915,9 +923,22 @@ int compile(int lang) {
 			freopen("ce.txt", "w", stdout);
 		}
 		execute_cmd("chown judge *");
+		execute_cmd("mkdir -p bin usr lib lib64 etc/alternatives proc tmp ");
+                execute_cmd("mount -o bind /bin bin");
+                execute_cmd("mount -o bind /usr usr");
+                execute_cmd("mount -o bind /lib lib");
+#ifndef __i386
+                execute_cmd("mount -o bind /lib64 lib64");
+#endif
+                execute_cmd("mount -o bind /etc/alternatives etc/alternatives");
+                execute_cmd("mount -o bind /proc proc");
+                
+                if (lang != 3 && lang != 9 && lang != 6)
+                        chroot(work_dir);
+ 
 		while(setgid(1536)!=0) sleep(1);
-        while(setuid(1536)!=0) sleep(1);
-        while(setresuid(1536, 1536, 1536)!=0) sleep(1);
+                while(setuid(1536)!=0) sleep(1);
+                while(setresuid(1536, 1536, 1536)!=0) sleep(1);
 
 		switch (lang) {
 		case 0:
@@ -984,6 +1005,9 @@ int compile(int lang) {
 			status = get_file_size("ce.txt");
 		if (DEBUG)
 			printf("status=%d\n", status);
+		execute_cmd("/bin/umount bin usr lib lib64 etc/alternatives proc");
+ 		execute_cmd("/bin/umount *");
+ 
 		return status;
 	}
 
@@ -1235,6 +1259,7 @@ void copy_shell_runtime(char * work_dir) {
 	execute_cmd("/bin/mkdir %s/bin", work_dir);
 	execute_cmd("/bin/cp /lib/* %s/lib/", work_dir);
 	execute_cmd("/bin/cp -a /lib/i386-linux-gnu %s/lib/", work_dir);
+	execute_cmd("/bin/cp -a /usr/lib/i386-linux-gnu %s/lib/", work_dir);
 	execute_cmd("/bin/cp -a /lib/x86_64-linux-gnu %s/lib/", work_dir);
 	execute_cmd("/bin/cp /lib64/* %s/lib64/", work_dir);
 	execute_cmd("/bin/cp -a /lib32 %s/", work_dir);
@@ -1376,6 +1401,7 @@ void copy_python_runtime(char * work_dir) {
 
         copy_shell_runtime(work_dir);
         execute_cmd("mkdir -p %s/usr/include", work_dir);
+        execute_cmd("mkdir -p %s/dev", work_dir);
         execute_cmd("mkdir -p %s/usr/lib", work_dir);
         execute_cmd("mkdir -p %s/usr/lib64", work_dir);
         execute_cmd("mkdir -p %s/usr/local/lib", work_dir);
@@ -1385,6 +1411,12 @@ void copy_python_runtime(char * work_dir) {
         execute_cmd("cp -a /usr/local/lib/python* %s/usr/local/lib/", work_dir);
         execute_cmd("cp -a /usr/include/python* %s/usr/include/", work_dir);
         execute_cmd("cp -a /usr/lib/libpython* %s/usr/lib/", work_dir);
+        execute_cmd("/bin/mkdir -p %s/home/judge", work_dir);
+	execute_cmd("/bin/chown judge %s", work_dir);
+	execute_cmd("/bin/mkdir -p %s/etc", work_dir);
+	execute_cmd("/bin/grep judge /etc/passwd>%s/etc/passwd", work_dir);
+	execute_cmd("/bin/mount -o bind /dev %s/dev", work_dir);
+
 
 }
 void copy_php_runtime(char * work_dir) {
@@ -1538,6 +1570,7 @@ void run_solution(int & lang, char * work_dir, int & time_lmt, int & usedtime,
 	// proc limit
 	switch (lang) {
 	case 3:  //java
+	case 4:  //ruby
 	case 16:
 	case 12:
 		LIM.rlim_cur = LIM.rlim_max = 50;
@@ -1575,8 +1608,8 @@ void run_solution(int & lang, char * work_dir, int & time_lmt, int & usedtime,
 		execl("./Main", "./Main", (char *) NULL);
 		break;
 	case 3:
-//              sprintf(java_p1, "-Xms%dM", mem_lmt / 2);
-//              sprintf(java_p2, "-Xmx%dM", mem_lmt);
+              sprintf(java_xms, "-Xmx%dM", mem_lmt);
+              sprintf(java_xmx, "-XX:MaxPermSize=%dM", mem_lmt);
 
 		execl("/usr/bin/java", "/usr/bin/java", java_xms, java_xmx,
 				"-Djava.security.manager",
@@ -1613,11 +1646,29 @@ void run_solution(int & lang, char * work_dir, int & time_lmt, int & usedtime,
 
 	}
 	//sleep(1);
+	fflush(stderr);
 	exit(0);
 }
+int fix_python_mis_judge(char *work_dir, int & ACflg, int & topmemory,
+                int mem_lmt) {
+        int comp_res = OJ_AC;
+
+        comp_res = execute_cmd(
+                        "/bin/grep 'MemoryError'  %s/error.out", work_dir);
+
+        if (!comp_res) {
+                printf("Python need more Memory!");
+                ACflg = OJ_ML;
+                topmemory = mem_lmt * STD_MB;
+        }
+
+        return comp_res;
+}
+
 int fix_java_mis_judge(char *work_dir, int & ACflg, int & topmemory,
 		int mem_lmt) {
 	int comp_res = OJ_AC;
+	execute_cmd("chmod 700 %s/error.out", work_dir);
 	if (DEBUG)
 		execute_cmd("cat %s/error.out", work_dir);
 	comp_res = execute_cmd("/bin/grep 'Exception'  %s/error.out", work_dir);
@@ -1625,6 +1676,7 @@ int fix_java_mis_judge(char *work_dir, int & ACflg, int & topmemory,
 		printf("Exception reported\n");
 		ACflg = OJ_RE;
 	}
+	execute_cmd("cat %s/error.out", work_dir);
 
 	comp_res = execute_cmd(
 			"/bin/grep 'java.lang.OutOfMemoryError'  %s/error.out", work_dir);
@@ -1634,8 +1686,6 @@ int fix_java_mis_judge(char *work_dir, int & ACflg, int & topmemory,
 		ACflg = OJ_ML;
 		topmemory = mem_lmt * STD_MB;
 	}
-	comp_res = execute_cmd(
-			"/bin/grep 'java.lang.OutOfMemoryError'  %s/user.out", work_dir);
 
 	if (!comp_res) {
 		printf("JVM need more Memory or Threads!");
@@ -1739,6 +1789,9 @@ void judge_solution(int & ACflg, int & usedtime, int time_lmt, int isspj,
 	if (lang == 3) {
 		comp_res = fix_java_mis_judge(work_dir, ACflg, topmemory, mem_lmt);
 	}
+	if (lang == 6) {
+		comp_res = fix_python_mis_judge(work_dir, ACflg, topmemory, mem_lmt);
+	}
 }
 
 int get_page_fault_mem(struct rusage & ruse, pid_t & pidApp) {
@@ -1787,7 +1840,7 @@ void watch_solution(pid_t pidApp, char * infile, int & ACflg, int isspj,
 		wait4(pidApp, &status, 0, &ruse);
 
 //jvm gc ask VM before need,so used kernel page fault times and page size
-		if (lang == 3) {
+		if (lang == 3 || lang == 7) {
 			tempmemory = get_page_fault_mem(ruse, pidApp);
 		} else {        //other use VmPeak
 			tempmemory = get_proc_status(pidApp, "VmPeak:") << 10;
@@ -1927,13 +1980,25 @@ void watch_solution(pid_t pidApp, char * infile, int & ACflg, int isspj,
 	
 	//clean_session(pidApp);
 }
+void umount(char * work_dir){
+        execute_cmd("/bin/umount %s/proc", work_dir);
+        execute_cmd("/bin/umount %s/dev", work_dir);
+        execute_cmd("/bin/umount %s/lib", work_dir);
+        execute_cmd("/bin/umount %s/lib64", work_dir);
+        execute_cmd("/bin/umount %s/etc/alternatives", work_dir);
+        execute_cmd("/bin/umount %s/usr", work_dir);
+        execute_cmd("/bin/umount %s/bin", work_dir);
+        execute_cmd("/bin/umount %s/proc", work_dir);
+        execute_cmd("/bin/umount bin usr lib lib64 etc/alternatives proc dev");
+        execute_cmd("/bin/umount *");
+}
 void clean_workdir(char * work_dir) {
-	execute_cmd("/bin/umount %s/proc", work_dir);
-	if (DEBUG) {
-		execute_cmd("/bin/mv %s/* %slog/", work_dir, work_dir);
+	umount(work_dir);
+ 	if (DEBUG) {
+		execute_cmd("mkdir %s/log/", work_dir);
+		execute_cmd("/bin/mv %s/* %s/log/", work_dir, work_dir);
 	} else {
-		execute_cmd("/bin/rm -Rf %s/*", work_dir);
-
+		execute_cmd("/bin/rm -f %s/*", work_dir);
 	}
 
 }
@@ -2003,7 +2068,6 @@ void mk_shm_workdir(char * work_dir) {
 	char shm_path[BUFFER_SIZE];
 	sprintf(shm_path, "/dev/shm/hustoj/%s", work_dir);
 	execute_cmd("/bin/mkdir -p %s", shm_path);
-	execute_cmd("/bin/rm -rf %s", work_dir);
 	execute_cmd("/bin/ln -s %s %s/", shm_path, oj_home);
 	execute_cmd("/bin/chown judge %s ", shm_path);
 	execute_cmd("chmod 755 %s ", shm_path);
@@ -2118,13 +2182,12 @@ int main(int argc, char** argv) {
 	//set work directory to start running & judging
 	sprintf(work_dir, "%s/run%s/", oj_home, argv[2]);
 
+	clean_workdir(work_dir);
 	if (shm_run)
 		mk_shm_workdir(work_dir);
 
 	chdir(work_dir);
-	if (!DEBUG)
-		clean_workdir(work_dir);
-
+	
 	if (http_judge)
 		system("/bin/ln -s ../cookie ./");
 	get_solution_info(solution_id, p_id, user_id, lang);
@@ -2142,7 +2205,7 @@ int main(int argc, char** argv) {
 	get_solution(solution_id, work_dir, lang);
 
 	//java is lucky
-	if (lang >= 3) {
+	if (lang >= 3 && lang != 10 && lang != 13 && lang != 14) {  // Clang Clang++ not VM or Script
 		// the limit for java
 		time_lmt = time_lmt + java_time_bonus;
 		mem_lmt = mem_lmt + java_memory_bonus;
@@ -2166,7 +2229,7 @@ int main(int argc, char** argv) {
 	// set the result to compiling
 	int Compile_OK;
 
-	Compile_OK = compile(lang);
+	Compile_OK = compile(lang,work_dir);
 	if (Compile_OK != 0) {
 		addceinfo(solution_id);
 		update_solution(solution_id, OJ_CE, 0, 0, 0, 0, 0.0, NULL);
@@ -2174,13 +2237,12 @@ int main(int argc, char** argv) {
 		update_problem(p_id);
 		if (!http_judge)
 			mysql_close(conn);
-		if (!DEBUG)
-			clean_workdir(work_dir);
-		else
-			write_log("compile error");
+		clean_workdir(work_dir);
+		write_log("compile error");
 		exit(0);
 	} else {
 		update_solution(solution_id, OJ_RI, 0, 0, 0, 0, 0.0, NULL);
+		umount(work_dir);
 	}
 	//exit(0);
 	// run
@@ -2265,6 +2327,7 @@ int main(int argc, char** argv) {
 			addcustomout(solution_id);
 		}
 		update_solution(solution_id, OJ_TR, usedtime, topmemory >> 10, 0, 0, 0, NULL);
+		clean_workdir(work_dir);
 
 		exit(0);
 	}

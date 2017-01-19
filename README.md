@@ -17,7 +17,7 @@ PS: GPL保证你可以合法忽略以上注意事项但不能保证你不受鄙�
 新用户必看 README 和 FAQ
 
     快速安装指南：
-    1、安装Ubuntu
+    1、安装Ubuntu 14.04 LTS  (16.04 need the php7 branch)
     2、执行如下命令
         sudo apt-get update
         sudo apt-get install subversion
@@ -34,7 +34,11 @@ Linux新手请看鸟哥的私房菜http://vbird.dic.ksu.edu.tw/linux_basic/linux
 Linux不熟悉的用户推荐使用HUSTOJ_LiveCD或HUSTOJ_Windows进行安装
 
 livecd下载: 
-https://github.com/zhblue/hustoj/blob/master/wiki/HUSTOJ_LiveCD.wiki
+http://pan.baidu.com/s/1o78D4x0
+
+使用说明见iso中README,也可以参考wiki页
+https://github.com/zhblue/hustoj/tree/master/wiki/HUSTOJ_LiveCD.md
+
 
 用户交流qq群23361372,验证信息freeproblemset； 缺少Linux知识的请加高级服务收费群http://t.cn/SyNZhV
 
@@ -179,6 +183,7 @@ Who Used the System
     Rutgers新泽西州立大学(US) cs111 http://edsvc.cs.rutgers.edu/JudgeOnline/
     香港理工大学 http://oj.zloop.net
     长沙理工大学 http://acmore.net/ 
+    江西理工大学 http://oj.jxust.edu.cn/
 
 内网用户：
 
@@ -220,7 +225,7 @@ Who Used the System
     宁波职业技术学院
     香港中文大学 
 
-LiveCD iso 下载 https://github.com/zhblue/hustoj/blob/master/wiki/HUSTOJ_LiveCD.wiki
+LiveCD iso 下载 https://github.com/zhblue/hustoj/tree/master/wiki/HUSTOJ_LiveCD.md
 
 需要邮寄LiveCD光盘可以访问 淘宝链接，高校教师购买可享受8折优惠。 
 

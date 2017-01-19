@@ -7,9 +7,10 @@
 	$MSG_STATUS="Status";
 	$MSG_RANKLIST="Ranklist";
 	$MSG_CONTEST="Contest";
-  $MSG_RECENT_CONTEST="Recent";
+  	$MSG_RECENT_CONTEST="Recent";
 	$MSG_LOGOUT="Logout";
 	$MSG_LOGIN="Login";
+	$MSG_LOST_PASSWORD="Lost Password";
 	$MSG_REGISTER="Register";
 	$MSG_ADMIN="Admin";
 	$MSG_STANDING="Standing";
@@ -62,6 +63,7 @@ $MSG_TEST_RUN="Test Running Done";
 	$MSG_CE="CE";
 	$MSG_CO="CO";
 	$MSG_TR="Test";
+	$MSG_RESET="Reset";
 	//problemset.php
 	$MSG_SEARCH="Search";
 	$MSG_PROBLEM_ID="Problem ID";

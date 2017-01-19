@@ -54,15 +54,31 @@ if(isset($_POST['update_solution'])){
 	else
 		echo "0";
 }else if(isset($_POST['getpending'])){
-	$max_running=intval($_POST['max_running']);
-	$oj_lang_set=mysqli_real_escape_string($mysqli,$_POST['oj_lang_set']);
-	$sql="SELECT solution_id FROM solution WHERE language in ($oj_lang_set) and (result<2 or (result<4 and NOW()-judgetime>60)) ORDER BY result ASC,solution_id ASC limit $max_running";
-	$result=mysqli_query($mysqli,$sql);
-	while ($row=mysqli_fetch_object($result)){
-		echo $row->solution_id."\n";
-	}
-	mysqli_free_result($result);
-	
+        $max_running=intval($_POST['max_running']);
+        if($OJ_REDIS){
+           $redis = new Redis();
+           $redis->connect($OJ_REDISSERVER, $OJ_REDISPORT);
+           for(;$max_running>0;$max_running--){
+                $sid=$redis->rpop($OJ_REDISQNAME);
+                if($sid>0){
+                        echo $sid."\n";
+                }else{
+                        break;
+                }
+
+           }
+        }else{
+
+                $oj_lang_set=mysqli_real_escape_string($mysqli,$_POST['oj_lang_set']);
+                $sql="SELECT solution_id FROM solution WHERE language in ($oj_lang_set)
+                        and (result<2 or (result<4 and NOW()-judgetime>60)) ORDER BY result ASC,solution_id ASC limit $max_running";
+                $result=mysqli_query($mysqli,$sql);
+                while ($row=mysqli_fetch_object($result)){
+                        echo $row->solution_id."\n";
+                }
+                mysqli_free_result($result);
+        }
+
 }else if(isset($_POST['getsolutioninfo'])){
 	
 	$sid=intval($_POST['sid']);
@@ -134,7 +150,7 @@ if(isset($_POST['update_solution'])){
 	mysqli_query($mysqli,$sql);
   //  echo $sql;
 	
-	$sql="UPDATE `users` SET `submit`=(SELECT count(*) FROM `solution` WHERE `user_id`='$user_id') WHERE `user_id`='$user_id'";
+	$sql="UPDATE `users` SET `submit`=(SELECT count(*) FROM `solution` WHERE `user_id`='$user_id' and problem_id>0) WHERE `user_id`='$user_id'";
 	mysqli_query($mysqli,$sql);
   //	echo $sql;
 	

@@ -23,8 +23,17 @@ $stime=$row->time;
 $smemory=$row->memory;
 $sproblem_id=$row->problem_id;
 $view_user_id=$suser_id=$row->user_id;
+$contest_id=$row->contest_id;
+
 mysqli_free_result($result);
 
+if(isset($OJ_EXAM_CONTEST_ID)){
+	if($contest_id<$OJ_EXAM_CONTEST_ID&&!isset($_SESSION['source_browser'])){
+	header("Content-type: text/html; charset=utf-8");
+	 echo $MSG_SOURCE_NOT_ALLOWED_FOR_EXAM;
+	 exit();
+	}
+}
 
 if (isset($OJ_AUTO_SHARE)&&$OJ_AUTO_SHARE&&isset($_SESSION['user_id'])){
 	$sql="SELECT 1 FROM solution where 
@@ -43,29 +52,9 @@ if (isset($_SESSION['source_browser'])) $ok=true;
 		if($row)
 			$view_source=$row->source;
 
- if ($ok==true){
-		$brush=strtolower($language_name[$slanguage]);
-		if ($brush=='pascal') $brush='delphi';
-		if ($brush=='obj-c') $brush='c';
-		if ($brush=='freebasic') $brush='vb';
-		ob_start();
-		echo "/**************************************************************\n";
-		echo "\tProblem: $sproblem_id\n\tUser: $suser_id\n";
-		echo "\tLanguage: ".$language_name[$slanguage]."\n\tResult: ".$judge_result[$sresult]."\n";
-		if ($sresult==4){
-			echo "\tTime:".$stime." ms\n";
-			echo "\tMemory:".$smemory." kb\n";
-		}
-		echo "****************************************************************/\n\n";
-		$auth=ob_get_contents();
-		ob_end_clean();
-
-		echo (str_replace("\n\r","\n",$view_source))."\n".$auth;
-		
-	}else{
-		
-		echo "I am sorry, You could not view this code!";
-	}
+/////////////////////////Template
+require("template/".$OJ_TEMPLATE."/showsource2.php");
+/////////////////////////Common foot
 if(file_exists('./include/cache_end.php'))
 	require_once('./include/cache_end.php');
 ?>

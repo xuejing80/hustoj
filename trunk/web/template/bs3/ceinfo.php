@@ -7,7 +7,6 @@
     <meta name="description" content="">
     <meta name="author" content="">
     <link rel="icon" href="../../favicon.ico">
-
     <title><?php echo $OJ_NAME?></title>  
     <?php include("template/$OJ_TEMPLATE/css.php");?>	    
 
@@ -17,6 +16,8 @@
       <script src="http://cdn.bootcss.com/html5shiv/3.7.0/html5shiv.js"></script>
       <script src="http://cdn.bootcss.com/respond.js/1.4.2/respond.min.js"></script>
     <![endif]-->
+<link href='highlight/styles/shCore.css' rel='stylesheet' type='text/css'/>
+<link href='highlight/styles/shThemeDefault.css' rel='stylesheet' type='text/css'/>
   </head>
 
   <body>
@@ -25,9 +26,10 @@
     <?php include("template/$OJ_TEMPLATE/nav.php");?>	    
       <!-- Main component for a primary marketing message or call to action -->
       <div class="jumbotron">
- <div id='source'></div>
-<pre id='errtxt' class="alert alert-error"><?php echo $view_reinfo?></pre>
+ <div class="brush:c" id='source' name="source"></div>
+<pre class="brush:c;" id='errtxt' ><?php echo $view_reinfo?></pre>
 <div id='errexp'>Explain:</div>
+
 <script>
 var i=0;
 var pats=new Array();
@@ -146,6 +148,8 @@ pats[55]=/expected expression before ‘%’ token/
 exps[55]="scanf的格式部分需要用双引号引起";
 pats[56]=/ expected expression before ‘.*’ token/
 exps[56]="参数或表达式没写完";
+pats[57]=/expected but/
+exps[57]="错误的标点或符号";
 function explain(){
 //alert("asdf");
 var errmsg=document.getElementById("errtxt").innerHTML;
@@ -161,7 +165,6 @@ expmsg+=ret+":"+exp+"<br>";
 document.getElementById("errexp").innerHTML=expmsg;
 //alert(expmsg);
 }
-explain();
 </script>
 
       </div>
@@ -173,8 +176,33 @@ explain();
     ================================================== -->
     <!-- Placed at the end of the document so the pages load faster -->
     <?php include("template/$OJ_TEMPLATE/js.php");?>	    
+<script src='highlight/scripts/shCore.js' type='text/javascript'></script>
+<script src='highlight/scripts/shBrushCpp.js' type='text/javascript'></script>
+<script src='highlight/scripts/shBrushCss.js' type='text/javascript'></script>
+<script src='highlight/scripts/shBrushJava.js' type='text/javascript'></script>
+<script src='highlight/scripts/shBrushDelphi.js' type='text/javascript'></script>
+<script src='highlight/scripts/shBrushRuby.js' type='text/javascript'></script>
+<script src='highlight/scripts/shBrushBash.js' type='text/javascript'></script>
+<script src='highlight/scripts/shBrushPython.js' type='text/javascript'></script>
+<script src='highlight/scripts/shBrushPhp.js' type='text/javascript'></script>
+<script src='highlight/scripts/shBrushPerl.js' type='text/javascript'></script>
+<script src='highlight/scripts/shBrushCSharp.js' type='text/javascript'></script>
+<script src='highlight/scripts/shBrushVb.js' type='text/javascript'></script>
+
 <script>
-$("#source").load("showsource.php?id=<?php echo $id?> #main");
+$(document).ready(function(){
+	$("#source").load("showsource2.php?id=<?php echo $id?>",function(response,status,xhr){
+
+   	if(status=="success"){
+		SyntaxHighlighter.config.bloggerMode = false;
+		SyntaxHighlighter.config.clipboardSwf = 'highlight/scripts/clipboard.swf';
+		SyntaxHighlighter.highlight();
+		explain();
+   	}
+
+	});
+
+});
 </script>
   </body>
 </html>

@@ -1,10 +1,14 @@
 <?php @session_start();
-	ini_set("display_errors","Off");
+	ini_set("display_errors","Off");  //set this to "On" for debugging  ,especially when no reason blank shows up.
+	
+//for people using hustoj out of China , be careful of the last two line of this file !
+
+// connect db 
 static 	$DB_HOST="localhost";
 static 	$DB_NAME="jol";
 static 	$DB_USER="root";
 static 	$DB_PASS="root";
-	// connect db 
+
 static 	$OJ_NAME="HUSTOJ";
 static 	$OJ_HOME="./";
 static 	$OJ_ADMIN="root@localhost";
@@ -24,6 +28,10 @@ static  $OJ_APPENDCODE=false;
 static  $OJ_MEMCACHE=false;
 static  $OJ_MEMSERVER="127.0.0.1";
 static  $OJ_MEMPORT=11211;
+static  $OJ_REDIS=false;
+static  $OJ_REDISSERVER="127.0.0.1";
+static  $OJ_REDISPORT=6379;
+static  $OJ_REDISQNAME="hustoj";
 static  $SAE_STORAGE_ROOT="http://hustoj-web.stor.sinaapp.com/";
 static  $OJ_TEMPLATE="bs3";
 if(isset($_GET['tp'])) $OJ_TEMPLATE=$_GET['tp'];
@@ -50,8 +58,10 @@ static  $OJ_QQ_AKEY='1124518951';
 static  $OJ_QQ_ASEC='df709a1253ef8878548920718085e84b';
 static  $OJ_QQ_CBURL='192.168.0.108';
 
-
 //if(date('H')<5||date('H')>21||isset($_GET['dark'])) $OJ_CSS="dark.css";
+if( strstr($_SERVER['HTTP_ACCEPT_LANGUAGE'],"zh-CN")) {
+        $OJ_LANG="cn";
+}
 if (isset($_SESSION['OJ_LANG'])) $OJ_LANG=$_SESSION['OJ_LANG'];
 global $mysqli;
 	if($OJ_SAE)	{
@@ -70,10 +80,11 @@ global $mysqli;
 	
 	if(!mysqli_select_db($mysqli,$DB_NAME))
 		die('Can\'t use foo : ' . mysqli_error());
-	//sychronize php and mysql server
-	date_default_timezone_set("PRC");
+		
 	if(isset($OJ_CSRF)&&$OJ_CSRF&&$OJ_TEMPLATE=="bs3"&&basename($_SERVER['PHP_SELF'])!="problem_judge")
 		 require_once('csrf_check.php');
-	mysqli_query($mysqli,"SET time_zone ='+8:00'");
-	
-?>
+
+	//sychronize php and mysql server with timezone settings, dafault setting for China
+	//if you are not from China, comment out these two lines or modify them.
+	date_default_timezone_set("PRC");
+	mysqli_query($mysqli,"SET time_zone ='+8:00'");?>

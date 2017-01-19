@@ -95,7 +95,7 @@ echo"<option value=$i ".( $lastlang==$i?"selected":"").">
 <br>
 <input id=Submit class="btn btn-info" type=button value="<?php echo $MSG_SUBMIT?>" onclick=do_submit();>
 <input id=TestRun class="btn btn-info" type=button value="<?php echo $MSG_TR?>" onclick=do_test_run();><span class="btn" id=result>状态</span>
-<input type=reset class="btn btn-danger" value="重置">
+<input type=reset class="btn btn-danger" >
 </form>
 </center>
      </div>
@@ -198,8 +198,10 @@ function do_test_run(){
 if( handler_interval) window.clearInterval( handler_interval);
 var loader="<img width=18 src=image/loader.gif>";
 var tb=window.document.getElementById('result');
-tb.innerHTML=loader;
 if(typeof(eAL) != "undefined"){ eAL.toggle("source");eAL.toggle("source");}
+if($("#source").val().length<10) return alert("too short!");
+tb.innerHTML=loader;
+
 var mark="<?php echo isset($id)?'problem_id':'cid';?>";
 var problem_id=document.getElementById(mark);
 problem_id.value=-problem_id.value;

@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% block title %}登录{% endblock %}
+{% block content %}
+    <div class="row">
+        <div class="col-md-6 col-md-offset-3">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h1 class="panel-title">请登录</h1>
+                </div>
+                <div class="panel-body">
+                    <form id="vmaig-auth-login-form" class="clearfix" method="post" role="form">
+                        {% csrf_token %}
+                        <div class="form-group">
+                            <div class="input-group">
+                                <div class="input-group-addon">
+                                    <span class="glyphicon glyphicon-user"></span>
+                                </div>
+                                <input id="vmaig-auth-login-username" type="text" class="form-control"
+                                       placeholder="请输入邮箱或学号">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="input-group">
+                                <div class="input-group-addon">
+                                    <span class="glyphicon glyphicon-lock"></span>
+                                </div>
+                                <input id="vmaig-auth-login-password" type="password" class="form-control">
+                            </div>
+                        </div>
+                        <div id="vmaig-auth-forgetpassword"><a href="{% url 'forget_password' %}">忘记密码?</a></div>
+                        <button id="vmaig-auth-login-button" type="submit" class="btn btn-vmaig-auth pull-left">登录
+                        </button>
+                        <a href="{% url 'register' %}" type="button" class="btn btn-vmaig-auth pull-right">注册</a>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <script language="javascript" type="text/javascript">
+        $.ajaxSetup({
+            data: {csrfmiddlewaretoken: '{{ csrf_token }}'},
+        });
+        $('#vmaig-auth-login-form').submit(function (event) {
+            event.preventDefault();
+            $.ajax({
+                type: "POST",
+                url: "{% url 'data' 'login' %}",
+                data: {
+                    "email": $("#vmaig-auth-login-username").val(),
+                    "password": $("#vmaig-auth-login-password").val()
+                },
+
+                success: function (data, textStatus) {
+                    var errors = data["errors"];
+                    if (errors.length == 0) {
+						location.href = "{% url 'index' %}";
+                    }
+                    else {
+                        //alert(errors);
+                        var str = "";
+                        for (var key in errors) {
+                            str += errors[key] + "\n";
+                        }
+                        alert(str);
+                    }
+
+                },
+                error: function (XMLHttpRequest, textStatus, errorThrown) {
+                    alert(XMLHttpRequest.responseText);
+                }
+            });
+            return false;
+        });
+    </script>
+
+{% endblock %}
+

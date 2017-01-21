@@ -1,0 +1,62 @@
+{% extends 'base.html' %}
+{% block extrahead %}
+{% endblock %}
+{% block content %}
+
+    <p>
+    <div class="btn-group">
+        <a class="btn btn-primary btn-l" href="{% url 'choice_problem_list' %}" role="button">返回列表</a>
+        <button type="button" class="btn btn-danger" id="delete" onclick="delete_item(self)">删除此题</button>
+        <a class="btn btn-success btn-l" href="{% url 'update_choice_problem' problem.id %}"
+           role="button">重新编辑</a>
+    </div>
+    </p>
+    <table id="w0" class="table table-striped table-bordered detail-view table-hover ">
+        <tbody>
+        <tr>
+            <th>题目ID</th>
+            <td>{{ problem.id }}</td>
+        </tr>
+        <tr>
+            <th>提干</th>
+            <td>{{ problem.title }}</td>
+        </tr>
+        <tr>
+            <th>知识点</th>
+            <td>{{ knowledge_point }}</td>
+        </tr>
+        <tr>
+            <th>选项A</th>
+            <td>{{ problem.a }}</td>
+        </tr>
+        <tr>
+            <th>选项B</th>
+            <td>{{ problem.b }}</td>
+        </tr>
+        <tr>
+            <th>选项C</th>
+            <td>{{ problem.c }}</td>
+        </tr>
+        <tr>
+            <th>选项D</th>
+            <td>{{ problem.d }}</td>
+        </tr>
+        <tr>
+            <th>正确选项</th>
+            <td>{{ problem.right_answer|upper }}</td>
+        </tr>
+        <tr>
+            <th>修改时间</th>
+            <td>{{ problem.in_date }}</td>
+        </tr>
+        <tr>
+            <th>创建者</th>
+            <td>{{ problem.creater.first_name }}</td>
+        </tr>
+        <tr>
+            <th>引用权限</th>
+            <td>共享</td>
+        </tr>
+        </tbody>
+    </table>
+{% endblock %}

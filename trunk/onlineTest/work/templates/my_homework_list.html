@@ -1,0 +1,272 @@
+{% extends 'base.html' %}
+{% block title %}我的作业列表{% endblock %}
+{% block extrahead %}
+    {% load static %}
+    <script src="{% static 'assets/js/bootstrap-table.min.js' %}"></script>
+    <link href="{% static 'assets/css/bootstrap-table.min.css' %}" rel="stylesheet">
+    <script src="{% static 'assets/js/bootstrap-table-zh-CN.min.js' %}"></script>
+{% endblock %}
+{% block content %}
+    <ol class="breadcrumb">
+        <li><a href="{% url 'index' %}">主页</a></li>
+        <li class="active">作业管理</li>
+        <li class="active">我的作业列表</li>
+    </ol>
+    <h1>我的作业列表</h1>
+    <h4>请到公共作业处复制作业至此，此处作业与公共作业完全独立，您可以编辑而不影响公共作业的内容</h4>
+    <div class="btn-group">
+        <button type="button" id="remove" class="btn btn-danger"><i class="glyphicon glyphicon-remove">删除选中</i></button>
+
+        <a class="btn btn-primary btn-l" href="{% url 'add_myhomework' %}" role="button"><i
+                class="glyphicon glyphicon-plus">新建私有作业</i></a>
+    </div>
+    <div id="toolbar">
+        <div class="form-inline" role="form">
+            <div class="form-group">
+                <select class="form-control" id="classname" name="classname">
+                    <option value="0" selected="selected">全部课程</option>
+                    {% for classname in classnames %}
+                        <option value="{{ classname.pk }}">{{ classname.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <button id="ok" type="submit" class="btn btn-default">筛选</button>
+        </div>
+    </div>
+    <table id="table"
+           data-toggle="table"
+           data-url="{% url 'get_json_data' %}"
+           data-side-pagination="server"
+           data-pagination="true"
+           data-page-list="[10, 20, 50, 100, 200]"
+           data-classes="table table-hover table-condensed"
+           data-toolbar="#toolbar"
+           data-striped="true"
+           data-query-params="queryParams"
+           data-search="true"
+           data-unique-id="id"
+    >
+        <thead>
+        <tr>
+            <th data-field="state" data-checkbox="true"></th>
+            <th data-field="name" data-sortable="true" data-valign="middle">作业名称</th>
+            <th data-field="courser" data-valign="middle">所属课程</th>
+            <th data-field="start_time" data-sortable="true">开始时间</th>
+            <th data-field="end_time" data-sortable="true">结束时间</th>
+            <th data-field="id" data-valign="middle" data-formatter="editFormatter">操作</th>
+        </tr>
+        </thead>
+    </table>
+
+    <div class="modal fade" id="modalTable" tabindex="-1" role="dialog" aria-labelledby="myModalLabel"
+         aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title">布置作业“<span id="homework_title"></span>”到我的班级</h4>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="homework_id">
+                    <div id="toolbar2">
+                        <div class="form-inline" role="form">
+                            <div class="form-group">
+                                <select class="form-control" id="classname" name="classname">
+                                    <option value="0" selected="selected">全部课程</option>
+                                    {% for classname in classnames %}
+                                        <option value="{{ classname.pk }}">{{ classname.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <button id="ok2" type="submit" class="btn btn-default">筛选</button>
+
+                        </div>
+                    </div>
+                    <table id="table2"
+                           data-toggle="table"
+                           data-url="{% url 'get_banji_list' %}"
+                           data-side-pagination="server"
+                           data-pagination="true"
+                           data-page-list="[10, 20, 50, 100, 200]"
+                           data-classes="table table-hover table-condensed"
+                           data-toolbar="#toolbar2"
+                           data-striped="true"
+                           data-query-params="queryParams2"
+                           data-search="true"
+                    >
+                        <thead>
+                        <tr>
+                            <th data-field="state" data-checkbox="true"></th>
+                            <th data-field="pk" data-sortable="true" data-valign="middle">ID</th>
+                            <th data-field="name" data-sortable="true" data-valign="middle">班级名称</th>
+                            <th data-field="courser" data-valign="middle">所属课程</th>
+                            <th data-field="start_time" data-sortable="true">开始时间</th>
+                            <th data-field="end_time" data-sortable="true">结束时间</th>
+                            <th data-field="teacher">教师</th>
+                        </tr>
+                        </thead>
+                    </table>
+                </div>
+                <div class="modal-footer">
+                    <button id="assign" class="btn btn-success">布置到班级</button>
+                    <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+                </div>
+            </div><!-- /.modal-content -->
+        </div><!-- /.modal-dialog -->
+    </div><!-- /.modal -->
+
+    <div id="modal_result" class="fade modal" role="dialog" tabindex="-1" data-backdrop="static">
+        <div class="modal-dialog ">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                    <h4 class="modal-title">布置作业</h4>
+                </div>
+                <div class="modal-body">
+                    正在布置作业，请耐心等待……<br/><br/>
+                    <div id="result" name="result"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        $.ajaxSetup({
+            data: {csrfmiddlewaretoken: '{{ csrf_token }}'}
+        });
+        $table = $('#table');
+        $ok = $('#ok');
+        $ok2 = $('#ok2');
+        $table2 = $('#table2');
+        function queryParams(params) {
+            $('#toolbar').find('select[name]').each(function () {
+                params[$(this).attr('name')] = $(this).val();
+            });
+            params['my'] = true;
+            return params;
+        }
+        function queryParams2(params) {
+            $('#toolbar2').find('select[name]').each(function () {
+                params[$(this).attr('name')] = $(this).val();
+            });
+            params['my'] = true;
+            return params;
+        }
+
+        $(function () {
+            $ok.click(function () {
+                $table.bootstrapTable('refresh');
+            });
+            $ok2.click(function () {
+                $table2.bootstrapTable('refresh');
+            });
+        });
+
+        $remove = $('#remove');
+
+        function assignHomework(id) {
+            row = $table.bootstrapTable('getRowByUniqueId', id);
+            $('#modalTable').modal('show');
+            $('#homework_id').val(id);
+            $table2.bootstrapTable('refresh');
+            $("#homework_title").html(row.name)
+
+        }
+
+
+        $(function () {
+            $('#assign').click(function () {
+                var ids = $.map($table2.bootstrapTable('getSelections'), function (row) {
+                    return row.pk;
+                });
+                count = 0;
+                homework_id = $("#homework_id").val();
+                $("#homework_title").html($table.bootstrapTable('getRowByUniqueId', homework_id.name));
+                $('#result').html("");
+                $('#modal_result').modal('show');
+                count = 0;
+                setTimeout(assign_homework, 0);
+
+                function assign_homework() {
+                    if (ids.length > 0) {
+                        id = $.trim(ids.shift());
+                        if (id.length > 0) {
+                            $.ajax({
+                                type: "post",
+                                url: "{% url 'assign_homework' %}",
+                                dataType: "json",
+                                data: {homework_id: $("#homework_id").val(), id: id},
+                                success: function (data) {
+                                    if (data.result == 0) {
+                                        if (data.count > 0) {
+                                            $("#result").append("布置作业成功 <font color=green>成功</font><br/>");
+                                            count++;
+                                        } else {
+                                            $("#result").append("布置作业失败 <font color=red>失败 </font><br/>");
+                                        }
+                                        setTimeout(assign_homework, 0);
+                                    } else {
+                                        alert({
+                                            text: '信息提交过程中遇到错误：' + data.message + '！',
+                                            type: 'danger',
+                                            position: 'top-center'
+                                        });
+                                    }
+                                    //alert(data);
+                                },
+                                error: function (XMLHttpRequest, textStatus, errorThrown) {
+                                    alert({text: '保存数据时发生错误！', type: 'danger', position: 'top-center'});
+                                    //alert(errorThrown);
+                                }
+                            });
+                        } else {
+                            setTimeout(adduser, 0);
+                        }
+                    } else {
+                        $("#result").append("<br/>批量布置作业完毕，共布置" + count + "份作业。");
+                    }
+                };
+            });
+            // -->
+
+            $remove.click(function () {
+                var ids = $.map($table.bootstrapTable('getSelections'), function (row) {
+                    return row.pk;
+                });
+                if (ids.length > 0) {
+                    if (confirm("确定要删除吗？")) {
+                        $.ajax({
+                            type: 'POST',
+                            url: "{% url 'del_homework' %}",
+                            data: {'ids': ids, 'my': true},
+                            success: function (data) {
+                                if (data == 1) {
+                                    $table.bootstrapTable('refresh');
+                                    return false
+                                } else {
+                                    alert('删除失败');
+                                }
+                            },
+                            error: function () {
+                                alert("删除失败")
+                            }
+                        });
+                    }
+                } else {
+                    alert('您尚未选择作业')
+                }
+            });
+        })
+        ;
+        function editFormatter(value) {
+            return '<a class="btn btn-primary btn-xs" href="{% url '_update_my_homework'  %}' + value + '/" title="编辑" aria-label="编辑" data-pjax="0"><span class="glyphicon glyphicon glyphicon-edit"></span></a>'
+                    + ' <a class="btn btn-success btn-xs" href="{% url '_my_homework_detail'  %}' + value + '/" title="查看" aria-label="查看" data-pjax="0"><span class="glyphicon glyphicon-eye-open"></span></a>' +
+                    ' <a class="btn btn-info btn-xs" title="布置到我的班级"  onclick="assignHomework(' + value + ');return false" aria-label="布置到我的班级" data-pjax="0"><span class="glyphicon glyphicon-plus-sign"></span></a>'
+                    + ' <a class="btn btn-primary btn-xs" href="{% url '_do_homework' %}' + value + '/" title="预览作业" aria-label="预览作业" data-pjax="0"><span class="glyphicon glyphicon-list-alt"></span></a>';
+        }
+    </script>
+
+{% endblock %}

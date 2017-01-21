@@ -1,0 +1,707 @@
+{% extends 'base.html' %}
+{% block title %}{{ title }}{% endblock %}
+{% block extrahead %}
+    {% load static %}
+    <script src="{% static 'assets/js/bootstrap-table.min.js' %}"></script>
+    <link href="{% static 'assets/css/bootstrap-table.min.css' %}" rel="stylesheet">
+    <script src="{% static 'assets/js/bootstrap-table-zh-CN.min.js' %}"></script>
+    <script src="{% static 'assets/js/bootstrap-table-export.min.js' %}"></script>
+    <script src="{% static 'assets/js/tableExport.js' %}"></script>
+    <script src="{% static 'assets/js/jquery-confirm.min.js' %}"></script>
+    <link href="{% static 'assets/css/jquery-confirm.min.css' %}" rel="stylesheet">
+    <script src="{% static 'assets/js/moment/moment.min.js' %}"></script>
+    <script src="{% static 'assets/js/moment/zh-cn.js' %}"></script>
+    <link href="{% static 'assets/css/bootstrap-editable.css' %}" rel="stylesheet">
+    <link href="{% static 'assets/css/bootstrap-datetimepicker.min.css' %}"
+          rel="stylesheet">
+    <script src="{% static 'assets/js/bootstrap-datetimepicker.min.js' %}"></script>
+    <script src="{% static 'js/jquery.tablednd.js' %}"></script>
+    <link href="{% static 'assets/css/bootstrap-table-reorder-rows.min.css' %}"
+          rel="stylesheet">
+    <script src="{% static 'assets/js/bootstrap-table-reorder-rows.min.js' %}"></script>
+    <script src="{% static 'assets/js/editable/bootstrap-table-editable.min.js' %}"></script>
+    <script src="{% static 'assets/js/editable/bootstrap-editable.js' %}"></script>
+{% endblock %}
+{% block content %}
+    <ol class="breadcrumb">
+        <li><a href="{% url 'index' %}">主页</a></li>
+        <li class="active">作业管理</li>
+        <li class="active">{{ title }}</li>
+    </ol>
+    <h2>{{ title }} (共<span id="count"></span>题,共<span id="score"></span>分）</h2>
+    <form id="homework-add-form" method="post" onsubmit="return check();">
+        {% csrf_token %}
+        <div class="form-group">
+            <label for="name">作业名称</label>
+            <input type="text" class="form-control" id="name" placeholder="作业名称" required="required" name="name">
+        </div>
+
+        <div class="form-group">
+            <label for="classname">所属课程</label>
+            <select class="form-control" id="classname" name="classname">
+                <option value="0" selected="selected">请下拉选择所属课程</option>
+                {% for classname in classnames %}
+                    <option value="{{ classname.pk }}">{{ classname.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="languages">允许的编译器类型</label>
+            <label class="checkbox-inline">
+                <input type="checkbox" id="inlineCheckbox1" value="0" name="languages" checked> C
+            </label>
+            <label class="checkbox-inline">
+                <input type="checkbox" id="inlineCheckbox1" value="1" name="languages" checked> C++
+            </label>
+            <label class="checkbox-inline">
+                <input type="checkbox" id="inlineCheckbox1" value="2" name="languages" checked> Pascal
+            </label>
+            <label class="checkbox-inline">
+                <input type="checkbox" id="inlineCheckbox1" value="3" name="languages" checked> Java
+            </label>
+            <label class="checkbox-inline">
+                <input type="checkbox" id="inlineCheckbox1" value="4" name="languages" checked> Ruby
+            </label>
+            <label class="checkbox-inline">
+                <input type="checkbox" id="inlineCheckbox1" value="5" name="languages" checked> Bash
+            </label>
+            <label class="checkbox-inline">
+                <input type="checkbox" id="inlineCheckbox1" value="6" name="languages" checked> Python
+            </label>
+        </div>
+        <div class="form-group">
+            <label for="allow_resubmit">是否允许重复提交？</label>
+            <label class="checkbox-inline">
+                <input type="radio" id="allow_resubmit" value="1" name="allow_resubmit" checked>是
+            </label>
+            <label class="checkbox-inline">
+                <input type="radio" id="allow_resubmit" value="0" name="allow_resubmit">否
+            </label>
+
+        </div>
+        <div class="row">
+            <div class='col-sm-6'>
+                <div class="form-group">
+                    <label for="start_time">开始时间</label>
+                    <div class='input-group date' id='datetimepicker1'>
+                        <input type='text' class="form-control" name="start_time" id="start_time"/>
+                        <span class="input-group-addon">
+                        <span class="glyphicon glyphicon-calendar"></span>
+                    </span>
+                    </div>
+                </div>
+            </div>
+            <div class='col-sm-6'>
+                <div class="form-group">
+                    <label for="end_time">结束时间</label>
+                    <div class='input-group date' id='datetimepicker2'>
+                        <input type='text' class="form-control" name="end_time" id="end_time"/>
+                        <span class="input-group-addon">
+                        <span class="glyphicon glyphicon-calendar"></span>
+                    </span>
+                    </div>
+                </div>
+            </div>
+            <input type="hidden" id="problem-info" name="problem-info">
+            <input type="hidden" id="choice-problem-info" name="choice-problem-info">
+            <input type="hidden" id="choice-problem-ids" name="choice-problem-ids">
+            <input type="hidden" id="problem-ids" name="problem-ids">
+            <input type="hidden" id="total_score" name="total_score">
+        </div>
+        <button type="submit" class="btn btn-default">保存</button>
+    </form>
+
+    <p>
+    <p>
+    <h3>已选选择题（共<span id="choice_count">0</span>题，共<span id="choice_score">0</span>分）（拖动进行排序）</h3>
+    <div class="btn-group">
+        <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#modalTable2">
+            添加选择题
+        </button>
+        <button type="button" class="btn btn-danger" id="remove2">
+            移除所选项
+        </button>
+        <div class="btn-group">
+            <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
+                批量修改选择题分数
+                <span class="caret"></span>
+            </button>
+            <ul class="dropdown-menu" role="menu">
+                <li><a href="javascript:void(0)" onclick="quick_change_score(1)">每题1分</a></li>
+                <li><a href="javascript:void(0)" onclick="quick_change_score(2)">每题2分</a></li>
+                <li><a href="javascript:void(0)" onclick="quick_change_score(3)">每题3分</a></li>
+                <li><a href="javascript:void(0)" onclick="quick_change_score(4)">每题4分</a></li>
+                <li><a href="javascript:void(0)" onclick="quick_change_score(5)">每题5分</a></li>
+                <li><a href="javascript:void(0)" onclick="quick_change_score(6)">每题6分</a></li>
+                <li><a href="javascript:void(0)" onclick="quick_change_score(7)">每题7分</a></li>
+                <li><a href="javascript:void(0)" onclick="quick_change_score(8)">每题8分</a></li>
+                <li><a href="javascript:void(0)" onclick="quick_change_score(9)">每题9分</a></li>
+                <li><a href="javascript:void(0)" onclick="quick_change_score(10)">每题10分</a></li>
+                <li><a href="javascript:void(0)" onclick="quick_change_score(11)">每题11分</a></li>
+                <li><a href="javascript:void(0)" onclick="quick_change_score(12)">每题12分</a></li>
+                <li><a href="javascript:void(0)" onclick="quick_change_score(13)">每题13分</a></li>
+                <li><a href="javascript:void(0)" onclick="quick_change_score(14)">每题14分</a></li>
+                <li><a href="javascript:void(0)" onclick="quick_change_score(15)">每题15分</a></li>
+            </ul>
+        </div>
+    </div>
+    </p>
+
+    <div class="modal fade" id="modalTable2" tabindex="-1" role="dialog" aria-labelledby="myModalLabel"
+         aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title">添加选择题</h4>
+                </div>
+                <div class="modal-body">
+                    <div id="toolbar2">
+                        <div class="form-inline" role="form">
+                            <div class="form-group">
+                                <select class="form-control" id="classname" name="classname">
+                                    <option value="0" selected="selected">全部课程</option>
+                                    {% for classname in classnames %}
+                                        <option value="{{ classname.pk }}">{{ classname.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <select class="form-control" id="id_knowledgePoint1" name="knowledgePoint1">
+                                    <option value="0" selected="selected">全部一级知识点</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+
+                                <select class="form-control" id="id_knowledgePoint2" name="knowledgePoint2">
+                                    <option value="0" selected="selected">全部二级知识点</option>
+                                </select>
+                            </div>
+                            <button id="ok2" type="submit" class="btn btn-default">筛选</button>
+                        </div>
+                    </div>
+                    <table id="table3"
+                           data-toggle="table"
+                           data-url="{% url 'get_json' 'ChoiceProblem' %}"
+                           data-side-pagination="server"
+                           data-pagination="true"
+                           data-page-list="[1, 20, 50, 100, 200]"
+                           data-classes="table table-hover table-condensed"
+                           data-toolbar="#toolbar2"
+                           data-striped="true"
+                           data-query-params="queryParams2"
+                           data-search="true"
+                    >
+                        <thead>
+                        <tr>
+                            <th data-field="state" data-checkbox="true" data-formatter="stateFormatter2"></th>
+                            <th data-field="pk" data-sortable="true" data-valign="middle">ID</th>
+                            <th data-field="title" data-sortable="true" data-valign="middle">标题</th>
+                            <th data-field="knowledge_point" data-valign="middle"> 知识点</th>
+                            <th data-field="update_date" data-sortable="true" data-valign="middle">最后修改日期</th>
+                            <th data-field="id" data-valign="middle"></th>
+                        </tr>
+                        </thead>
+                    </table>
+                </div>
+                <div class="modal-footer">
+                    <button id="get_select2" class="btn btn-success">添加所选到列表</button>
+                    <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+                </div>
+            </div><!-- /.modal-content -->
+        </div><!-- /.modal-dialog -->
+    </div><!-- /.modal -->
+
+
+    <table id="table4"
+           data-toggle="table"
+           data-pagination="true"
+           data-page-list="[10, 20, 50, 100, 200]"
+           data-classes="table table-hover table-condensed"
+           data-striped="true"
+           data-use-row-attr-func="true"
+           data-unique-id="pk"
+           data-reorderable-rows="true"
+    >
+        <thead>
+        <tr>
+            <th data-field="state" data-checkbox="true"></th>
+            <th data-field="pk" data-valign="middle">ID</th>
+            <th data-field="title" data-valign="middle">标题</th>
+            <th data-field="knowledge_point" data-valign="middle"> 知识点</th>
+            <th data-field="total_score" data-editable="true">分数</th>
+            <th data-field="update_date" data-valign="middle">最后修改日期</th>
+        </tr>
+        </thead>
+    </table>
+
+    <p>
+    <h3>已选编程题(共<span id="problem_count"></span>题目，共<span id="problem_score"></span>分)（拖动进行排序）</h3>
+    <div class="btn-group">
+        <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#modalTable">
+            添加编程题
+        </button>
+        <button type="button" class="btn btn-danger" id="remove">
+            移除所选项
+        </button>
+    </div>
+    </p>
+
+    <div class="modal fade" id="modalTable" tabindex="-1" role="dialog" aria-labelledby="myModalLabel"
+         aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title">添加编程题</h4>
+                </div>
+                <div class="modal-body">
+                    <div id="toolbar">
+                        <div class="form-inline" role="form">
+                            <div class="form-group">
+                                <select class="form-control" id="classname" name="classname">
+                                    <option value="0" selected="selected">全部课程</option>
+                                    {% for classname in classnames %}
+                                        <option value="{{ classname.pk }}">{{ classname.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <select class="form-control" id="id_knowledgePoint1" name="knowledgePoint1">
+                                    <option value="0" selected="selected">全部一级知识点</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+
+                                <select class="form-control" id="id_knowledgePoint2" name="knowledgePoint2">
+                                    <option value="0" selected="selected">全部二级知识点</option>
+                                </select>
+                            </div>
+                            <button id="ok" type="submit" class="btn btn-default">筛选</button>
+                        </div>
+                    </div>
+                    <table id="table"
+                           data-toggle="table"
+                           data-url="{% url 'get_json' 'Problem' %}"
+                           data-side-pagination="server"
+                           data-pagination="true"
+                           data-page-list="[1, 20, 50, 100, 200]"
+                           data-classes="table table-hover table-condensed"
+                           data-toolbar="#toolbar"
+                           data-striped="true"
+                           data-query-params="queryParams"
+                           data-search="true"
+                    >
+                        <thead>
+                        <tr>
+                            <th data-field="state" data-checkbox="true" data-formatter="stateFormatter"></th>
+                            <th data-field="pk" data-sortable="true" data-valign="middle">ID</th>
+                            <th data-field="title" data-sortable="true" data-valign="middle">标题</th>
+                            <th data-field="knowledge_point" data-valign="middle"> 知识点</th>
+                            <th data-field="total_score">总分</th>
+                            <th data-field="tsetcases" data-visible="false"></th>
+                            <th data-field="update_date" data-sortable="true" data-valign="middle">最后修改日期</th>
+                            {#                            <th data-field="id" data-valign="middle"></th>#}
+                        </tr>
+                        </thead>
+                    </table>
+                </div>
+                <div class="modal-footer">
+                    <button id="get_select" class="btn btn-success">添加所选到列表</button>
+                    <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+                </div>
+            </div><!-- /.modal-content -->
+        </div><!-- /.modal-dialog -->
+    </div><!-- /.modal -->
+
+    <table id="table2"
+           data-toggle="table"
+           data-pagination="true"
+           data-page-list="[10, 20, 50, 100, 200]"
+           data-classes="table table-hover table-condensed"
+           data-striped="true"
+           data-use-row-attr-func="true"
+           data-reorderable-rows="true"
+           data-unique-id="pk"
+    >
+        <thead>
+        <tr>
+            <th data-field="state" data-checkbox="true"></th>
+            <th data-field="pk" data-valign="middle">ID</th>
+            <th data-field="title" data-valign="middle">标题</th>
+            <th data-field="knowledge_point" data-valign="middle">知识点</th>
+            <th data-field="total_score">总分</th>
+            <th data-field="tsetcases" data-visible="false"></th>
+            <th data-field="update_date" data-valign="middle">最后修改日期</th>
+            <th data-field="action" data-formatter="actionFormatter" data-events="actionEvents">操作</th>
+        </tr>
+        </thead>
+    </table>
+    <div id="modal_tc" class="fade modal" role="dialog" tabindex="-1" data-backdrop="static">
+        <div class="modal-dialog ">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                            aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title">修改编程题信息：
+                        <label id="title"></label>
+                    </h4>
+                </div>
+                <div class="modal-body">
+                    <div id="result_tc" name="result_bc"></div>
+                    <input type="hidden" id="problem_id">
+                </div>
+                <div class="modal-footer">
+                    <button id="done_tc" name="done_tc" type="button" class="btn btn-default" data-dismiss="modal">
+                        保存修改
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script type="text/javascript">
+        $(function () {
+            $('#datetimepicker1').datetimepicker(
+                    {
+                        format: 'YYYY-MM-DD HH:mm:ss',
+                        sideBySide: true,
+                        defaultDate: moment()
+                    }
+            );
+        });
+        $(function () {
+            $('#datetimepicker2').datetimepicker(
+                    {
+                        format: 'YYYY-MM-DD HH:mm:ss', sideBySide: true,
+                        defaultDate: moment("23:59:59", "HH-mm-ss").add(7, 'days')
+                    }
+            )
+            ;
+        });
+        function actionFormatter(value, row, index) {
+            return [
+                '<a class="like" href="javascript:void(0)" title="修改分值信息">',
+                '<i class="glyphicon glyphicon-wrench"></i>',
+                '</a>']
+        }
+        window.actionEvents = {
+            'click .like': function (e, value, row, index) {
+                id = row.id;
+                title = row.title;
+                score = $.map(row.testcases, function (item) {
+                    return item.score
+                });
+                infos = $.map(row.testcases, function (item) {
+                    return item.info
+                });
+                descs = $.map(row.testcases, function (item) {
+                    return item.desc
+                });
+                var html = '<form class="form-horizontal">';
+                for (var i = 1; i <= score.length; i++) {
+                    html += '<div class="panel panel-default">' +
+                            '<input type="hidden" id="desc" value="' + descs[i - 1] + '">' +
+                            '<div class="panel-body">' +
+                            '<div class="form-group">' +
+                            '<label class="col-sm-2 control-label">测试点' + '<span class="desc">' + descs[i - 1] + '</span>' + '</label>' +
+                            '<div class="col-sm-6">' +
+                            '<input type="text" class="form-control" id="info" value="' + infos[i - 1] + '">' +
+                            '</div>' +
+                            '</div>' +
+                            '<div class="form-group">' +
+                            '<label class="col-sm-2 control-label">分值</label><div class="col-sm-2"><input type="text" class="form-control" id="score" value="' + score[i - 1] + '"></div></div></div></div>';
+                }
+                html += "</form>";
+                $('#result_tc').html(html);
+                $('#modal_tc').find("#title").text(title);
+                $('#modal_tc').find("#problem_id").text(id);
+                $('#modal_tc').modal('show');
+            }
+        };
+    </script>
+
+    <script>
+        function check() {
+            if ($("#classname").val() == 0) {
+                alert("请选择课程");
+                return false;
+            } else {
+                $("#problem-ids").val($.map($table2.bootstrapTable('getData'), function (row) {
+                    return row.pk;
+                }).toString());
+                $("#choice-problem-ids").val($.map($table4.bootstrapTable('getData'), function (row) {
+                    return row.pk;
+                }).toString());
+                $('#problem-info').val(JSON.stringify($table2.bootstrapTable('getData')));
+                $('#choice-problem-info').val(JSON.stringify($table4.bootstrapTable('getData')));
+                $('#total_score').val($("#score").text())
+            }
+
+        }
+    </script>
+
+    <script>
+        var $table = $('#table');
+        var $table2 = $('#table2');
+        var $table3 = $('#table3');
+        var $table4 = $('#table4');
+        $ok2 = $('#ok2');
+        $(function () {
+            $ok2.click(function () {
+                $table3.bootstrapTable('refresh');
+            });
+        });
+        $ok = $('#ok');
+        $(function () {
+            $ok.click(function () {
+                $table.bootstrapTable('refresh');
+            });
+        });
+        function queryParams(params) {
+            $('#toolbar').find('select[name]').each(function () {
+                params[$(this).attr('name')] = $(this).val();
+            });
+            return params;
+        }
+
+        function queryParams2(params) {
+            $('#toolbar2').find('select[name]').each(function () {
+                params[$(this).attr('name')] = $(this).val();
+            });
+            return params;
+        }
+
+        var $get_select = $('#get_select');
+        var $get_select2 = $('#get_select2');
+        $(function () {
+            $get_select.click(function () {
+                var ids = $.map($table2.bootstrapTable('getData'), function (row) {
+                    return row.pk;
+                });
+                $.each($table.bootstrapTable('getAllSelections'), function (i, item) {
+                    if ($.inArray(item.pk, ids) == -1) {
+                        $table2.bootstrapTable('insertRow', {index: 0, row: item});
+                    }
+                });
+                $table.bootstrapTable('refresh');
+            });
+            $get_select2.click(function () {
+                var ids = $.map($table4.bootstrapTable('getData'), function (row) {
+                    return row.pk;
+                });
+                $.each($table3.bootstrapTable('getAllSelections'), function (i, item) {
+                    if ($.inArray(item.pk, ids) == -1) {
+                        $table4.bootstrapTable('insertRow', {index: 0, row: item});
+                    }
+                });
+                $table3.bootstrapTable('refresh');
+            });
+        });
+    </script>
+
+    <script>
+        $.ajaxSetup({
+            data: {csrfmiddlewaretoken: '{{ csrf_token }}'}
+        });
+        jQuery(document).ready(function () {
+            $("[name='classname']").change(function () {
+                $("[name='knowledgePoint2']").empty();
+                $("[name='knowledgePoint2']").append("<option value=\"0\">全部二级知识点</option>");
+                $("[name='knowledgePoint1']").empty();
+                $("[name='knowledgePoint1']").append("<option value=\"0\">全部一级知识点</option>");
+                $.ajax({
+                    type: "post",
+                    url: "{% url 'select_point' %}",
+                    dataType: "json",
+                    data: {'course': $(this).val(), 'parent': 0},
+                    success: function (data) {
+                        for (var p in data) {
+                            $("[name='knowledgePoint1']").append("<option value=\"" + p + "\">" + data [p] + "</option>");
+                        }
+                    }
+                });
+            });
+            $("[name='knowledgePoint1']").change(function () {
+                $("[name='knowledgePoint2']").empty();
+                $("[name='knowledgePoint2']").append("<option value=\"0\">全部二级知识点</option>");
+                $.ajax({
+                    type: "post",
+                    url: "{% url 'select_point' %}",
+                    dataType: "json",
+                    data: {'parent': $(this).val()},
+                    success: function (data) {
+                        for (var p in data) {
+                            $("[name='knowledgePoint2']").append("<option value=\"" + p + "\">" + data [p] + "</option>");
+                        }
+                    }
+                });
+            });
+        })
+
+    </script>
+
+    <script>
+        function stateFormatter(value, row, index) {
+            var ids = $.map($table2.bootstrapTable('getData'), function (row) {
+                return row.pk;
+            });
+            if ($.inArray(row.pk, ids) != -1) {
+                return {
+                    disabled: true,
+                    checked: true
+                }
+            }
+            return value;
+        }
+        function stateFormatter2(value, row, index) {
+            var ids = $.map($table4.bootstrapTable('getData'), function (row) {
+                return row.pk;
+            });
+            if ($.inArray(row.pk, ids) != -1) {
+                return {
+                    disabled: true,
+                    checked: true
+                }
+            }
+            return value;
+        }
+        $remove = $('#remove');
+        $remove2 = $('#remove2');
+        $(function () {
+            $remove.click(function () {
+                var ids = $.map($table2.bootstrapTable('getSelections'), function (row) {
+                    return row.pk;
+                });
+                if (ids.length > 0) {
+                    $table2.bootstrapTable('remove', {
+                        field: 'pk',
+                        values: ids
+                    });
+                    $table.bootstrapTable('refresh');
+                } else {
+                    alert('您尚未选择题目')
+                }
+            });
+        });
+        $(function () {
+            $remove2.click(function () {
+                var ids = $.map($table4.bootstrapTable('getSelections'), function (row) {
+                    return row.pk;
+                });
+                if (ids.length > 0) {
+                    $table4.bootstrapTable('remove', {
+                        field: 'pk',
+                        values: ids
+                    });
+                    $table3.bootstrapTable('refresh');
+                } else {
+                    alert('您尚未选择题目')
+                }
+            });
+        });
+        $('#done_tc').click(function () {
+            id = +$("#modal_tc").find("#problem_id").text();
+            var testcases = [];
+            var totalscore = 0;
+            $("#modal_tc").find(".panel").each(function () {
+                var desc = $(this).find("#desc").val()
+                var info = $(this).find("#info").val();
+                var score = $(this).find("#score").val();
+                totalscore += parseInt(score);
+                testcases.push({'info': info, 'score': score, 'desc': desc})
+            });
+            var row = $table2.bootstrapTable('getRowByUniqueId', id);
+            row.total_score = totalscore;
+            row.testcases = testcases;
+            console.log(row.testcases)
+            $table2.bootstrapTable('updateByUniqueId', {
+                id: id,
+                row: row
+            });
+        });
+    </script>
+    <script>
+        $(function () {
+            if (window.location.pathname.indexOf('add-homework') == -1) {
+                $('input[name=languages]').attr("checked", false);
+                setTimeout(function () {
+                            $("#name").val('{{ name }}');
+                            $('#datetimepicker1').data("DateTimePicker").date('{{ start_time }}');
+                            $('#datetimepicker2').data("DateTimePicker").date('{{ end_time }}');
+                            $("#classname option[value='{{ courser_id }}']").attr("selected", true);
+                            $('#allow_resubmit[value="{{ allow_resubmit }}"]').attr('checked', true);
+                            data = window.location.pathname.split('-').pop();
+                            $.ajax({
+                                type: "post",
+                                url: "{% url 'get_homework_info' %}",
+                                dataType: "json",
+                                data: {
+                                    'homework_id': data.replace("/", ""), 'my': window.location.pathname.indexOf('my') != -1
+                                },
+                                success: function (data) {
+                                    $table4.bootstrapTable('append', data.choice_problem_info);
+                                    $table2.bootstrapTable('append', data.problem_info);
+                                }
+                            })
+                            ;
+                            for (var i = 0; i < "{{ languages }}".split(',').length; i++) {
+                                id = "{{ languages }}".split(',')[i];
+                                $("input[name=languages][value=" + id + "]").prop("checked", true)
+                            }
+                        }, 0
+                );
+
+            }
+        });
+    </script>
+    <script>
+        $table4.bind('DOMNodeInserted', function () {
+            var score = 0;
+            var count = 0;
+            $.each($table4.bootstrapTable('getData'), function (i, item) {
+                if (item.total_score) {
+                    count += 1;
+                    score += parseInt(item.total_score);
+                }
+            });
+            $('#choice_score').html(score);
+            $('#choice_count').html(count);
+            fresh_score()
+        });
+
+        $table2.bind('DOMNodeInserted', function () {
+            var count = 0;
+            var score = 0;
+            $.each($table2.bootstrapTable('getData'), function (i, item) {
+                if (item.total_score) {
+                    score += parseInt(item.total_score);
+                    count += 1;
+                }
+
+            });
+            $('#problem_score').html(score);
+            $('#problem_count').html(count);
+            fresh_score()
+
+        });
+        function fresh_score() {
+            $("#count").html(parseInt($('#choice_count').text()) + parseInt($('#problem_count').text()));
+            $("#score").html(parseInt($('#choice_score').text()) + parseInt($('#problem_score').text()));
+        }
+
+        function quick_change_score(score) {
+            $.each($table4.bootstrapTable('getData'), function (i, item) {
+                if (item.total_score) {
+                    item.total_score=score;
+                    $table4.bootstrapTable('updateByUniqueId', {id: item.id, row: item});
+                }
+            });
+        }
+    </script>
+{% endblock %}

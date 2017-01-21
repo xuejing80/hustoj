@@ -1,0 +1,93 @@
+{% extends 'base.html' %}
+{% block extrahead %}
+    {% load static %}
+    <script src="{% static 'assets/js/jquery-confirm.min.js' %}"></script>
+    <link href="{% static 'assets/css/jquery-confirm.min.css' %}" rel="stylesheet">
+{% endblock %}
+{% block content %}
+    <ol class="breadcrumb">
+        <li><a href="{% url 'index' %}">主页</a></li>
+        <li class="active">课程管理</li>
+        <li class="active">课程列表</li>
+    </ol>
+    <button onclick="add_courser()" type="button" class="btn btn-success">新建课程</button>
+    <br>
+    <table class="table">
+        <thead>
+        <tr>
+            <th>名称</th>
+            <th>一级知识点数量</th>
+            <th>操作</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for courser in coursers %}
+            <tr>
+                <th><a href="{% url 'list_kp1s' courser.id %}">{{ courser.name }}</a></th>
+                <th>{{ courser.knowledgepoint1_set.count }}</th>
+                <th>
+                    <button type="button" class="btn btn-danger btn-xs"
+                            onclick="del_courser({{ courser.id }})"><span class="glyphicon glyphicon-trash"
+                                                                          aria-hidden="true"></span></button>
+                </th>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    <script>
+        function del_courser(id) {
+            $.confirm({
+                content: '确定要删除这个课程吗？',
+                title: '确认删除',
+                confirmButton: '我确认',
+                cancelButton: '取消',
+                confirm: function () {
+                    $.ajax({
+                        url: '{% url 'delete_courser' %}',
+                        dataType: 'json',
+                        method: 'post',
+                        data: {'id': id}
+                    }).done(function (response) {
+                        if (response == 1) {
+                            location.reload();
+                            return true
+                        } else {
+                            self.setContent('删除时出现问题');
+                            return false
+                        }
+                    }).fail(function () {
+                        self.setContent('数据传输时出现问题');
+                        return false
+                    });
+                }
+            });
+        }
+
+        function add_courser() {
+            $.confirm({
+                title: '新建课程',
+                content: '请输入课程名称 <input class="form-control" id="courser_name" type="text" placeholder="输入课程名称"/>',
+                confirm: function () {
+                    $.ajax({
+                        url: '{% url 'add_courser' %}',
+                        dataType: 'json',
+                        method: 'post',
+                        data: {'name': $('#courser_name').val()}
+                    }).done(function (response) {
+                        if (response == 1) {
+                            $.alert('创建成功！');
+                            location.reload();
+                            return true
+                        } else {
+                            self.setContent('创建时出现问题');
+                            return false
+                        }
+                    }).fail(function () {
+                        self.setContent('数据传输时出现问题');
+                        return false
+                    });
+                }
+            });
+        }
+    </script>
+{% endblock %}

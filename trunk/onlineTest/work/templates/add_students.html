@@ -1,0 +1,96 @@
+{% extends 'base.html' %}
+{% block title %}批量添加学生{% endblock %}
+{% block content %}
+    <ol class="breadcrumb">
+        <li><a href="{% url 'index' %}">主页</a></li>
+        <li class="active"><a href="{% url 'banji_list' %}">班级管理</a></li>
+        <li class="active">批量添加学生到班级</li>
+    </ol>
+    <h3>批量添加学生账号</h3>
+    <form>
+        <input type="hidden" name="banji_id" id="banji_id" value="{{ id }}">
+        <p><textarea name="stu_detail" id="stu_detail" class="form-control" rows="10"
+                     placeholder="学生账号信息格式为：一行一个学生，每行的前两个字段是学号和真实姓名，初始密码同用户名，初始邮箱为南邮邮箱，字段之间用空格分隔"></textarea>
+        <p><input type="button" class="btn btn-primary" name="submit_stu" id="submit_stu" value="提交学生账号信息"/>
+    </form>
+
+    <style type="text/css">
+        .modal-body {
+            height: 300px;
+            overflow: auto;
+        }
+    </style>
+
+
+    <div id="modal_result" class="fade modal" role="dialog" tabindex="-1" data-backdrop="static">
+        <div class="modal-dialog ">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                    <h4 class="modal-title">批量添加学生账号</h4>
+                </div>
+                <div class="modal-body">
+                    批量添加学生账号信息的操作可能会耗费比较长的时间，请耐心等待……<br/><br/>
+                    <div id="result" name="result"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        dataPara = null;
+        count = 0;
+        $(function () {
+            $("#submit_stu").click(function () {
+                $('#result').html("");
+                $('#modal_result').modal('show');
+                dataPara = $("#stu_detail").val().split("\n");
+                count = 0;
+                setTimeout(adduser, 0);
+            });
+
+            function adduser() {
+                if (dataPara.length > 0) {
+                    stu = $.trim(dataPara.shift());
+                    if (stu.length > 0) {
+                        $.ajax({
+                            type: "post",
+                            url: "{% url 'ajax_add_students' %}",
+                            dataType: "json",
+                            data: {stu_detail: stu, banji_id: $("#banji_id").val()},
+                            success: function (data) {
+                                if (data.result == 0) {
+                                    if (data.count > 0) {
+                                        $("#result").append("添加学生 " + stu + " 到本班级：<font color=green>成功</font><br/>");
+                                        count++;
+                                    } else {
+                                        $("#result").append("添加学生 " + stu + " 到本班级：<font color=red>失败：" + data.message + "</font><br/>");
+                                    }
+                                    setTimeout(adduser, 0);
+                                } else {
+                                    alert({
+                                        text: '信息提交过程中遇到错误：' + data.message + '！',
+                                        type: 'danger',
+                                        position: 'top-center'
+                                    });
+                                }
+                                //alert(data);
+                            },
+                            error: function (XMLHttpRequest, textStatus, errorThrown) {
+                                alert({text: '保存数据时发生错误！', type: 'danger', position: 'top-center'});
+                                //alert(errorThrown);
+                            }
+                        });
+                    } else {
+                        setTimeout(adduser, 0);
+                    }
+                } else {
+                    $("#result").append("<br/>批量添加学生账号信息完毕，共添加" + count + "位学生。");
+                }
+            };
+        });
+    </script>
+{% endblock %}

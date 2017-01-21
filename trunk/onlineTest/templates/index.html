@@ -1,0 +1,87 @@
+{% extends 'base.html' %}
+{% block title %}计算机语言课程作业平台{% endblock %}
+{% load staticfiles %}
+{% load static %}
+{% block extrastyle %}
+{% endblock %}
+
+{% block content %}
+    <div>
+        <div class="site-index">
+            <div class="jumbotron">
+{#                                <div class="alert alert-danger" role="alert">系统维护中，部分作业可能！</div>#}
+                <h1>每天进步一点点</h1>
+                <p class="lead">南京邮电大学计算机语言课程作业平台欢迎您！</p>
+
+                <p><a class="btn btn-lg btn-success" href="{% url 'list_do_homework' %}">进入作业列表</a>
+                    <button type="button" class="btn btn-primary btn-lg" data-toggle="modal" data-target="#myModal">
+                        查看使用教程
+                    </button>
+                </p>
+
+            </div>
+            <!-- Button trigger modal -->
+
+
+            <!-- Modal -->
+            <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel"
+                 aria-hidden="true">
+                <div class="modal-dialog  modal-lg">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal"><span
+                                    aria-hidden="true">&times;</span><span class="sr-only">关闭</span></button>
+                            <h4 class="modal-title" id="myModalLabel">平台使用说明</h4>
+                        </div>
+                        <div class="modal-body">
+                            <div class="container video-container" id="video-container">
+                                <video width="" height="auto" controls id="index-video">
+                                    <source src="{% static 'videos/平台学生的使用说明.mp4' %}" type="video/mp4">
+                                </video>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="body-content">
+
+                <div class="row">
+                    <div class="col-lg-4">
+                        <h2>高级语言程序设计<br>（C&C++）</h2>
+
+                        <p>
+                            本课程是各专业的大学生所必须掌握的一门核心基础课程。本课程的教学目的是，通过理论教学与上机实践，使学生掌握C语言的基本语法，培养初步的动手编程能力，形成良好的编程风格，熟悉一些常用的简单算法，并了解结构化程序设计的基本思想和方法。该课程是诸多专业课程的先修课程，也是学生自学其他高级语言的基础。</p>
+
+                        <p><a class="btn btn-default" href="http://pan.baidu.com/s/1sk5qjG5"
+                              target="_blank">下载开发环境 &raquo;</a></p>
+                    </div>
+                    <div class="col-lg-4">
+                        <h2>程序设计基础<br>（ Java语言）</h2>
+
+                        <p>
+                            我们的生活已经离不开计算机了，每天都在用计算机上的软件做事情，这些软件究竟是如何写出来的呢？计算机到底是以怎样的方式来解决问题的呢？程序设计这门课可以让你学习到计算机解决问题的基本方法。
+                            本课程是面向计算机新人的程序设计入门课程，Java语言是教学的媒介，但不是课程的目标。</p>
+
+                        <p><a class="btn btn-default"
+                              href="http://www.oracle.com/technetwork/java/javase/downloads/jdk7-downloads-1880260.html"
+                              target="_blank">下载JDK 7 &raquo;</a>&nbsp;
+                            <a class="btn btn-default"
+                               href="http://www.eclipse.org/downloads/packages/eclipse-ide-java-ee-developers/mars1"
+                               target="_blank">下载Eclipse &raquo;</a></p>
+                    </div>
+                    <div class="col-lg-4">
+                        <h2>程序设计基础<br>（ Python语言）</h2>
+
+                        <p>本课程面向各类热爱编程的同学，培养运用 Python 编程语言解决实际问题的编程能力。使学生掌握 Python
+                            语言的基本语法、语句以及结构化程序设计的基本思想和方法，了解基本的算法和数据结构，培养良好的程序设计风格，为进一步学习其他专业课程和从事软件开发工作打下坚实的基础。</p>
+
+                        <p><a class="btn btn-default" href="http://pan.baidu.com/s/1XoXXW"
+                              target="_blank">下载开发环境 &raquo;</a></p>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+{% endblock %}

@@ -1,0 +1,91 @@
+{% extends 'base.html' %}
+{% block extrahead %}
+    {% load static %}
+    <script src="{% static 'assets/js/jquery-confirm.min.js' %}"></script>
+    <link href="{% static 'assets/css/jquery-confirm.min.css' %}" rel="stylesheet">
+{% endblock %}
+{% block content %}
+    <ol class="breadcrumb">
+        <li><a href="{% url 'index' %}">主页</a></li>
+        <li><a href="{% url 'list_coursers' %}">课程管理</a></li>
+        <li class="active">二级知识点列表</li>
+    </ol>
+    <button type="button" class="btn btn-success" onclick="add_kp2()">添加二级知识点</button>
+    <br>
+    <table class="table">
+        <thead>
+        <tr>
+            <th>名称</th>
+            <th>操作</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for kp2 in kp2s %}
+            <tr>
+                <th>{{ kp2.name }}</th>
+                <th>
+                    <button type="button" class="btn btn-danger btn-xs"
+                            onclick="del_kp2({{ kp2.id }})"><span class="glyphicon glyphicon-trash"
+                                                                  aria-hidden="true"></span></button>
+                </th>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    <script>
+        function add_kp2() {
+            $.confirm({
+                title: '新建知识点',
+                content: '请输入二级知识点名称 <input class="form-control" id="kp2_name" type="text" placeholder="输入知识点名称"/>',
+                confirm: function () {
+                    $.ajax({
+                        url: '{% url 'add_kp2' %}',
+                        dataType: 'json',
+                        method: 'post',
+                        data: {'id': {{ id }}, 'name': $('#kp2_name').val()}
+                    }).done(function (response) {
+                        if (response == 1) {
+                            $.alert('创建成功！');
+                            location.reload();
+                            return true
+                        } else {
+                            self.setContent('创建时出现问题');
+                            return false
+                        }
+                    }).fail(function () {
+                        self.setContent('数据传输时出现问题');
+                        return false
+                    });
+                }
+            });
+        }
+        function del_kp2(id) {
+            $.confirm({
+                content: '确定要删除这个知识点吗？',
+                title: '确认删除',
+                confirmButton: '我确认',
+                cancelButton: '取消',
+                confirm: function () {
+                    $.ajax({
+                        url: '{% url 'delete_kp2' %}',
+                        dataType: 'json',
+                        method: 'post',
+                        data: {'id': id}
+                    }).done(function (response) {
+                        if (response == 1) {
+                            location.reload();
+                            return true
+                        } else {
+                            self.setContent('删除时出现问题');
+                            return false
+                        }
+                    }).fail(function () {
+                        self.setContent('数据传输时出现问题');
+                        return false
+                    });
+                }
+            });
+        }
+
+    </script>
+{% endblock %}

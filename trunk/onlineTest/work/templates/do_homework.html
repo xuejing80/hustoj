@@ -1,0 +1,302 @@
+{% extends 'base.html' %}
+{% block extrahead %}
+    {% load static %}
+    <script src="{% static 'assets/js/jquery-confirm.min.js' %}"></script>
+    <link href="{% static 'assets/css/jquery-confirm.min.css' %}" rel="stylesheet">
+{% endblock %}
+{% block content %}
+    {% if homework.allow_resubmit %}
+        <div class="alert alert-success" role="alert">此份作业允许重复提交，对成绩不满意可到已完成作业中点击<a class="btn btn-danger btn-xs"
+                                                                                    href="#"><span
+                class="glyphicon glyphicon-repeat"></span></a>重新提交
+        </div>{% else %}
+        <div class="alert alert-danger" role="alert"><strong>注意！</strong>此作业只能提交一次！(临时保存次数无限制)</div>{% endif %}
+    <form method="post">
+        {% csrf_token %}
+        <h2>选择题</h2>
+        <div class="panel-group" id="accordion" role="tablist" aria-multiselectable="true">
+            {% for choice_problem in choice_problems %}
+                <div class="panel panel-default">
+                    <div class="panel-heading" role="tab" id="heading{{ choice_problem.detail.id }}">
+                        <h4 class="panel-title">
+                            <a {% if not forloop.first %}class="collapsed"{% endif %}role="button"
+                               data-toggle="collapse"
+                               data-parent="#accordion"
+                               href="#collapse{{ choice_problem.detail.id }}"
+                               aria-expanded="{% if forloop.first %}true{% else %}false{% endif %}"
+                               aria-controls="collapse{{ choice_problem.detail.id }}">
+                                <pre>{{ forloop.counter }}. ({{ choice_problem.score }}分) {{ choice_problem.detail.title }}</pre>
+                            </a>
+                        </h4>
+                    </div>
+                    <div id="collapse{{ choice_problem.detail.id }}"
+                         class="panel-collapse collapse {% if forloop.first %}in{% endif %}" role="tabpanel"
+                         aria-labelledby="heading{{ choice_problem.detail.id }}">
+                        <div class="panel-body">
+                            <div class="row">
+                                <div class="col-lg-6 col-md-6">
+                                    <label class="checkbox-inline">
+                                        <input type="radio" id="selection-{{ choice_problem.detail.id }}" value="a"
+                                               name="selection-{{ choice_problem.detail.id }}">
+                                        A.{{ choice_problem.detail.a|safe }}
+                                    </label>
+                                </div>
+                                <div class="col-lg-6 col-md-6 ">
+                                    <label class="checkbox-inline">
+                                        <input type="radio" id="selection-{{ choice_problem.detail.id }}" value="b"
+                                               name="selection-{{ choice_problem.detail.id }}">
+                                        B.{{ choice_problem.detail.b|safe }}
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-lg-6 col-md-6">
+                                    <label class="checkbox-inline">
+                                        <input type="radio" id="selection-{{ choice_problem.detail.id }}" value="c"
+                                               name="selection-{{ choice_problem.detail.id }}">
+                                        C.{{ choice_problem.detail.c|safe }}
+                                    </label>
+                                </div>
+                                <div class="col-lg-6 col-md-6">
+                                    <label class="checkbox-inline">
+                                        <input type="radio" id="selection-{{ choice_problem.detail.id }}" value="d"
+                                               name="selection-{{ choice_problem.detail.id }}">
+                                        D.{{ choice_problem.detail.d|safe }}
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+
+        </div>
+        <h2>编程题</h2>
+        <div class="panel-group" id="accordion2" role="tablist" aria-multiselectable="true">
+            {% for problem in problems %}
+                <div class="panel panel-default">
+                    <div class="panel-heading" role="tab" id="heading-{{ problem.problem_id }}">
+                        <h4 class="panel-title">
+                            <a role="button"
+                               data-toggle="collapse"
+                               data-parent="#accordion2"
+                               href="#collapse-{{ problem.problem_id }}"
+                               aria-expanded="{% if forloop.first %}true{% else %}false{% endif %}"
+                               aria-controls="collapse-{{ problem.problem_id }}">
+                                {{ forloop.counter }}.{{ problem.title }}
+                            </a>
+                        </h4>
+                    </div>
+                    <div id="collapse-{{ problem.problem_id }}"
+                         class="panel-collapse collapse "
+                         role="tabpanel"
+                         aria-labelledby="heading-{{ problem.problem_id }}">
+                        <div class="panel-body">
+                            <div class="section">
+                                <h4><span class="label label-primary">题目描述</span></h4>
+                                <div id="description"><p>{{ problem.description|safe|linebreaks }}</p></div>
+                            </div>
+                            <div class="section">
+                                <h4><span class="label label-primary">输入</span></h4>
+                                <div id="input"><p>{{ problem.input|safe|linebreaks }}</p></div>
+                            </div>
+                            <div class="section">
+                                <h4><span class="label label-primary">输出</span></h4>
+                                <div id="output"><p>{{ problem.output|safe|linebreaks }}</p></div>
+                            </div>
+                            {% if problem.sample_output %}
+                                <div class="section">
+                                    <h4><span class="label label-info">样例输入1:</span></h4>
+                                    <div id="sample_input">
+                                        <pre>{{ problem.sample_input|safe|linebreaks }}</pre>
+                                    </div>
+                                </div>
+                                <div class="section">
+                                    <h4><span class="label label-info">样例输出1:</span></h4>
+                                    <div id="sample_output">
+                                        <pre>{{ problem.sample_output|safe|linebreaks }}</pre>
+                                    </div>
+                                </div>
+                            {% endif %}
+                            {% if problem.sample_output2 %}
+                                <div class="section">
+                                    <h4><span class="label label-primary">样例输入2:</span></h4>
+                                    <div id="sample_input2">
+                                        <pre>{{ problem.sample_input2|safe|linebreaks }}</pre>
+                                    </div>
+                                </div>
+                                <div class="section">
+                                    <h4><span class="label label-primary">样例输出2:</span></h4>
+                                    <div id="sample_output2">
+                                        <pre>{{ problem.sample_output2|safe|linebreaks }}</pre>
+                                    </div>
+                                </div>
+                            {% endif %}
+                            <div id="answer-area">
+                                <div class="form-group">
+                                    <label for="language" class="control-label">语言</label>
+                                    <select name="language-{{ problem.problem_id }}" class="form-control language"
+                                            id="language-{{ problem.problem_id }}">
+
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="source{{ problem.problem_id }}">代码</label>
+                                    <textarea class="form-control" cols="50" rows="10"
+                                              name="source-{{ problem.problem_id }}"
+                                              id="source{{ problem.problem_id }}" spellcheck="false"></textarea>
+                                </div>
+                            </div>
+                            <div id="result-{{ problem.problem_id }}"></div>
+                            <button class="btn btn-success" id="button-{{ problem.problem_id }}"
+                                    onclick="test_run({{ problem.problem_id }});return false;"><span
+                                    class="glyphicon glyphicon-play"></span>测试运行
+                            </button>
+                            测试运行得分：<span id="score-{{ problem.problem_id }}"></span>
+                            <input type="hidden" name="score-{{ problem.problem_id }}"
+                                   id='score-input-{{ problem.problem_id }}'>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+
+    </form>
+    <button class="btn btn-primary" onclick="check()">提交作业</button>
+    <button class="btn btn-default" onclick="save()">暂存作业，不提交</button>
+
+    <script>
+        var languages = {
+            0: 'C',
+            1: 'C++',
+            2: 'Pascal',
+            3: 'Java',
+            4: 'Ruby',
+            5: 'Bash',
+            6: 'Python'
+        };
+        var allowed_languages = '{{ homework.allowed_languages }}'.split(',');
+        for (var i = 0; i < allowed_languages.length; i++) {
+            $(".language").append("<option value=\"" + allowed_languages[i] + "\">" + languages[allowed_languages[i]] + "</option>");
+        }
+        function check() {
+            $.confirm({
+                title: '确认提交',
+                content: '确定要提交作业吗？{% if homework.allow_resubmit %}此次作业允许提交多次，如果对成绩不满意，可以去已完成作业列表中选择重做{% else %}此作业只允许<strong>提交一次</strong>!提交后无法重新提交{% endif %}',
+                confirmButton: '我已检查完成，确定提交',
+                cancelButton: '取消',
+                confirmButtonClass: 'btn-info',
+                cancelButtonClass: 'btn-danger',
+                confirm: function () {
+                    $.confirm({
+                        title: false, // hides the title.
+                        cancelButton: false,// hides the cancel button.
+                        confirmButton: false, // hides the confirm button.
+                        closeIcon: false, // hides the close icon.
+                        content: '<i class="fa fa-spinner fa-spin fa-3x fa-fw"></i> <span class="sr-only">正在上传你的答案,请稍等</span>正在上传你的答案,请稍等' // hides content block.
+                    });
+                    $("form").submit();
+                }
+            });
+        }
+        $.ajaxSetup({
+            data: {csrfmiddlewaretoken: '{{ csrf_token }}'}
+        });
+        function save() {
+            $.confirm({
+                title: false, // hides the title.
+                cancelButton: false,// hides the cancel button.
+                confirmButton: false, // hides the confirm button.
+                closeIcon: false, // hides the close icon.
+                content: '<i class="fa fa-spinner fa-spin fa-3x fa-fw"></i> <span class="sr-only">正在上传你的答案,请稍等</span>正在上传你的答案,请稍等' // hides content block.
+            });
+            var htmlstr = '<input type="hidden" name="homework_id" size="20" value="{{ homework.id }}"/>';
+            $("form").append(htmlstr);
+            $("form").attr("action", "{% url 'save_homework' %}");
+            $("form").submit()
+        }
+        function test_run(id) {
+            var result_div = $("#result-" + id);
+            var score_span = $("#score-" + id);
+            var score_input = $("#score-input-" + id);
+            result_div.html('<div class="alert alert-default" role="alert"><i class="fa fa-spinner fa-spin fa-3x fa-fw"></i>正在判断程序运行情况</div>')
+            $.ajax({
+                type: "post",
+                url: "{% url 'test_run' %}",
+                dataType: "json",
+                data: {
+                    'type': 'upload',
+                    'problem_id': id,
+                    'code': $('#source' + id).val(),
+                    'language': $('#language-' + id).val(),
+                    'homework_id':{{ homework.id }}
+                },
+                success: function (data) {
+                    if (data.result == 1) {
+                        var int = setInterval(function () {
+                                    $.ajax({
+                                        type: "post",
+                                        url: "{% url 'test_run' %}",
+                                        dataType: "json",
+                                        data: {
+                                            'type': 'score',
+                                            'solution_id': data.solution_id,
+                                            'problem_id': id,
+                                            'homework_id':{{ homework.id }}
+                                        },
+                                        success: function (data) {
+                                            if (data.status == 1) {
+                                                switch (data.result) {
+                                                    case 0:
+                                                        result_div.html('<div class="alert alert-danger" role="alert"><pre>' + data.info.info + '</pre></div>');
+                                                        break;
+                                                    case 1:
+                                                        result_div.html('<div class="alert alert-warning" role="alert">' + '总共' + data.info.total_cases + '个测试点，你通过了其中的' + data.info.right_num + '个' + '</div>')
+                                                        break;
+                                                    case 2:
+                                                        result_div.html('<div class="alert alert-success" role="alert">恭喜你通过了所有的测试点</div>')
+                                                }
+                                                score_span.html(data.info.score);
+                                                score_input.val(data.info.score)
+                                                int = window.clearInterval(int)
+                                            } else(
+                                                    result_div.html('<div class="alert alert-default" role="alert"><i class="fa fa-spinner fa-spin fa-3x fa-fw"></i>正在判断程序运行情况</div>')
+                                            )
+                                        }
+                                    })
+                                },
+                                1000);
+                    }
+                }
+            });
+            return false;
+        }
+
+        //导入暂存作业数据
+        $(function () {
+            $.ajax({
+                type: "post",
+                url: "{% url 'get_init_homework_data' %}",
+                dataType: "json",
+                data: {
+                    'homework_id':{{ homework.id }}
+                },
+                success: function (data) {
+                    if (data.result == 1) {
+                        $.each(data.data, function (key, value) {
+                            if (key.indexOf('language') != -1) {
+                                $("select[name=" + key + "] option[value=" + value + "]").attr("selected", true);
+                            }
+                            if (key.indexOf('selection') != -1) {
+                                $("input[type='radio'][name=" + key + "][value=" + value + "]").prop("checked", true)
+                            }
+                            if (key.indexOf('source') != -1) {
+                                $("textarea[name=" + key + "]").val(value)
+                            }
+                        });
+                    }
+                }
+            })
+        })
+    </script>
+{% endblock %}

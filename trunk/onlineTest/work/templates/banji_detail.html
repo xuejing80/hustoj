@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+{% block content %}
+    <ol class="breadcrumb">
+        <li><a href="{% url 'index' %}">主页</a></li>
+        <li class="active"><a href="{% url 'banji_list' %}">班级管理</a></li>
+        <li class="active">{{ title }}</li>
+    </ol>
+    <p>
+    <div class="btn-group">
+        <a class="btn btn-primary btn-l" href="{% url 'banji_list' %}" role="button">返回班级列表</a>
+        <a class="btn btn-success btn-l" href="{% url 'update_banji' id %}"
+           role="button">重新编辑</a>
+        <a class="btn btn-info btn-l" href="{% url 'add_students' id %}">添加学生到班级</a>
+    </div>
+    </p>
+    <table id="w0" class="table table-striped table-bordered detail-view table-hover ">
+        <tbody>
+        <tr>
+            <th>班级名称</th>
+            <td>{{ name }}</td>
+        </tr>
+        <tr>
+            <th>负责老师</th>
+            <td>{{ teacher }}</td>
+        </tr>
+        <tr>
+            <th>所属课程</th>
+            <td>{{ courser }}</td>
+        </tr>
+
+        <tr>
+            <th>开始时间</th>
+            <td>{{ start_time }}</td>
+        </tr>
+        <tr>
+            <th>结束时间</th>
+            <td>{{ end_time }}秒</td>
+        </tr>
+        <tr>
+            <th>该班级的学生</th>
+
+            <td>{% for student in students %}
+                {{ student.id_num }}
+                {{ student.username }}<br>
+            {% endfor %}</td>
+
+
+        </tr>
+
+        </tbody>
+    </table>
+
+{% endblock %}

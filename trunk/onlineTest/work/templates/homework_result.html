@@ -1,0 +1,86 @@
+{% extends 'base.html' %}
+{% block title %}查看作业成绩详细{% endblock %}
+{% block extrahead %}
+    {% load static %}
+    <script src="{% static 'assets/js/highlight.pack.js' %}"></script>
+    <link href="{% static 'assets/css/default.css' %}" rel="stylesheet">
+{% endblock %}
+{% block content %}
+    <ol class="breadcrumb">
+        <li><a href="{% url 'index' %}">主页</a></li>
+        <li><a href="{% url 'list_finished_homework' %}">查看作业结果</a></li>
+        <li class="active">作业结果详细</li>
+    </ol>
+    <h2>总分：{{ score }}</h2>
+    <h3>选择题得分：{{ choice_problem_score }}</h3>
+
+    {% for choice_problem in choice_problems %}
+        {% if choice_problem.right %}
+            <div class="panel panel-success">
+                <div class="panel-heading"><span class="glyphicon glyphicon-ok"
+                                                 aria-hidden="true"></span> {{ forloop.counter }}. {{ choice_problem.detail.title }}
+                </div>
+                <div class="panel-body">
+
+                    <div class="row">
+                        <div class="col-lg-6 col-md-6">
+                            A.{{ choice_problem.detail.a }}
+                        </div>
+                        <div class="col-lg-6 col-md-6">
+                            B.{{ choice_problem.detail.b }}
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-lg-6 col-md-6">
+                            C.{{ choice_problem.detail.c }}
+                        </div>
+                        <div class="col-lg-6 col-md-6">
+                            D.{{ choice_problem.detail.d }}
+                        </div>
+                    </div>
+                </div>
+                <div class="panel-footer">正确答案是: {{ choice_problem.detail.right_answer|upper }}
+                </div>
+            </div>
+        {% else %}
+            <div class="panel panel-danger">
+                <div class="panel-heading"><span class="glyphicon glyphicon-remove"
+                                                 aria-hidden="true"></span> {{ forloop.counter }}. {{ choice_problem.detail.title }}
+                </div>
+                <div class="panel-body">
+
+                    <div class="row">
+                        <div class="col-lg-6 col-md-6">
+                            A.{{ choice_problem.detail.a }}
+                        </div>
+                        <div class="col-lg-6 col-md-6">
+                            B.{{ choice_problem.detail.b }}
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-lg-6 col-md-6">
+                            C.{{ choice_problem.detail.c }}
+                        </div>
+                        <div class="col-lg-6 col-md-6">
+                            D.{{ choice_problem.detail.d }}
+                        </div>
+                    </div>
+                </div>
+                <div class="panel-footer">正确答案是: {{ choice_problem.detail.right_answer|upper }}
+                    你的答案是: {{ choice_problem.info|upper }}</div>
+            </div>
+        {% endif %}
+    {% endfor %}
+    <h3>编程题得分：{{ problem_score }}</h3>
+    {% for problem in problems %}
+         <div class="panel panel-{% if problem.result == 4 %}success{% else %}danger{% endif %}">
+                <div class="panel-heading"><span class="glyphicon glyphicon-{% if problem.result == 4 %}ok{% else %}remove{% endif %}"
+                                                 aria-hidden="true"></span> {{ problem.title }}
+                </div>
+                <div class="panel-body">
+                <p><pre><code>{{ problem.code }}</code></pre></p>
+                </div>
+            </div>
+    {% endfor %}
+    <script>hljs.initHighlightingOnLoad();</script>
+{% endblock %}

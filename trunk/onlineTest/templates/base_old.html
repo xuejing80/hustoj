@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- 上述3个meta标签*必须*放在最前面，任何其他内容都*必须*跟随其后！ -->
+    <title>{% block title %}{% endblock %}</title>
+    {% block extrastyle %}{% endblock %}
+    <!-- Bootstrap -->
+    <link rel="stylesheet" href="//cdn.bootcss.com/bootstrap/3.3.5/css/bootstrap.min.css">
+    {% load staticfiles %}
+    <link rel="stylesheet" href="{% static 'css/base.css' %}">
+
+    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+      <script src="//cdn.bootcss.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+      <script src="//cdn.bootcss.com/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+    <!--[if !IE]>-->
+    <script src="//cdn.bootcss.com/jquery/2.2.4/jquery.min.js"></script>
+    <!-- <![endif]-->
+
+    <!--[if IE]>
+<script src="//cdn.bootcss.com/jquery/1.12.4/jquery.min.js"></script>
+<![endif]-->
+
+    <!-- Include all compiled plugins (below), or include individual files as needed -->
+    <script src="//cdn.bootcss.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+    {% block extrahead %}{% endblock %}
+</head>
+<body>
+<div class="wrap">
+    <nav id="w0" class="navbar-inverse navbar-fixed-top navbar" role="navigation">
+        <div class="container">
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#w0-collapse"><span
+                        class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span></button>
+                <a class="navbar-brand" href="{% url 'index' %}">计算机语言课程作业平台</a></div>
+            <div id="w0-collapse" class="collapse navbar-collapse">
+                <ul id="w1" class="navbar-nav navbar-right nav">
+                    {% if user.is_authenticated %}
+                        <li><a href="{% url 'list_do_homework' %}">未完成作业</a></li>
+                        <li><a href="{% url 'list_finished_homework' %}">查看作业结果</a></li>
+                        {% if 'work.add_homework' in perms %}
+                            <li class="dropdown">
+                                <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button"
+                                   aria-haspopup="true" aria-expanded="false">课程与班级<span class="caret"></span></a>
+                                <ul class="dropdown-menu">
+                                    <li><a href="{% url 'list_coursers' %}">课程管理</a></li>
+                                    <li><a href="{% url 'banji_list' %}">班级管理</a></li>
+                                </ul>
+                            </li>
+                            <li class="dropdown">
+                                <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button"
+                                   aria-haspopup="true" aria-expanded="false">作业管理<span class="caret"></span></a>
+                                <ul class="dropdown-menu">
+                                    <li><a href="{% url 'homework_list' %}">公开作业列表</a></li>
+                                    <li><a href="{% url 'my_homework_list' %}">我的作业列表</a></li>
+                                </ul>
+                            </li>
+                        {% endif %}
+                        {% if 'judge' in perms %}
+                            <li class="dropdown">
+                                <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button"
+                                   aria-haspopup="true" aria-expanded="false">题库管理<span class="caret"></span></a>
+                                <ul class="dropdown-menu">
+                                    <li><a href="{% url 'problemlist' %}">编程题题库</a></li>
+                                    <li><a href="{% url 'choice_problem_list' %}">选择题题库</a></li>
+                                </ul>
+                            </li>
+                        {% endif %}
+                        {% if user.is_superuser %}
+                            <li><a href="/admin">系统管理</a></li>
+                        {% endif %}
+                        <li class="dropdown">
+                            <a href="javascript:;" data-toggle="dropdown">
+                                &nbsp;{{ user.username }}
+                                <span class="badge" style="background-color: #D94600;">0</span>
+                            </a>
+                            <ul class="dropdown-menu navbar-right">
+                                <li><a href="{% url 'change_password' %}">
+                                    <span class="glyphicon glyphicon-envelope"></span>
+                                    更改密码</a></li>
+                                <li><a id="logout" href="javascript:;">
+                                    <span class="glyphicon glyphicon-log-out"></span>
+                                    退出</a></li>
+                            </ul>
+                        </li>
+
+                    {% else %}
+                        <li><a href="{% url 'register' %}">注册</a></li>
+                        <li><a href="{% url 'login' %}">登录</a></li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </nav>
+    <div class="container">
+        {% block content %}
+        {% endblock %}
+    </div>
+</div>
+<script>
+    $.ajaxSetup({
+        data: {csrfmiddlewaretoken: '{{ csrf_token }}'},
+    });
+    $("#logout").click(function () {
+        $.ajax({
+            type: "POST",
+            url: "/account/data/logout",
+            success: function (data, textStatus) {
+                location.replace("/");
+            },
+            error: function (XMLHttpRequest, textStatus, errorThrown) {
+                alert(XMLHttpRequest.responseText);
+            }
+        });
+        return false;
+    });
+</script>
+{% block script %}
+{% endblock %}
+{% block footer %}
+    <footer class="footer">
+        <div class="container">
+            <p class="pull-left"></p>
+            <p class="pull-right">&copy; 南京邮电大学 计算机学院 软件教学中心 2016</p>
+        </div>
+    </footer>{% endblock %}
+</body>
+</html>

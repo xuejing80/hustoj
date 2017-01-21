@@ -1,0 +1,147 @@
+{% extends 'base.html' %}
+{% block title %}公开作业列表{% endblock %}
+{% block extrahead %}
+    {% load static %}
+    <script src="{% static 'assets/js/bootstrap-table.min.js' %}"></script>
+    <link href="{% static 'assets/css/bootstrap-table.min.css' %}" rel="stylesheet">
+    <script src="{% static 'assets/js/bootstrap-table-zh-CN.min.js' %}"></script>
+{% endblock %}
+{% block content %}
+    <ol class="breadcrumb">
+        <li><a href="{% url 'index' %}">主页</a></li>
+        <li class="active">作业管理</li>
+        <li class="active">作业列表</li>
+    </ol>
+    <h1>公共作业列表</h1>
+    <h4>此处作业不属于任何班级,若要使用,请先复制一份至自己的作业列表</h4>
+    <div class="btn-group">
+        <button type="button" id="remove" class="btn btn-danger"><i class="glyphicon glyphicon-remove">删除选中</i></button>
+        <a class="btn btn-primary btn-l" href="{% url 'add_homework' %}" role="button"><i
+                class="glyphicon glyphicon-plus">新建作业</i></a>
+        <button type="button" class="btn btn-success" id="copy"><i class="glyphicon glyphicon-copy">复制到我的作业列表</i>
+        </button>
+    </div>
+    <div id="toolbar">
+        <div class="form-inline" role="form">
+            <div class="form-group">
+                <select class="form-control" id="classname" name="classname">
+                    <option value="0" selected="selected">全部课程</option>
+                    {% for classname in classnames %}
+                        <option value="{{ classname.pk }}">{{ classname.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <button id="ok" type="submit" class="btn btn-default">筛选</button>
+
+        </div>
+    </div>
+    <table id="table"
+           data-toggle="table"
+           data-url="{% url 'get_json_data' %}"
+           data-side-pagination="server"
+           data-pagination="true"
+           data-page-list="[10, 20, 50, 100, 200]"
+           data-classes="table table-hover table-condensed"
+           data-toolbar="#toolbar"
+           data-striped="true"
+           data-query-params="queryParams"
+           data-search="true"
+    >
+        <thead>
+        <tr>
+            <th data-field="state" data-checkbox="true"></th>
+            <th data-field="pk" data-sortable="true" data-valign="middle">ID</th>
+            <th data-field="name" data-sortable="true" data-valign="middle">作业名称</th>
+            <th data-field="courser" data-valign="middle">所属课程</th>
+            <th data-field="start_time" data-sortable="true">开始时间</th>
+            <th data-field="end_time" data-sortable="true">结束时间</th>
+            <th data-field="id" data-valign="middle" data-formatter="editFormatter">操作</th>
+        </tr>
+        </thead>
+    </table>
+    <script>
+        $.ajaxSetup({
+            data: {csrfmiddlewaretoken: '{{ csrf_token }}'}
+        });
+        var $table = $('#table');
+        function queryParams(params) {
+            $('#toolbar').find('select[name]').each(function () {
+                params[$(this).attr('name')] = $(this).val();
+            });
+            params['my'] = false;
+            return params;
+        }
+        $ok = $('#ok');
+        $(function () {
+            $ok.click(function () {
+                $table.bootstrapTable('refresh');
+            });
+        });
+        $remove = $('#remove');
+        $copy = $("#copy");
+
+        $(function () {
+            $remove.click(function () {
+                var ids = $.map($table.bootstrapTable('getSelections'), function (row) {
+                    return row.pk;
+                });
+                if (ids.length > 0) {
+                    if (confirm("确定要删除吗？")) {
+                        $.ajax({
+                            type: 'POST',
+                            url: "{% url 'del_homework' %}",
+                            data: {'ids': ids, 'my': false},
+                            success: function (data) {
+                                if (data == 1) {
+                                    $table.bootstrapTable('refresh');
+                                    return false
+                                } else {
+                                    alert('删除失败');
+                                }
+                            },
+                            error: function () {
+                                alert("删除失败")
+                            }
+                        });
+                    }
+                } else {
+                    alert('您尚未选择作业')
+                }
+            });
+        });
+        $(function () {
+            $copy.click(function () {
+                var ids = $.map($table.bootstrapTable('getSelections'), function (row) {
+                    return row.pk;
+                });
+                if (ids.length > 0) {
+                    if (confirm("确定要复制这些到自己的作业列表吗？")) {
+                        $.ajax({
+                            type: 'POST',
+                            url: "{% url 'copy_to_my_homework' %}",
+                            data: {'ids': ids, 'my': false},
+                            success: function (data) {
+                                if (data == 1) {
+                                    $table.bootstrapTable('refresh');
+                                    return false
+                                } else {
+                                    alert('复制时出现问题');
+                                }
+                            },
+                            error: function () {
+                                alert("网络异常")
+                            }
+                        });
+                    }
+                } else {
+                    alert('您尚未选择作业')
+                }
+            });
+        });
+        function editFormatter(value) {
+            return '<a class="btn btn-primary btn-xs" href="{% url '_update_public_homework' %}' + value + '/" title="编辑" aria-label="编辑" data-pjax="0"><span class="glyphicon glyphicon glyphicon-edit"></span></a>' +
+                    ' <a class="btn btn-success btn-xs" href="{% url '_homework_detail' %}' + value + '/" title="查看" aria-label="查看" data-pjax="0"><span class="glyphicon glyphicon-eye-open"></span></a> ';
+        }
+    </script>
+
+{% endblock %}

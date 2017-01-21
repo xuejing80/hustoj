@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+{% block content %}
+    <h2>修改用户“{{ user.username }}”的信息</h2>
+    <label for="groups">选择用户组</label>
+    <form method="post">
+        {% csrf_token %}
+        <select class="form-control" id="groups" name="group_id">
+            {% for group in groups %}
+                <option value="{{ group.pk }}">{{ group.name }}</option>
+            {% endfor %}
+        </select>
+        <br>
+        <button type="submit">保存</button>
+    </form>
+    <script>
+        $(function () {
+            $("#groups option[value='{{ current_group_id }}']").attr("selected", true);
+        });
+    </script>
+{% endblock %}

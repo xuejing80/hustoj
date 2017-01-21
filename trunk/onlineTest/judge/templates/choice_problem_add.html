@@ -1,0 +1,188 @@
+{% extends 'base.html' %}
+{% block extrahead %}
+    {% load static %}
+    <script src="{% static 'assets/js/bootstrap-tagsinput.min.js' %}"></script>
+    <link href="{% static 'assets/css/bootstrap-tagsinput-typeahead.css' %}" rel="stylesheet">
+    <link href="{% static 'assets/css/bootstrap-tagsinput.css' %}" rel="stylesheet">
+    <script src="{% static 'assets/js/jquery.form-validator.min.js' %}"></script>
+{% endblock %}
+{% block content %}
+    <ol class="breadcrumb">
+        <li><a href="{% url 'index' %}">主页</a></li>
+        <li class="active"><a href="{% url 'choice_problem_list' %}"></a>选择题题库管理</li>
+        <li class="active">{{ title }}</li>
+    </ol>
+    <div class="panel panel-default">
+        <div class="panel-body">
+            <form action="" method="post" enctype="multipart/form-data">{% csrf_token %}
+                <div class="form-group {% if form.title.errors %} has-error {% endif %}">
+                    <label class="control-label"
+                           for="{% if form.title.errors %} inputError1 {% endif %}">{{ form.title.label }}</label>
+                    {% if form.title.errors %}
+                        <span class="text-danger pull-right">{{ form.title.errors }}</span>
+                    {% endif %}
+                    {{ form.title }}
+                    <p class="text-muted">{{ form.title.help_text }}</p>
+                </div>
+                <div class="row">
+                    <div class="col-lg-6 col-md-6 col-xs-6">
+                        <div class="input-group">
+                             <span class="input-group-addon">
+                               {{ form.selection.0 }}
+                                </span>
+                            {{ form.a }}
+                        </div>
+                    </div>
+                    <div class="col-lg-6 col-md-6 col-xs-6">
+                        <div class="input-group">
+                             <span class="input-group-addon">
+                                {{ form.selection.1 }}
+                                </span>
+                            {{ form.b }}
+                        </div>
+                    </div>
+                </div>
+                <br>
+                <div class="row">
+                    <div class="col-lg-6 col-md-6 col-xs-6">
+                        <div class="input-group">
+                             <span class="input-group-addon">
+                                {{ form.selection.2 }}
+                                </span>
+                            {{ form.c }}
+                        </div>
+                    </div>
+                    <div class="col-lg-6 col-md-6 col-xs-6">
+                        <div class="input-group">
+                             <span class="input-group-addon">
+                                {{ form.selection.3 }}
+                                </span>
+                            {{ form.d }}
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group {% if form.keypoint.errors %} has-error {% endif %}">
+                    <label class="control-label"
+                           for="{% if form.keypoint.errors %} inputError1 {% endif %}">{{ form.keypoint.label }}</label>
+                    {% if form.keypoint.errors %}
+                        <span class="text-danger pull-right">{{ form.keypoint.errors }}</span>
+                    {% endif %}
+                    {{ form.keypoint }}
+                    <br>
+                    <input type="text" id="tags" class="form-control">
+                    <p class="text-muted">{{ form.keypoint.help_text }}</p>
+                </div>
+                <div class="form-group row">
+                    <div class="form-group {% if form.classname.errors %} has-error {% endif %}  col-xs-3 col-md-3">
+                        <label class="control-label"
+                               for="{% if form.classname.errors %} inputError1 {% endif %}">{{ form.classname.label }}</label>
+                        {% if form.classname.errors %}
+                            <span class="text-danger pull-right">{{ form.classname.errors }}</span>
+                        {% endif %}
+                        {{ form.classname }}
+                        <p class="text-muted">{{ form.classname.help_text }}</p>
+                    </div>
+
+
+                    <div class="form-group col-xs-3 col-md-3">
+                        <label class="control-label"
+                               for="">一级知识点</label>
+                        <select class="form-control" id="id_knowledgePoint1" name="knowledgePoint1">
+                        </select>
+                    </div>
+
+                    <div class="form-group col-xs-3 col-md-3">
+                        <label class="control-label"
+                               for="">二级知识点</label>
+                        <select class="form-control" id="id_knowledgePoint2" name="knowledgePoint2">
+                        </select>
+                    </div>
+                    <div class="col-xs-3 col-md-3">
+                        <br>
+                        <button type="button" class="form-control btn btn-primary addkp">添加</button>
+                    </div>
+                </div>
+                <br>
+                <p>
+                    <button type="submit" class="btn btn-success btn-lg">保存题目</button>
+                </p>
+            </form>
+        </div>
+    </div>
+    <script>
+        $.validate({
+            validateOnBlur: false, // disable validation when input looses focus
+            errorMessagePosition: 'top',// Instead of 'inline' which is default
+            scrollToTopOnError: false // Set this property to true on longer forms
+        });
+        $("")
+    </script>
+    <script>
+        $("[name='selection']").attr('required', 'required');
+    </script>
+    <script>
+        $.ajaxSetup({
+            data: {csrfmiddlewaretoken: '{{ csrf_token }}'}
+        });
+        jQuery(document).ready(function () {
+            $("[name='classname']").change(function () {
+                $("[name='knowledgePoint2']").empty();
+                $("[name='knowledgePoint2']").append("<option value=\"0\">全部二级知识点</option>");
+                $("[name='knowledgePoint1']").empty();
+                $("[name='knowledgePoint1']").append("<option value=\"0\">全部一级知识点</option>");
+                $.ajax({
+                    type: "post",
+                    url: "{% url 'select_point' %}",
+                    dataType: "json",
+                    data: {'course': $(this).val(), 'parent': 0},
+                    success: function (data) {
+                        for (var p in data) {
+                            $("[name='knowledgePoint1']").append("<option value=\"" + p + "\">" + data [p] + "</option>");
+                        }
+                    }
+                });
+            });
+            $("[name='knowledgePoint1']").change(function () {
+                $("[name='knowledgePoint2']").empty();
+                $("[name='knowledgePoint2']").append("<option value=\"0\">全部二级知识点</option>");
+                $.ajax({
+                    type: "post",
+                    url: "{% url 'select_point' %}",
+                    dataType: "json",
+                    data: {'parent': $(this).val()},
+                    success: function (data) {
+                        for (var p in data) {
+                            $("[name='knowledgePoint2']").append("<option value=\"" + p + "\">" + data [p] + "</option>");
+                        }
+                    }
+                });
+            });
+        });
+        var elt = $('#tags');
+        elt.tagsinput({
+            itemValue: 'value',
+            itemText: 'text'
+        });
+        $(".addkp").click(function () {
+            if ($('[name="knowledgePoint2"]').val() > 0) {
+                var str = $('[name="classname"]').find("option:selected").text() + ' > ' + $('[name="knowledgePoint1"]').find("option:selected").text() + ' > ' + $('[name="knowledgePoint2"]').find("option:selected").text();
+                elt.tagsinput('add', {'value': $('[name="knowledgePoint2"]').val(), 'text': str});
+            }
+        });
+
+        elt.change(function () {
+            $("#id_keypoint").val($(this).val());
+        });
+
+        var initVal = $("#id_keypoint").val();
+        if (initVal) {
+            json = JSON.parse(initVal);
+            for (var key in json) {
+                elt.tagsinput('add', {'value': key, 'text': json[key]});
+            }
+            $("#id_keypoint").val($(elt).val());
+        }
+
+        $.validate({});
+    </script>
+{% endblock %}

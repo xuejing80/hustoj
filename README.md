@@ -21,7 +21,7 @@ PS: GPL保证你可以合法忽略以上注意事项但不能保证你不受鄙�
     2、执行如下命令
         sudo apt-get update
         sudo apt-get install subversion
-        sudo svn co https://github.com/zhblue/hustoj/trunk/trunk/install hustoj
+        sudo svn co https://github.com/xuejing80/hustoj/trunk/trunk/install hustoj
         cd hustoj
         sudo bash install-interactive.sh
     3、安装后访问服务器80端口上的web服务JudgeOnline目录

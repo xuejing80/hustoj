@@ -42,7 +42,7 @@ HTTP_START="sudo /etc/init.d/httpd restart"
 echo "/usr/bin/judged" > judged
 fi
 
-sudo svn checkout https://github.com/zhblue/hustoj/trunk/trunk hustoj-read-only
+sudo svn checkout https://github.com/xuejing80/hustoj/trunk/trunk hustoj-read-only
 
 #create user and homedir
 sudo  /usr/sbin/useradd -m -u 1536 judge
@@ -57,6 +57,15 @@ cd ../..
 sudo cp -R hustoj-read-only/web $WEBBASE/JudgeOnline
 sudo chmod -R 711 $WEBBASE/JudgeOnline
 sudo chown -R $APACHEUSER $WEBBASE/JudgeOnline
+
+sudo cp -R hustoj-read-only/onlineTest $WEBBASE/onlineTest
+sudo chmod -R 711 $WEBBASE/onlineTest
+sudo chown -R $APACHEUSER $WEBBASE/onlineTest
+
+sudo cp -R hustoj-read-only/static $WEBBASE/static
+sudo chmod -R 711 $WEBBASE/static
+sudo chown -R $APACHEUSER $WEBBASE/static
+
 sudo mysql -h localhost -u$DBUSER -p$DBPASS < db.sql
 
 #create work dir set default conf

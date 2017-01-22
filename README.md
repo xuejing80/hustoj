@@ -34,7 +34,10 @@ Linux新手请看鸟哥的私房菜http://vbird.dic.ksu.edu.tw/linux_basic/linux
 Linux不熟悉的用户推荐使用HUSTOJ_LiveCD或HUSTOJ_Windows进行安装
 
 livecd下载: 
-http://pan.baidu.com/s/1o78D4x0
+
+http://pan.baidu.com/s/1o78D4x0  无vjudge，含vjudge版见qq群23361372共享文件。
+
+
 
 使用说明见iso中README,也可以参考wiki页
 https://github.com/zhblue/hustoj/tree/master/wiki/HUSTOJ_LiveCD.md

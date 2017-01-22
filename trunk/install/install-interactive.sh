@@ -66,7 +66,7 @@ sudo cp -R hustoj-read-only/static $WEBBASE/static
 sudo chmod -R 711 $WEBBASE/static
 sudo chown -R $APACHEUSER $WEBBASE/static
 
-sudo mysql -h localhost -u$DBUSER -p$DBPASS < db.sql
+sudo mysql -h localhost -u$DBUSER -p$DBPASS < db1.sql
 
 #create work dir set default conf
 sudo    mkdir /home/judge

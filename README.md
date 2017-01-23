@@ -24,8 +24,10 @@ PS: GPL保证你可以合法忽略以上注意事项但不能保证你不受鄙�
         sudo svn co https://github.com/xuejing80/hustoj/trunk/trunk/install hustoj
         cd hustoj
         sudo bash install-interactive.sh
+    3、执行如下命令，修改81,82行的数据库账号和密码,如需配置发送邮件功能，设置122到127行中邮箱账号和密码
+        sudo vi /var/www/html/onlineTest/onlineTest/settings.py
         sudo bash install-onlineTest.sh
-    3、安装后访问服务器80端口上的web服务JudgeOnline目录
+    4、安装后访问服务器80端口上的web服务JudgeOnline目录
         例如 w3m http://127.0.0.1/test/
         
 使用上需要帮助，请访问用户论坛 或 购买在线服务。

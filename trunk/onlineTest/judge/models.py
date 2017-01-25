@@ -134,6 +134,7 @@ class Solution(models.Model):
     lint_error = models.IntegerField(default=0)
     homework_answer = models.ForeignKey(HomeworkAnswer, null=True)
     oi_info = models.TextField(blank=True, null=True)
+    judger = models.CharField(max_length=16, default='LOCAL', null=False)
 
     class Meta:
         db_table = 'solution'

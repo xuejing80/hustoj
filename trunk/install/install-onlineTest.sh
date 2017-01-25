@@ -12,6 +12,7 @@ sudo python3 manage.py loaddata init_data.json
 sudo python3 manage.py createsuperuser
 sudo python3 manage.py collectstatic
 sudo a2ensite onlineTest
+sudo a2dissite 000-default.conf
 sudo service apache2 restart
 sudo pkill -9 judged
 sudo judged

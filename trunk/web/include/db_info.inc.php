@@ -1,6 +1,8 @@
 <?php @session_start();
 	ini_set("display_errors","Off");  //set this to "On" for debugging  ,especially when no reason blank shows up.
-	
+	ini_set("session.cookie_httponly", 1);   
+	header('X-Frame-Options:SAMEORIGIN');
+
 //for people using hustoj out of China , be careful of the last two line of this file !
 
 // connect db 
@@ -18,7 +20,7 @@ static  $OJ_ONLINE=false;
 static  $OJ_LANG="en";
 static  $OJ_SIM=false; 
 static  $OJ_DICT=false;
-static  $OJ_LANGMASK=0; //1mC 2mCPP 4mPascal 8mJava 16mRuby 32mBash 1008 for security reason to mask all other language
+static  $OJ_LANGMASK=262064; //1mC 2mCPP 4mPascal 8mJava 16mRuby 32mBash 1008 for security reason to mask all other language
 static  $OJ_EDITE_AREA=true;//true: syntax highlighting is active
 static  $OJ_AUTO_SHARE=false;//true: One can view all AC submit if he/she has ACed it onece.
 static  $OJ_CSS="hoj.css";
@@ -39,6 +41,8 @@ static  $OJ_LOGIN_MOD="hustoj";
 static  $OJ_RANK_LOCK_PERCENT=0;
 static  $OJ_SHOW_DIFF=false;
 static  $OJ_TEST_RUN=false;
+static  $OJ_BLOCKLY=false; //是否启用Blockly界面
+
 static $OJ_OPENID_PWD = '8a367fe87b1e406ea8e94d7d508dcf01';
 
 /* weibo config here */
@@ -72,14 +76,14 @@ global $mysqli;
 	}else{
 		//for normal install
 		if(($mysqli=mysqli_connect($DB_HOST,$DB_USER,$DB_PASS))==null) 
-			die('Could not connect: ' . mysqli_error());
+			die('Could not connect: ' . mysqli_error($mysqli));
 	}
 	// use db
 	mysqli_query($mysqli,"set names utf8");
   //if(!$OJ_SAE)mysqli_set_charset("utf8");
 	
 	if(!mysqli_select_db($mysqli,$DB_NAME))
-		die('Can\'t use foo : ' . mysqli_error());
+		die('Can\'t use foo : ' . mysqli_error($mysqli));
 		
 	if(isset($OJ_CSRF)&&$OJ_CSRF&&$OJ_TEMPLATE=="bs3"&&basename($_SERVER['PHP_SELF'])!="problem_judge")
 		 require_once('csrf_check.php');
@@ -87,4 +91,7 @@ global $mysqli;
 	//sychronize php and mysql server with timezone settings, dafault setting for China
 	//if you are not from China, comment out these two lines or modify them.
 	date_default_timezone_set("PRC");
-	mysqli_query($mysqli,"SET time_zone ='+8:00'");?>
+	mysqli_query($mysqli,"SET time_zone ='+8:00'");
+
+	
+?>

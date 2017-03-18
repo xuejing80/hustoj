@@ -8,7 +8,7 @@ ini_set("display_errors","On");
 global $mark_base,$mark_per_problem,$mark_per_punish;
  $mark_start=60;
  $mark_end=100;
- $mark_sigma=10;
+ $mark_sigma=5;
 if(isset($OJ_LANG)){
 		require_once("./lang/$OJ_LANG.php");
 }
@@ -85,7 +85,7 @@ function  getMark($users,  $start,  $end, $s) {
 		for ( $i = $end; $i > $start; $i--) {
 			
 		    $prob = $cn
-					* normalDistribution($i, ($start + $end) / 2, ($end - $start)
+					* normalDistribution($i, ($start + $end) / 2+10, ($end - $start)
 							/ $s);
 			$accum += $prob;
 			
@@ -98,7 +98,7 @@ function  getMark($users,  $start,  $end, $s) {
 	
 		for ($i = $end; $i > $start; $i--) {
 			$prob = $cn
-					* normalDistribution($i, ($start + $end) / 2, ($end - $start)
+					* normalDistribution($i, ($start + $end) / 2+10, ($end - $start)
 							/ $s);
 			$accum += $prob;
 			while ($accum > $p/2) {
@@ -123,7 +123,7 @@ if (!isset($_GET['cid'])) die("No Such Contest!");
 $cid=intval($_GET['cid']);
 //require_once("contest-header.php");
 $sql="SELECT `start_time`,`title` FROM `contest` WHERE `contest_id`='$cid'";
-$result=mysqli_query($mysqli,$sql) or die(mysqli_error());
+$result=mysqli_query($mysqli,$sql) or die(mysqli_error($mysqli));
 $rows_cnt=mysqli_num_rows($result);
 $start_time=0;
 if ($rows_cnt>0){

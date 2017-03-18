@@ -124,7 +124,7 @@ $MSG_Compile_OK="人品问题-愚人节快乐";
 	$MSG_UPDATE_DATABASE="更新数据库";
 	$MSG_ONLINE="在线";
   //contest
-  $MSG_PRIVATE_WARNING="私有比赛或考试作业，您无权查看题目。";
+  $MSG_PRIVATE_WARNING="比赛尚未开始或私有，不能查看题目。";
   $MSG_WATCH_RANK="点击这里查看做题排名。";
   $MSG_Public="公开";
   $MSG_Private="私有";
@@ -138,4 +138,10 @@ $MSG_Compile_OK="人品问题-愚人节快乐";
   $MSG_SOURCE_NOT_ALLOWED_FOR_EXAM="考试期间，不能查阅以前提交的代码。";
   $MSG_BBS_NOT_ALLOWED_FOR_EXAM="考试期间,讨论版禁用。";
   $MSG_MAIL_NOT_ALLOWED_FOR_EXAM="考试期间,内邮禁用。";
+  $MSG_LOAD_TEMPLATE_CONFIRM="是否加载默认模板?\\n 如果选择是，当前代码将被覆盖!";
+  
+  $MSG_BLOCKLY_OPEN="可视化"; 
+  $MSG_BLOCKLY_TEST="翻译运行"; 
+  $MSG_MY_SUBMISSIONS="我的提交"; 
+  $MSG_MY_CONTESTS="我的$MSG_CONTEST"; 
 ?>

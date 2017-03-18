@@ -21,7 +21,7 @@ int LANG_CV[256] = {0,1,2,4,5,9,11,12,21,59,63,89,158,231,240, 8, SYS_time, SYS_
 		SYS_close, SYS_execve, SYS_access, SYS_brk, SYS_munmap, SYS_mprotect,
 		SYS_mmap, SYS_fstat, SYS_set_thread_area, 252, SYS_arch_prctl, 231, 0 };
 
-int LANG_PV[256] = {0,1,2,4,9,11,13,16,59,89,97,201,231,SYS_open, SYS_set_thread_area, SYS_brk, SYS_read,
+int LANG_PV[256] = {0,1,2,3,4,9,11,13,16,59,89,97,201,231,SYS_open, SYS_set_thread_area, SYS_brk, SYS_read,
 		SYS_uname, SYS_write, SYS_execve, SYS_ioctl, SYS_readlink, SYS_mmap,
 		SYS_rt_sigaction, SYS_getrlimit, 252, 191, 158, 231, SYS_close,
 		SYS_exit_group, SYS_munmap, SYS_time, 4, 0 };
@@ -96,7 +96,7 @@ int LANG_CSV[256] = {0,1,2,3,4,5,8,9,10,11,12,13,14,16,21,24,41,42,56,59,63,72,7
 		SYS_set_thread_area, SYS_set_tid_address, SYS_sigaltstack, SYS_stat,
 		SYS_statfs, SYS_tgkill, SYS_time, SYS_uname, SYS_unlink, SYS_write, 0 };
 
-int LANG_OV[256] = { 158, 4, 102, 191, SYS_access, SYS_brk, SYS_close,
+int LANG_OV[256] = { 0,1,2,3,4,5,9,10,12,21,59,158,231, 102, 191, SYS_access, SYS_brk, SYS_close,
 		SYS_execve, SYS_exit_group, SYS_fstat, SYS_futex, SYS_getcwd,
 		SYS_getrlimit, SYS_gettimeofday, SYS_mmap, SYS_mprotect, SYS_munmap,
 		SYS_open, SYS_read, SYS_readlink, SYS_rt_sigaction, SYS_rt_sigprocmask,
@@ -121,5 +121,5 @@ int LANG_SV[256] = { 1, 23, 100, 61, 22, 6, 33, 8, 13, 16, 111, 110, 39, 79,
 		SYS_exit_group, 158, 0 };
 
 int LANG_LUAV[256]={0,1,2,3,4,5,9,10,11,12,13,21,59,158,231,292,0};
-int LANG_JSV[256]={0,1,2,3,4,5,9,10,11,12,13,14,16,21,56,59,96,97,98,158,186,202,218,231,273,0};
-
+int LANG_JSV[256]={0,1,2,3,4,5,6,9,10,11,12,13,14,16,21,56,59,79,89,96,97,158,186,202,218,228,231,232,233,273,290,291,293,0};
+int LANG_GOV[256]={0,1,9,11,13,14,56,59,131,158,202,204,228,231,0};

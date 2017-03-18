@@ -20,7 +20,7 @@ class ClassName(models.Model):
 
 
 class KnowledgePoint1(models.Model):
-    name = models.CharField(verbose_name='一级知识点名称', max_length=20)
+    name = models.CharField(verbose_name='一级知识点名称', max_length=50)
     id = models.AutoField(primary_key=True)
     classname = models.ForeignKey(ClassName, verbose_name='所属课程')
 
@@ -34,7 +34,7 @@ class KnowledgePoint1(models.Model):
 
 
 class KnowledgePoint2(models.Model):
-    name = models.CharField(verbose_name='二级知识点名称', max_length=20)
+    name = models.CharField(verbose_name='二级知识点名称', max_length=50)
     upperPoint = models.ForeignKey(KnowledgePoint1, verbose_name='上级课程')
     id = models.AutoField(primary_key=True)
 
@@ -50,10 +50,10 @@ class KnowledgePoint2(models.Model):
 class ChoiceProblem(models.Model):
     id = models.AutoField('选择题ID', primary_key=True)
     title = models.TextField(max_length=200)
-    a = models.CharField(max_length=50)
-    b = models.CharField(max_length=50)
-    c = models.CharField(max_length=50)
-    d = models.CharField(max_length=50)
+    a = models.CharField(max_length=200)
+    b = models.CharField(max_length=200)
+    c = models.CharField(max_length=200)
+    d = models.CharField(max_length=200)
     right_answer = models.CharField(max_length=1)
     creater = models.ForeignKey(MyUser)
     update_date = models.DateTimeField(auto_now=True, verbose_name='最后修改时间', blank=True, null=True)
@@ -135,7 +135,6 @@ class Solution(models.Model):
     homework_answer = models.ForeignKey(HomeworkAnswer, null=True)
     oi_info = models.TextField(blank=True, null=True)
     judger = models.CharField(max_length=16, default='LOCAL', null=False)
-
     class Meta:
         db_table = 'solution'
 

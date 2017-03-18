@@ -6,6 +6,12 @@
 {% endblock %}
 
 {% block content %}
+    <script>
+    function stop(){
+        var video = document.getElementById("index-video");
+        video.pause();
+    }
+    </script>
     <div>
         <div class="site-index">
             <div class="jumbotron">
@@ -29,14 +35,14 @@
                 <div class="modal-dialog  modal-lg">
                     <div class="modal-content">
                         <div class="modal-header">
-                            <button type="button" class="close" data-dismiss="modal"><span
+                            <button type="button" class="close" data-dismiss="modal" onclick="stop();"><span
                                     aria-hidden="true">&times;</span><span class="sr-only">关闭</span></button>
                             <h4 class="modal-title" id="myModalLabel">平台使用说明</h4>
                         </div>
                         <div class="modal-body">
                             <div class="container video-container" id="video-container">
                                 <video width="" height="auto" controls id="index-video">
-                                    <source src="{% static 'videos/平台学生的使用说明.mp4' %}" type="video/mp4">
+                                    <source src="{% static 'videos/intro.mp4' %}" type="video/mp4">
                                 </video>
                             </div>
                         </div>
@@ -64,11 +70,8 @@
                             本课程是面向计算机新人的程序设计入门课程，Java语言是教学的媒介，但不是课程的目标。</p>
 
                         <p><a class="btn btn-default"
-                              href="http://www.oracle.com/technetwork/java/javase/downloads/jdk7-downloads-1880260.html"
-                              target="_blank">下载JDK 7 &raquo;</a>&nbsp;
-                            <a class="btn btn-default"
-                               href="http://www.eclipse.org/downloads/packages/eclipse-ide-java-ee-developers/mars1"
-                               target="_blank">下载Eclipse &raquo;</a></p>
+                              href="http://pan.baidu.com/s/1ciWcJs#list/path=%2F"
+                              target="_blank">下载开发环境 &raquo;</a></p>
                     </div>
                     <div class="col-lg-4">
                         <h2>程序设计基础<br>（ Python语言）</h2>

@@ -3,9 +3,8 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="">
-    <meta name="author" content="Dashboard">
-    <meta name="keyword" content="Dashboard, Bootstrap, Admin, Template, Theme, Responsive, Fluid, Retina">
+    <meta name="description" content="南京邮电大学计算机语言作业平台">
+    <meta name="keyword" content="南邮,NJUPT,NUPT,C语言">
 
     <title>{% block title %}计算机语言作业平台{% endblock %}</title>
     {% load static %}
@@ -13,7 +12,6 @@
     <link href="{% static "assets/css/bootstrap.css" %}" rel="stylesheet">
     <!--external css-->
     <link href="{% static "assets/font-awesome/css/font-awesome.css" %}" rel="stylesheet"/>
-
     <!-- Custom styles for this template -->
     <link href="{% static "assets/css/style.css" %}" rel="stylesheet">
     <link href="{% static "assets/css/style-responsive.css" %}" rel="stylesheet">
@@ -44,24 +42,6 @@
         <div class="nav notify-row" id="top_menu">
             <!--  notification start -->
             <ul class="nav top-menu">
-                <!-- settings start -->
-
-                {#                <li class="dropdown">#}
-                {#                    <a data-toggle="dropdown" class="dropdown-toggle" href="index.html#" title="待做作业">#}
-                {#                        <i class="fa fa-tasks"></i>#}
-                {#                        <span class="badge bg-theme">dd</span>#}
-                {#                    </a>#}
-                {#                    <ul class="dropdown-menu extended tasks-bar">#}
-                {#                        <div class="notify-arrow notify-arrow-green"></div>#}
-                {#                        <li>#}
-                {#                            <p class="green">你有</p>#}
-                {#                        </li>#}
-                {##}
-                {#                        <li class="external">#}
-                {#                            <a href="#">立即查看</a>#}
-                {#                        </li>#}
-                {#                    </ul>#}
-                {#                </li>#}
                 {% if user.is_authenticated %}
                     <li class="dropdown">
                         <a data-toggle="dropdown" class="dropdown-toggle" href="index.html#" title="">
@@ -97,8 +77,14 @@
     MAIN SIDEBAR MENU
     *********************************************************************************************************************************************************** -->
     <!--sidebar start-->
+    <style type="text/css">
+        .scrollable {
+            overflow-y: auto;
+            overflow-x: auto;
+        }
+    </style>
     <aside>
-        <div id="sidebar" class="nav-collapse ">
+        <div id="sidebar" class="nav-collapse scrollable">
             <!-- sidebar menu start-->
             <ul class="sidebar-menu" id="nav-accordion">
 
@@ -119,8 +105,8 @@
                     </a>
                 </li>
                 {% if user.is_authenticated %}
-                    <li ><a href="{% url 'list_do_homework' %}" id="unfinished">未完成作业</a></li>
-                    <li ><a href="{% url 'list_finished_homework' %}" id="finished">查看作业结果</a></li>
+                    <li><a href="{% url 'list_do_homework' %}" id="unfinished">未完成作业</a></li>
+                    <li><a href="{% url 'list_finished_homework' %}" id="finished">查看作业结果</a></li>
                     {% if 'judge.add_problem' in perms %}
                         <li class="sub-menu">
                             <a href="javascript:;" id="problem_list">
@@ -128,8 +114,9 @@
                                 <span>题库管理</span>
                             </a>
                             <ul class="sub" id="extend_problem_list">
-                                <li  id="biancheng_list"> <a href="{% url 'problemlist' %}">编程题题库</a></li>
-                                <li  id="choice_list"><a href="{% url 'choice_problem_list' %}" id="biancheng_list">选择题题库</a></li>
+                                <li id="biancheng_list"><a href="{% url 'problemlist' %}">编程题题库</a></li>
+                                <li id="choice_list"><a href="{% url 'choice_problem_list' %}"
+                                                        id="biancheng_list">选择题题库</a></li>
                             </ul>
                         </li>
                     {% endif %}
@@ -195,7 +182,9 @@
     <!--main content start-->
     <section id="main-content">
         <section class="wrapper site-min-height">
-            <h3><i class="fa fa-angle-right"></i>{{ title }}</h3>
+            {% if title %}
+                <h3><i class="fa fa-angle-right"></i>{{ title }}</h3>
+            {% endif %}
             <div class="row mt">
                 <div class="col-lg-12">
                     <div class="showback">
@@ -251,14 +240,15 @@
     $(function () {
         var position = "{{ position }}"
         switch (position) {
-            case 'biancheng_list':$("#biancheng_list").addClass("active");
+            case 'biancheng_list':
+                $("#biancheng_list").addClass("active");
                 $("#problem_list").addClass("active");
-                $("#extend_problem_list").css('display','block');
+                $("#extend_problem_list").css('display', 'block');
                 break
             case 'choice_list':
                 $("#choice_list").addClass("active");
                 $("#problem_list").addClass('active');
-                    $("#extend_problem_list").css('display','block')
+                $("#extend_problem_list").css('display', 'block')
                 break;
             case 'index':
                 $("#index").addClass("active");
@@ -275,21 +265,21 @@
             case 'courser_manage':
                 $("#courser_manage").addClass('active');
                 $("#manage").addClass("active");
-                    $("#extend_manage").css('display','block');
+                $("#extend_manage").css('display', 'block');
                 break;
             case 'banji_manage':
                 $("#banji_manage").addClass("active");
-                    $("#extend_manage").css("display",'block');
+                $("#extend_manage").css("display", 'block');
                 $("#manage").addClass("active");
                 break;
             case 'public_work_manage':
                 $("#public_work_manage").addClass("active");
-                $("#extend_work_manage").css("display",'block');
+                $("#extend_work_manage").css("display", 'block');
                 $("#work_manege").addClass("active");
                 break;
             case 'private_work_manage':
                 $("#private_work_manage").addClass("active");
-                $("#extend_work_manage").css("display",'block');
+                $("#extend_work_manage").css("display", 'block');
                 $("#work_manege").addClass("active");
         }
 

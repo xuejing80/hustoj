@@ -1,12 +1,6 @@
 from django.conf.urls import url, include
 
-from work.views import add_homework, get_json_work, list_homework, del_homework, show_homework, \
-    ajax_for_homework_info, do_homework, add_banji, add_courser, get_banji_list, list_banji, del_banji, update_banji, \
-    copy_to_my_homework, list_my_homework, update_public_homework, update_my_homework, show_my_homework, show_banji, \
-    add_students, ajax_add_students, assign_homework, list_do_homework, get_my_homework_todo, show_homework_result, \
-    list_finished_homework, get_finished_homework, get_finished_students, list_coursers, list_kp1s, list_kp2s, \
-    delete_courser, add_kp1, add_kp2, delete_kp1, delete_kp2, add_myhomework, test_run, delete_homeworkanswer, \
-    rejudge_homework, save_homework_temp, init_homework_data, file_download
+from work.views import *
 
 urlpatterns = [
     url(r'del-homeworkanswer-(?P<id>\d+)', delete_homeworkanswer, name='delete_homeworkanswer'),
@@ -62,5 +56,7 @@ urlpatterns = [
     url(r'rejudge-homework-(?P<id>\d+)', rejudge_homework, name='rejudge_homework'),
     url(r'save-homework',save_homework_temp,name='save_homework'),
     url(r'get-init-homework-data',init_homework_data,name='get_init_homework_data'),
-    url(r'download',file_download,name='download')
+    url(r'download',file_download,name='download'),
+
+  
 ]

@@ -39,7 +39,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'auth_system',
     'judge',
-    'work'
+    'work',
+    'faq'
 ]
 
 MIDDLEWARE_CLASSES = [

@@ -525,12 +525,29 @@ def list_my_homework(request):
     return render(request, 'my_homework_list.html', context=context)
 
 
+
 @permission_required('work.add_banji')
 def show_banji(request, pk):
+    """
+    :return:a list like [{"name":"mike","grades":[100,200,300,400]},{...},...],score is sorted by homework's start time
+    """
     banji = BanJi.objects.get(pk=pk)
+    students_scores = []
+    students = banji.students.all()
+    homeworks = banji.myhomework_set.all().order_by('start_time')
+    for student in students:
+        info = {'name': student.username}
+        info['id'] = student.id_num
+        scores = []
+        for index, homework in enumerate(homeworks):
+            answers = homework.homeworkanswer_set.all()
+            scores.append(answers.get(
+                creator=student).score if student in homework.finished_students.all() else "无")
+        info['scores'] = scores
+        students_scores.append(info)
     context = {'id': banji.id, 'name': banji.name, 'courser': banji.courser.name, 'start_time': banji.start_time,
-               'end_time': banji.end_time, 'teacher': banji.teacher.username, 'students': banji.students.all(),
-               'title': '班级"' + banji.name + '"的信息'}
+               'end_time': banji.end_time, 'teacher': banji.teacher.username,
+               'title': '班级"' + banji.name + '"的信息', 'scores': students_scores}
     return render(request, 'banji_detail.html', context=context)
 
 
@@ -607,13 +624,27 @@ def get_my_homework_todo(request):
     if request.GET['order'] == 'desc':
         sort = '-' + sort
     for homework in homeworks.all().order_by(sort):
-        if (request.user not in homework.finished_students.all()) and (homework.start_time < timezone.now() < homework.end_time):
+        if (request.user in homework.finished_students.all()):
             recode = {'name': homework.name, 'pk': homework.pk,
                       'courser': homework.courser.name, 'id': homework.pk,
                       'start_time': homework.start_time.strftime('%Y-%m-%d %H:%M:%S'),
-                      'end_time': homework.end_time.strftime('%Y-%m-%d %H:%M:%S')}
-            recodes.append(recode)
-            count += 1
+                      'end_time': homework.end_time.strftime('%Y-%m-%d %H:%M:%S'),
+                      'status': 1}
+        elif not (homework.start_time < timezone.now() < homework.end_time):
+            recode = {'name': homework.name, 'pk': homework.pk,
+                      'courser': homework.courser.name, 'id': homework.pk,
+                      'start_time': homework.start_time.strftime('%Y-%m-%d %H:%M:%S'),
+                      'end_time': homework.end_time.strftime('%Y-%m-%d %H:%M:%S'),
+                      'status': -1}
+        else:
+            recode = {'name': homework.name, 'pk': homework.pk,
+                      'courser': homework.courser.name, 'id': homework.pk,
+                      'start_time': homework.start_time.strftime('%Y-%m-%d %H:%M:%S'),
+                      'end_time': homework.end_time.strftime('%Y-%m-%d %H:%M:%S'),
+                      'status': 0}
+
+        recodes.append(recode)
+        count += 1
     json_data['rows'] = recodes[offset:offset + limit]
     json_data['total'] = count
     json_data['xxx'] = homeworks.count()
@@ -719,7 +750,7 @@ def get_finished_students(request):
         sort = '-' + sort
     for homework_answer in homework_answers.all().order_by(sort)[offset:offset + limit]:
         score = '{}'.format(homework_answer.score) if homework_answer.judged else '<i class="fa fa-spinner fa-spin fa-fw"></i> 作业还在判分中'
-        recode = {'id_num': homework_answer.creator.id_num,
+        recode = {'creator__id_num': homework_answer.creator.id_num,
                   'username': homework_answer.creator.username,
                   'create_time': homework_answer.create_time.strftime('%Y-%m-%d %H:%M:%S'), 'id': homework_answer.id,
                   'teacher': 'dd',

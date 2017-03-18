@@ -24,6 +24,7 @@ urlpatterns = [
     url(r'^accounts/', include('auth_system.urls')),
     url(r'^judge/', include('judge.urls')),
     url(r'^work/', include('work.urls')),
+    url(r'^faq/', include('faq.urls')),
     url(r'get-json-(?P<model_name>\w+)/$', get_json,name='get_json'),
     url(r'^$', TemplateView.as_view(template_name="index.html")),
     

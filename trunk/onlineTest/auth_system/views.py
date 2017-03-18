@@ -17,6 +17,7 @@ import json
 from django.http import HttpResponse, Http404
 import logging
 import re
+from django.db.models import Q
 
 # logger
 logger = logging.getLogger(__name__)
@@ -212,7 +213,10 @@ def get_users(request):
     offset = int(request.GET['offset'])
     limit = int(request.GET['limit'])
     try:
-        users = MyUser.objects.filter(username__icontains=request.GET['search'])
+        qset = ( Q(username__icontains=request.GET['search']) | 
+                 Q(email__icontains=request.GET['search']) |
+                 Q(id_num__icontains=request.GET['search']) )
+        users = MyUser.objects.filter(qset)
     except:
         users = MyUser.objects
     try:
@@ -254,11 +258,19 @@ def update_user(request, pk):
     user = MyUser.objects.get(pk=pk)
     if request.method == 'POST':
         group = Group.objects.get(pk=request.POST['group_id'])
+        user.set_password(request.POST['password'])
         user.groups.clear()
         user.groups.add(group)
+        user.save()
         return redirect(reverse('user_list'))
     current_group_id = user.groups.all()[0].pk
     groups = Group.objects.all()
     return render(request, 'update_user.html',
                   context={'user': user, 'groups': groups, 'current_group_id': current_group_id})
 
+def reset_user(request, pk):
+    user = MyUser.objects.get(pk=pk)
+    user.set_password(user.id_num)
+    user.save()
+    return redirect(reverse('user_list'))
+    

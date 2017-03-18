@@ -1,10 +1,10 @@
 {% extends 'base.html' %}
 {% block extrahead %}
-    <script src="/static/bootstrap-table/1.11.0/bootstrap-table.min.js"></script>
-    <link href="/static/bootstrap-table/1.11.0/bootstrap-table.min.css" rel="stylesheet">
-    <script src="/static/bootstrap-table/1.11.0/locale/bootstrap-table-zh-CN.min.js"></script>
-    <script src="/static/bootstrap-table/1.11.0/extensions/export/bootstrap-table-export.min.js"></script>
-    <script src="/static/js/tableExport.js"></script>
+    <script src="//cdn.bootcss.com/bootstrap-table/1.11.0/bootstrap-table.min.js"></script>
+    <link href="//cdn.bootcss.com/bootstrap-table/1.11.0/bootstrap-table.min.css" rel="stylesheet">
+    <script src="//cdn.bootcss.com/bootstrap-table/1.11.0/locale/bootstrap-table-zh-CN.min.js"></script>
+    <script src="//cdn.bootcss.com/bootstrap-table/1.11.0/extensions/export/bootstrap-table-export.min.js"></script>
+    <script src="//rawgit.com/hhurz/tableExport.jquery.plugin/master/tableExport.js"></script>
 {% endblock %}
 {% block content %}
     <table id="table"
@@ -12,10 +12,12 @@
            data-url="{% url 'get_users' %}"
            data-side-pagination="server"
            data-pagination="true"
-           data-page-list="[10, 20, 50, 100, 200]"
+           data-page-size="20"
+           data-page-list="[20, 50, 100, 200]"
            data-classes="table table-hover table-condensed"
            data-toolbar="#toolbar"
            data-striped="true"
+           data-query-params="queryParams"
            data-search="true"
            data-show-export="true"
     >
@@ -25,7 +27,7 @@
             <th data-field="username" data-valign="middle">昵称(真实姓名)</th>
             <th data-field="email" data-sortable="true">邮箱</th>
             <th data-field="id_num" data-sortable="true">用户名(学号/工号)</th>
-            <th data-field="group" data-sortable="true">用户组</th>
+            <th data-field="group">用户组</th>
             <th data-field="id" data-valign="middle" data-formatter="editFormatter">操作</th>
         </tr>
         </thead>

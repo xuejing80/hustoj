@@ -1,8 +1,17 @@
 {% extends 'base.html' %}
+{% load filters %}
 {% block extrahead %}
     {% load static %}
     <script src="{% static 'assets/js/jquery-confirm.min.js' %}"></script>
     <link href="{% static 'assets/css/jquery-confirm.min.css' %}" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'assets/css/codemirror/codemirror.css' %}">
+    <link rel="stylesheet" href="{% static 'assets/css/codemirror/material.css' %}">
+    <script src="{% static 'assets/js/codemirror/lib/codemirror.js' %}"></script>
+    <script src="{% static 'assets/js/codemirror/addon/display/autorefresh.js' %}"></script>
+    <script src="{% static 'assets/js/codemirror/mode/clike.js' %}"></script>
+    <script src="{% static 'assets/js/codemirror/mode/python.js' %}"></script>
+
+
 {% endblock %}
 {% block content %}
     {% if homework.allow_resubmit %}
@@ -25,7 +34,7 @@
                                href="#collapse{{ choice_problem.detail.id }}"
                                aria-expanded="{% if forloop.first %}true{% else %}false{% endif %}"
                                aria-controls="collapse{{ choice_problem.detail.id }}">
-                                <pre>{{ forloop.counter }}. ({{ choice_problem.score }}分) {{ choice_problem.detail.title }}</pre>
+                               {{ forloop.counter }}. ({{ choice_problem.score }}分) {{ choice_problem.detail.title|myFilter|safe|linebreaksbr }}
                             </a>
                         </h4>
                     </div>
@@ -33,38 +42,38 @@
                          class="panel-collapse collapse {% if forloop.first %}in{% endif %}" role="tabpanel"
                          aria-labelledby="heading{{ choice_problem.detail.id }}">
                         <div class="panel-body">
-                            <div class="row">
+                            <!--<div class="row">-->
                                 <div class="col-lg-6 col-md-6">
-                                    <label class="checkbox-inline">
+                                    <label class="radio-inline">
                                         <input type="radio" id="selection-{{ choice_problem.detail.id }}" value="a"
                                                name="selection-{{ choice_problem.detail.id }}">
-                                        A.{{ choice_problem.detail.a|safe }}
+                                        {{ choice_problem.detail.a|myFilter|safe|linebreaks }}
                                     </label>
                                 </div>
-                                <div class="col-lg-6 col-md-6 ">
-                                    <label class="checkbox-inline">
+                                <div class="col-lg-6 col-md-6">
+                                    <label class="radio-inline">
                                         <input type="radio" id="selection-{{ choice_problem.detail.id }}" value="b"
                                                name="selection-{{ choice_problem.detail.id }}">
-                                        B.{{ choice_problem.detail.b|safe }}
+                                        {{ choice_problem.detail.b|myFilter|safe|linebreaks }}
                                     </label>
                                 </div>
-                            </div>
-                            <div class="row">
+                            <!--</div>
+                            <div class="row">-->
                                 <div class="col-lg-6 col-md-6">
-                                    <label class="checkbox-inline">
+                                    <label class="radio-inline">
                                         <input type="radio" id="selection-{{ choice_problem.detail.id }}" value="c"
                                                name="selection-{{ choice_problem.detail.id }}">
-                                        C.{{ choice_problem.detail.c|safe }}
+                                        {{ choice_problem.detail.c|myFilter|safe|linebreaks }}
                                     </label>
                                 </div>
                                 <div class="col-lg-6 col-md-6">
-                                    <label class="checkbox-inline">
+                                    <label class="radio-inline">
                                         <input type="radio" id="selection-{{ choice_problem.detail.id }}" value="d"
                                                name="selection-{{ choice_problem.detail.id }}">
-                                        D.{{ choice_problem.detail.d|safe }}
+                                        {{ choice_problem.detail.d|myFilter|safe|linebreaks }}
                                     </label>
                                 </div>
-                            </div>
+                            <!--</div>-->
                         </div>
                     </div>
                 </div>
@@ -94,27 +103,27 @@
                         <div class="panel-body">
                             <div class="section">
                                 <h4><span class="label label-primary">题目描述</span></h4>
-                                <div id="description"><p>{{ problem.description|safe|linebreaks }}</p></div>
+                                <div id="description"><p>{{ problem.description|myFilter|safe|linebreaks }}</p></div>
                             </div>
                             <div class="section">
                                 <h4><span class="label label-primary">输入</span></h4>
-                                <div id="input"><p>{{ problem.input|safe|linebreaks }}</p></div>
+                                <div id="input"><p>{{ problem.input|myFilter|safe|linebreaks }}</p></div>
                             </div>
                             <div class="section">
                                 <h4><span class="label label-primary">输出</span></h4>
-                                <div id="output"><p>{{ problem.output|safe|linebreaks }}</p></div>
+                                <div id="output"><p>{{ problem.output|myFilter|safe|linebreaks }}</p></div>
                             </div>
                             {% if problem.sample_output %}
                                 <div class="section">
                                     <h4><span class="label label-info">样例输入1:</span></h4>
                                     <div id="sample_input">
-                                        <pre>{{ problem.sample_input|safe|linebreaks }}</pre>
+                                        <pre>{{ problem.sample_input|myFilter|safe|linebreaksbr }}</pre>
                                     </div>
                                 </div>
                                 <div class="section">
                                     <h4><span class="label label-info">样例输出1:</span></h4>
                                     <div id="sample_output">
-                                        <pre>{{ problem.sample_output|safe|linebreaks }}</pre>
+                                        <pre>{{ problem.sample_output|myFilter|safe|linebreaksbr }}</pre>
                                     </div>
                                 </div>
                             {% endif %}
@@ -122,13 +131,13 @@
                                 <div class="section">
                                     <h4><span class="label label-primary">样例输入2:</span></h4>
                                     <div id="sample_input2">
-                                        <pre>{{ problem.sample_input2|safe|linebreaks }}</pre>
+                                        <pre>{{ problem.sample_input2|myFilter|safe|linebreaks }}</pre>
                                     </div>
                                 </div>
                                 <div class="section">
                                     <h4><span class="label label-primary">样例输出2:</span></h4>
                                     <div id="sample_output2">
-                                        <pre>{{ problem.sample_output2|safe|linebreaks }}</pre>
+                                        <pre>{{ problem.sample_output2|myFilter|safe|linebreaks }}</pre>
                                     </div>
                                 </div>
                             {% endif %}
@@ -142,7 +151,7 @@
                                 </div>
                                 <div class="form-group">
                                     <label for="source{{ problem.problem_id }}">代码</label>
-                                    <textarea class="form-control" cols="50" rows="10"
+                                    <textarea class="form-control code-input" cols="50" rows="10"
                                               name="source-{{ problem.problem_id }}"
                                               id="source{{ problem.problem_id }}" spellcheck="false"></textarea>
                                 </div>
@@ -175,14 +184,67 @@
             5: 'Bash',
             6: 'Python'
         };
+
+        function sync_code() {
+            //使用code mirror之后用于同步输入内容到textarea
+            $('.code-input').each(function (index, element) {
+                element.value = editors[element.id].getValue()
+            });
+        }
+
         var allowed_languages = '{{ homework.allowed_languages }}'.split(',');
         for (var i = 0; i < allowed_languages.length; i++) {
             $(".language").append("<option value=\"" + allowed_languages[i] + "\">" + languages[allowed_languages[i]] + "</option>");
         }
+
+        var mylang = new Array()
+        $('.language').each(function(index,element) {
+            mylang[index] = element.value;
+            $(this).change(function(){
+                var strmode;
+                switch(parseInt($(this).val())){
+                    case 0:strmode = "text/x-csrc";break;
+                    case 1:strmode = "text/x-c++src";break;
+                    case 3:strmode = "text/x-java";break;
+                    case 6:strmode = "text/x-python";break;
+                }
+                var name = $(this).attr('name').replace('language-','source');
+                $('.code-input').each(function(index,element){
+                    if(element.id == name){
+                        editors[element.id].setOption('mode',strmode);
+                    }
+                });
+            });
+        });
+
+        jQuery(document).ready(function ($) {
+            editors = {};
+            $('.code-input').each(function (index, element) {
+                var strmode;
+                var strname = element.id.replace('source','#language-');
+                switch(parseInt($(strname).val())){
+                    case 0:strmode = "text/x-csrc";break;
+                    case 1:strmode = "text/x-c++src";break;
+                    case 3:strmode = "text/x-java";break;
+                    case 6:strmode = "text/x-python";break;
+                }
+                editors[element.id] = CodeMirror.fromTextArea(element, {
+                        mode: strmode,
+                        lineNumbers: true,
+                        tabMode: "indent",
+                        theme: 'material',
+                        autoRefresh: true
+                    }
+                );
+            });
+        });
+
         function check() {
+            sync_code()
             $.confirm({
                 title: '确认提交',
-                content: '确定要提交作业吗？{% if homework.allow_resubmit %}此次作业允许提交多次，如果对成绩不满意，可以去已完成作业列表中选择重做{% else %}此作业只允许<strong>提交一次</strong>!提交后无法重新提交{% endif %}',
+                content: '确定要提交作业吗？{% if homework.allow_resubmit %}此次作业允许提交多次，如果对成绩不满意，可以去已完成作业列表中选择重做{% else %} \
+                    此作业只允许<strong>提交一次</ strong>!提交后无法重新提交{% endif %}',
                 confirmButton: '我已检查完成，确定提交',
                 cancelButton: '取消',
                 confirmButtonClass: 'btn-info',
@@ -197,12 +259,14 @@
                     });
                     $("form").submit();
                 }
-            });
+            })
+            ;
         }
         $.ajaxSetup({
             data: {csrfmiddlewaretoken: '{{ csrf_token }}'}
         });
         function save() {
+            sync_code();
             $.confirm({
                 title: false, // hides the title.
                 cancelButton: false,// hides the cancel button.
@@ -227,45 +291,45 @@
                 data: {
                     'type': 'upload',
                     'problem_id': id,
-                    'code': $('#source' + id).val(),
+                    'code': editors['source' + id].getValue(),
                     'language': $('#language-' + id).val(),
                     'homework_id':{{ homework.id }}
                 },
                 success: function (data) {
                     if (data.result == 1) {
                         var int = setInterval(function () {
-                                    $.ajax({
-                                        type: "post",
-                                        url: "{% url 'test_run' %}",
-                                        dataType: "json",
-                                        data: {
-                                            'type': 'score',
-                                            'solution_id': data.solution_id,
-                                            'problem_id': id,
-                                            'homework_id':{{ homework.id }}
-                                        },
-                                        success: function (data) {
-                                            if (data.status == 1) {
-                                                switch (data.result) {
-                                                    case 0:
-                                                        result_div.html('<div class="alert alert-danger" role="alert"><pre>' + data.info.info + '</pre></div>');
-                                                        break;
-                                                    case 1:
-                                                        result_div.html('<div class="alert alert-warning" role="alert">' + '总共' + data.info.total_cases + '个测试点，你通过了其中的' + data.info.right_num + '个' + '</div>')
-                                                        break;
-                                                    case 2:
-                                                        result_div.html('<div class="alert alert-success" role="alert">恭喜你通过了所有的测试点</div>')
-                                                }
-                                                score_span.html(data.info.score);
-                                                score_input.val(data.info.score)
-                                                int = window.clearInterval(int)
-                                            } else(
-                                                    result_div.html('<div class="alert alert-default" role="alert"><i class="fa fa-spinner fa-spin fa-3x fa-fw"></i>正在判断程序运行情况</div>')
-                                            )
-                                        }
-                                    })
-                                },
-                                1000);
+                                $.ajax({
+                                    type: "post",
+                                    url: "{% url 'test_run' %}",
+                                    dataType: "json",
+                                    data: {
+                                        'type': 'score',
+                                        'solution_id': data.solution_id,
+                                        'problem_id': id,
+                                        'homework_id':{{ homework.id }}
+                                    },
+                                    success: function (data) {
+                                        if (data.status == 1) {
+                                            switch (data.result) {
+                                                case 0:
+                                                    result_div.html('<div class="alert alert-danger" role="alert"><pre>' + data.info.info + '</pre></div>');
+                                                    break;
+                                                case 1:
+                                                    result_div.html('<div class="alert alert-warning" role="alert">' + '总共' + data.info.total_cases + '个测试点，你通过了其中的' + data.info.right_num + '个' + '</div>')
+                                                    break;
+                                                case 2:
+                                                    result_div.html('<div class="alert alert-success" role="alert">恭喜你通过了所有的测试点</div>')
+                                            }
+                                            score_span.html(data.info.score);
+                                            score_input.val(data.info.score)
+                                            int = window.clearInterval(int)
+                                        } else(
+                                            result_div.html('<div class="alert alert-default" role="alert"><i class="fa fa-spinner fa-spin fa-3x fa-fw"></i>正在判断程序运行情况</div>')
+                                        )
+                                    }
+                                })
+                            },
+                            1000);
                     }
                 }
             });
@@ -291,12 +355,14 @@
                                 $("input[type='radio'][name=" + key + "][value=" + value + "]").prop("checked", true)
                             }
                             if (key.indexOf('source') != -1) {
-                                $("textarea[name=" + key + "]").val(value)
+                                editors[key.replace('-', '')].setValue(value)
                             }
                         });
                     }
                 }
             })
         })
+
     </script>
+
 {% endblock %}

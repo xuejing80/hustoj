@@ -88,14 +88,14 @@ class ChoiceAddForm(forms.Form):
     CHOICES = (('a', 'A',), ('b', 'B',), ('c', 'C'), ('d', 'D'))
     title = forms.CharField(label='题干', widget=forms.Textarea(
         attrs={'class': 'form-control', 'required': 'required'}))
-    a = forms.CharField(max_length=50, widget=forms.TextInput(
-        attrs={'class': 'form-control', 'required': 'required'}))
-    b = forms.CharField(max_length=50, widget=forms.TextInput(
-        attrs={'class': 'form-control', 'required': 'required'}))
-    c = forms.CharField(max_length=50, widget=forms.TextInput(
-        attrs={'class': 'form-control', 'required': 'required'}))
-    d = forms.CharField(max_length=50, widget=forms.TextInput(
-        attrs={'class': 'form-control', 'required': 'required'}))
+    a = forms.CharField(max_length=200, widget=forms.Textarea(
+        attrs={'class': 'form-control', 'required': 'required', 'rows': '3'}))
+    b = forms.CharField(max_length=200, widget=forms.Textarea(
+        attrs={'class': 'form-control', 'required': 'required', 'rows': '3'}))
+    c = forms.CharField(max_length=200, widget=forms.Textarea(
+        attrs={'class': 'form-control', 'required': 'required', 'rows': '3'}))
+    d = forms.CharField(max_length=200, widget=forms.Textarea(
+        attrs={'class': 'form-control', 'required': 'required', 'rows': '3'}))
     selection = forms.ChoiceField(widget=forms.RadioSelect(), choices=CHOICES)
 
     classname = forms.ModelChoiceField(label='所属课程', queryset=ClassName.objects.all(),

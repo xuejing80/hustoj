@@ -1,4 +1,12 @@
 {% extends 'base.html' %}
+{% block extrahead %}
+    {% load static %}
+    <script src="{% static 'assets/js/xlsx.core.min.js' %}"></script>
+    <script src="{% static 'assets/js/FileSaver.min.js' %}"></script>
+    <script src="{% static 'assets/js/tableExport.js' %}"></script>
+    <script src="{% static 'assets/js/jquery-confirm.min.js' %}"></script>
+    <link href="{% static 'assets/css/jquery-confirm.min.css' %}" rel="stylesheet">
+{% endblock %}
 {% block content %}
     <ol class="breadcrumb">
         <li><a href="{% url 'index' %}">主页</a></li>
@@ -34,20 +42,54 @@
         </tr>
         <tr>
             <th>结束时间</th>
-            <td>{{ end_time }}秒</td>
-        </tr>
-        <tr>
-            <th>该班级的学生</th>
-
-            <td>{% for student in students %}
-                {{ student.id_num }}
-                {{ student.username }}<br>
-            {% endfor %}</td>
-
-
+            <td>{{ end_time }}</td>
         </tr>
 
         </tbody>
     </table>
 
+    <p>
+    <button type="button" id="download" class="btn btn-info right" onclick="download()">导出到excel</button>
+</p>
+
+    <table id="scores" class="table table-striped table-bordered detail-view table-hover ">
+        <tbody>
+        <tr>
+
+            {#        表头#}
+            <th>学号</th>
+            <th>姓名</th>
+            {% if scores %}
+                {% for score in scores %}
+                    {% if forloop.first %}
+                        {% for i in score.scores %}
+                            <th>作业{{ forloop.counter }}</th>
+                        {% endfor %}
+                    {% endif %}
+                {% endfor %}
+            {% endif %}
+        </tr>
+
+        {#        成绩信息#}
+        {% for score in scores %}
+            <tr>
+                <td>{{ score.id }}</td>
+                <td>{{ score.name }}</td>
+
+                {% for i in score.scores %}
+                    <td>
+                    {{ i }}
+                {% endfor %}
+                </td>
+            </tr>
+
+        {% endfor %}
+
+        </tbody>
+    </table>
+    <script>
+    function download() {
+         $('#scores').tableExport({type: 'xlsx'});
+    }
+    </script>
 {% endblock %}

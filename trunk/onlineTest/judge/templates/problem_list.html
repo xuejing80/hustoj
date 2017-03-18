@@ -6,6 +6,13 @@
     <script src="{% static 'assets/js/bootstrap-table-zh-CN.min.js' %}"></script>
 {% endblock %}
 {% block content %}
+    <script>
+    function stop(){
+        var video = document.getElementById("index-video");
+        video.pause();
+    }
+    </script>
+
     <ol class="breadcrumb">
         <li><a href="{% url 'index' %}">主页</a></li>
         <li class="active">题库管理</li>
@@ -15,7 +22,30 @@
     <div class="btn-group">
         <button type="button" id="remove" class="btn btn-danger"><i class="glyphicon glyphicon-remove">删除选中</i></button>
         <a class="btn btn-primary btn-l" href="{% url 'add_problem' %}" role="button"><i class="glyphicon glyphicon-plus">添加题目</i></a>
+        <button type="button" class="btn btn-success" data-toggle="modal" data-target="#myModal"><i class="glyphicon glyphicon-info-sign">操作指导</i></button>
     </div>
+
+            <!-- Modal -->
+            <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel"
+                 aria-hidden="true">
+                <div class="modal-dialog  modal-lg">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" onclick="stop();"><span
+                                    aria-hidden="true">&times;</span><span class="sr-only">关闭</span></button>
+                            <h4 class="modal-title" id="myModalLabel">平台使用说明</h4>
+                        </div>
+                        <div class="modal-body">
+                            <div class="container video-container" id="video-container">
+                                <video width="" height="auto" controls id="index-video">
+                                    <source src="{% static 'videos/Add_BC.mp4' %}" type="video/mp4">
+                                </video>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
     <div id="toolbar">
         <div class="form-inline" role="form">
             <div class="form-group">

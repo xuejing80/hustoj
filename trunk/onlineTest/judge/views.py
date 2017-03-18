@@ -162,18 +162,19 @@ def update_problem(request, id):
         form = ProblemAddForm(request.POST)
         if form.is_valid():
             form.save(user=request.user, problemid=id)
-            try:  # 对文件进行解压和保存
-                old_path = '/tmp/' + request.POST['random_name'] + '/' + request.POST['file_name'] + '_files/'
-                store_dir = '/home/judge/data/' + str(id)
-                if os.path.exists(store_dir):
-                    shutil.rmtree(store_dir)
-                shutil.move(old_path, '/home/judge/data/')
-                os.rename('/home/judge/data/' + request.POST['file_name'] + '_files',
-                          '/home/judge/data/' + str(id))
-                shutil.rmtree('/tmp/' + request.POST['random_name'])
-            except Exception as  e:
-                print(e)
-                pass
+            if request.POST['file_name'] != '':
+                try:  # 对文件进行解压和保存
+                    old_path = '/tmp/' + request.POST['random_name'] + '/' + request.POST['file_name'] + '_files/'
+                    store_dir = '/home/judge/data/' + str(id)
+                    if os.path.exists(store_dir):
+                        shutil.rmtree(store_dir)
+                    shutil.move(old_path, '/home/judge/data/')
+                    os.rename('/home/judge/data/' + request.POST['file_name'] + '_files',
+                              '/home/judge/data/' + str(id))
+                    shutil.rmtree('/tmp/' + request.POST['random_name'])
+                except Exception as  e:
+                    print(e)
+                    pass
             return redirect(reverse("problem_detail", args=[id]))
     return render(request, 'problem_add.html', {'form': ProblemAddForm(initial=initial)})
 

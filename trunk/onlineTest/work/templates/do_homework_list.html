@@ -32,12 +32,15 @@
            data-url="{% url 'get_my_homework_todo' %}"
            data-side-pagination="server"
            data-pagination="true"
+           data-page-size="20"
            data-page-list="[10, 20, 50, 100, 200]"
            data-classes="table table-hover table-condensed"
            data-toolbar="#toolbar"
            data-striped="true"
            data-query-params="queryParams"
            data-search="true"
+           data-sort-name="start_time"
+           data-sort-order="desc"
     >
         <thead>
         <tr>
@@ -45,6 +48,7 @@
             <th data-field="courser" data-valign="middle">所属课程</th>
             <th data-field="start_time" data-sortable="true">开始时间</th>
             <th data-field="end_time" data-sortable="true">结束时间</th>
+            <th data-field="status" data-formatter="getStatus">状态</th>
             <th data-field="id" data-valign="middle" data-formatter="editFormatter">做题</th>
         </tr>
         </thead>
@@ -68,9 +72,21 @@
             });
         });
 
-        function editFormatter(value) {
-            return '<a href="{% url '_do_homework' %}' + value + '/" title="完成作业" aria-label="完成作业" data-pjax="0"><span class="glyphicon glyphicon-pencil"></span></a>';
+        function editFormatter(value, row, index) {
+            if(row.status==0)
+                return '<a href="{% url '_do_homework' %}' + value + '/" title="完成作业" aria-label="完成作业" data-pjax="0"><span class="glyphicon glyphicon-pencil"></span></a>';
         }
+        function getStatus(value, row, index) {
+            if(value==0)
+                return '未做';
+            if(value==-1)
+                return '时间不允许';
+            if(value==1)
+                return '已完成';
+        }
+        $(function () {
+            //$('#table').bootstrapTable('hideColumn', 'status');
+        });
     </script>
 
 {% endblock %}

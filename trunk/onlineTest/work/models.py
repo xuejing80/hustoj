@@ -48,6 +48,7 @@ class MyHomework(models.Model):
     name = models.CharField(max_length=40)
     courser = models.ForeignKey('judge.ClassName', verbose_name='所属课程')
     creater = models.ForeignKey(MyUser, verbose_name='创建者')
+    #numid = models.ForeignKey('MyUser.id_num', verbose_'学号/工号')
     start_time = models.DateTimeField(verbose_name='开始时间')
     end_time = models.DateTimeField(verbose_name='结束时间')
     problem_ids = models.CharField(max_length=200, verbose_name='编程题列表id列表', null=True, blank=True)

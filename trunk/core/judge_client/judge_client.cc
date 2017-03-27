@@ -1426,6 +1426,11 @@ void copy_python_runtime(char * work_dir) {
 	execute_cmd("/bin/grep judge /etc/passwd>%s/etc/passwd", work_dir);
 	execute_cmd("/bin/mount -o bind /dev %s/dev", work_dir);
 
+	/* add coding file */
+	execute_cmd("mkdir -p %s/usr/lib/locale", work_dir);
+	execute_cmd("cp /usr/lib/locale/locale-archive %s/usr/lib/locale", work_dir);
+	execute_cmd("cp -a /usr/lib/locale/C.UTF-8 %s/usr/lib/locale/zh_CN.UTF-8", work_dir);
+
 
 }
 void copy_php_runtime(char * work_dir) {

@@ -191,7 +191,7 @@ void init_syscalls_limits(int lang) {
 	memset(call_counter, 0, sizeof(call_counter));
 	if (DEBUG)
 		write_log("init_call_counter:%d", lang);
-	if (record_call) { // C & C++
+	if (record_call) { // recording for debuging
 		for (i = 0; i < call_array_size; i++) {
 			call_counter[i] = 0;
 		}
@@ -1266,9 +1266,13 @@ void copy_shell_runtime(char * work_dir) {
 	execute_cmd("/bin/mkdir %s/lib", work_dir);
 	execute_cmd("/bin/mkdir %s/lib64", work_dir);
 	execute_cmd("/bin/mkdir %s/bin", work_dir);
-//	execute_cmd("/bin/cp /lib/* %s/lib/", work_dir);
-//	execute_cmd("/bin/cp -a /lib/i386-linux-gnu %s/lib/", work_dir);
-//	execute_cmd("/bin/cp -a /usr/lib/i386-linux-gnu %s/lib/", work_dir);
+
+#ifdef __i386
+        execute_cmd("/bin/cp /lib/* %s/lib/", work_dir);
+        execute_cmd("/bin/cp -a /lib/i386-linux-gnu  %s/lib/", work_dir);
+        execute_cmd("/bin/cp -a /usr/lib/i386-linux-gnu %s/lib/", work_dir);
+#endif
+
 	execute_cmd("/bin/cp -a /lib/x86_64-linux-gnu %s/lib/", work_dir);
 	execute_cmd("/bin/cp /lib64/* %s/lib64/", work_dir);
 //	execute_cmd("/bin/cp /lib32 %s/", work_dir);
@@ -1662,7 +1666,7 @@ void run_solution(int & lang, char * work_dir, int & time_lmt, int & usedtime,
 	case 15: //guile
 		execl("/lua", "/lua", "Main", (char *) NULL);
 		break;
-	case 16: //SpiderMonkey
+	case 16: //Node.js
 		execl("/nodejs", "/nodejs", "Main.js", (char *) NULL);
 		break;
 

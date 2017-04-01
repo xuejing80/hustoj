@@ -8,49 +8,38 @@
     <script src="{% static 'assets/js/tableExport.js' %}"></script>
 {% endblock %}
 {% block content %}
+    <style type="text/css">
+    <!--
+    table td{word-break: keep-all;}
+    -->
+    </style>
     <ol class="breadcrumb">
         <li><a href="{% url 'index' %}">主页</a></li>
-        <li class="active">我的</li>
         <li class="active">查看作业结果</li>
     </ol>
-    <h1>作业结果</h1>
     <div id="toolbar">
         <div class="form-inline" role="form">
             <div class="form-group">
                 <select class="form-control" id="classname" name="classname">
-                    <option value="0" selected="selected">全部课程</option>
+                    <option value="0" selected="selected">请选择需要查询的班级</option>
                     {% for classname in classnames %}
                         <option value="{{ classname.pk }}">{{ classname.name }}</option>
                     {% endfor %}
                 </select>
             </div>
-            <button id="ok" type="submit" class="btn btn-default">筛选</button>
+            <button id="ok" type="submit" class="btn btn-default">开始查询</button>
 
         </div>
     </div>
     <table id="table"
-           data-toggle="table"
-           data-url="{% url 'get_finished_homework' %}"
            data-side-pagination="server"
            data-pagination="true"
-           data-page-list="[10, 20, 50, 100, 200]"
            data-classes="table table-hover table-condensed"
            data-toolbar="#toolbar"
            data-striped="true"
            data-query-params="queryParams"
-           data-search="true"
            data-show-export="true"
     >
-        <thead>
-        <tr>
-            <th data-field="name" data-valign="middle">作业名称</th>
-            <th data-field="create_time" data-sortable="true">完成时间</th>
-            <th data-field="score" data-sortable="true">最终得分</th>
-            <th data-field="id" data-valign="middle" data-formatter="editFormatter">操作</th>
-            <th data-field="allow_resubmit" data-visible="false"></th>
-            <th data-field="homework_id" data-visible="false"></th>
-        </tr>
-        </thead>
     </table>
     <script>
         $.ajaxSetup({
@@ -64,21 +53,85 @@
             params['my'] = false;
             return params;
         }
+
         $ok = $('#ok');
         $(function () {
-            $ok.click(function () {
-                $table.bootstrapTable('refresh');
+            $('#ok').click(function () {
+                $('#table').bootstrapTable('destroy').bootstrapTable({
+                    url: "{% url 'get_finished_homework' %}",
+                    sidePagination: 'server',
+                    pagination: true
+                });
             });
         });
 
+        function showTable($el, scores){
+            //alert('showTable'+JSON.stringify(scores));
+            scores = eval('(' + JSON.stringify(scores) + ')');
+            var i, j, row,
+                columns = [],
+                data = [];
 
-        function editFormatter(value, row) {
-            if (row.allow_resubmit) {
-                return '<a class="btn btn-primary btn-xs" href="{% url '_show_homework_result' %}' + value + '/" title="查看详细"><span class="glyphicon glyphicon-eye-open"></span></a> ' +
-                        '<a class="btn btn-danger btn-xs" href="{% url '_do_homework' %}' + row.homework_id + '/" title="重做此次作业"><span class="glyphicon glyphicon-repeat"></span></a>'
+            colCount = 0;
+            if(scores.length!=undefined)
+                for(var i in scores[0])
+                    colCount++;
+
+            columns.push({field: 'id',title: '学号'});
+            columns.push({field: 'name',title: '姓名'});
+            for (i = 1; i < colCount-1; i++) {
+                columns.push({
+                    field: 'score' + i,
+                    title: '作业' + i,
+                    align: 'center',
+                    formatter: scoreFormatter
+                });
             }
-            return '<a class="btn btn-primary btn-xs" href="{% url '_show_homework_result' %}' + value + '/" title="查看详细"><span class="glyphicon glyphicon-eye-open"></span></a>';
+            for (var i in scores) {
+                student = eval('(' + JSON.stringify(scores[i]) + ')');
+                row = {};
+                row['id'] = student['id'];
+                row['name'] = student['name'];
+                for (j = 1; j < colCount-1; j++) {
+                    row['score' + j] = student['score' + j];
+                }
+                data.push(row);
+            }
+
+            $el.bootstrapTable('destroy').bootstrapTable({
+                columns: columns,
+                data: data,
+                sidePagination: 'client',
+                pagination: true,
+                pageSize: 500,
+                pageList: []
+            }); 
         }
+        
+        function scoreFormatter(value, row, index){
+            if(value['score']=='无')
+                return '无';
+            else
+                return '<a target="_blank" href="/test/work/homework-result-' + value['pk'] + '/" title="查看详细">' + value['score'] + '</a>';
+        }
+
+        $('#table').on('load-success.bs.table', function () {
+            //window.alert('load-success');
+            data = $('#table').bootstrapTable('getData');
+            showTable($('#table'),data);
+        });
+
+        function buildTable($el){
+            $el.bootstrapTable({
+                url: "{% url 'get_finished_homework' %}",
+                sidePagination: 'server',
+                pagination: true
+            });
+        }
+
+        $(function () {
+            buildTable($('#table'));
+        });
     </script>
 
 {% endblock %}

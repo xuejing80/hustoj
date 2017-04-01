@@ -15,9 +15,8 @@
 {% endblock %}
 {% block content %}
     {% if homework.allow_resubmit %}
-        <div class="alert alert-success" role="alert">此份作业允许重复提交，对成绩不满意可到已完成作业中点击<a class="btn btn-danger btn-xs"
-                                                                                    href="#"><span
-                class="glyphicon glyphicon-repeat"></span></a>重新提交
+        <div class="alert alert-success" role="alert">此份作业允许重复提交，对成绩不满意可到作业列表中点击
+            <a class="btn btn-danger btn-xs"href="#"><span class="glyphicon glyphicon-repeat"></span></a>重新提交
         </div>{% else %}
         <div class="alert alert-danger" role="alert"><strong>注意！</strong>此作业只能提交一次！(临时保存次数无限制)</div>{% endif %}
     <form method="post">
@@ -164,6 +163,8 @@
                             测试运行得分：<span id="score-{{ problem.problem_id }}"></span>
                             <input type="hidden" name="score-{{ problem.problem_id }}"
                                    id='score-input-{{ problem.problem_id }}'>
+                            <input type="hidden" name="solution-{{ problem.problem_id }}"
+                                   id='solution-{{ problem.problem_id }}'>
                         </div>
                     </div>
                 </div>
@@ -283,6 +284,11 @@
             var result_div = $("#result-" + id);
             var score_span = $("#score-" + id);
             var score_input = $("#score-input-" + id);
+            var code = editors['source' + id].getValue();
+            if(code==""){
+                result_div.html('<div class="alert alert-danger" role="alert">错误！代码不可以为空！</div>')
+                return false;
+            }
             result_div.html('<div class="alert alert-default" role="alert"><i class="fa fa-spinner fa-spin fa-3x fa-fw"></i>正在判断程序运行情况</div>')
             $.ajax({
                 type: "post",
@@ -297,6 +303,7 @@
                 },
                 success: function (data) {
                     if (data.result == 1) {
+                        $("#solution-" + id).val(data.solution_id);
                         var int = setInterval(function () {
                                 $.ajax({
                                     type: "post",
@@ -318,15 +325,20 @@
                                                     result_div.html('<div class="alert alert-warning" role="alert">' + '总共' + data.info.total_cases + '个测试点，你通过了其中的' + data.info.right_num + '个' + '</div>')
                                                     break;
                                                 case 2:
-                                                    result_div.html('<div class="alert alert-success" role="alert">恭喜你通过了所有的测试点</div>')
+                                                    result_div.html('<div class="alert alert-success" role="alert">恭喜你通过了所有的测试点</div>');
                                             }
                                             score_span.html(data.info.score);
                                             score_input.val(data.info.score)
                                             int = window.clearInterval(int)
-                                        } else(
-                                            result_div.html('<div class="alert alert-default" role="alert"><i class="fa fa-spinner fa-spin fa-3x fa-fw"></i>正在判断程序运行情况</div>')
-                                        )
-                                    }
+                                        } else{
+                                            result_div.html('<div class="alert alert-default" role="alert"><i class="fa fa-spinner fa-spin fa-3x fa-fw"></i>正在判断程序运行情况</div>');
+                                        }
+                                    },
+                                    error: function(XMLHttpRequest, textStatus, errorThrown) {
+                                        //alert(XMLHttpRequest.status);
+                                        //alert(XMLHttpRequest.readyState);
+                                        //alert(textStatus);
+                                    },
                                 })
                             },
                             1000);
@@ -356,6 +368,16 @@
                             }
                             if (key.indexOf('source') != -1) {
                                 editors[key.replace('-', '')].setValue(value)
+                            }
+                            if (key.indexOf('score') != -1) {
+                                if(value!='NaN'){
+                                    $("input[name=" + key + "]").val(parseInt(value));
+                                    $("#" + key).html(value);
+                                }
+                            }
+                            if (key.indexOf('solution') != -1) {
+                                $("#" + key).val(parseInt(value));
+                                //window.alert(value);
                             }
                         });
                     }

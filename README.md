@@ -10,7 +10,6 @@ HUSTOJ 是采用GPL的自由软件。
 
 PS: GPL保证你可以合法忽略以上注意事项但不能保证你不受鄙视，呵呵。
 
-<<<<<<< HEAD
 新用户必看 README 和 FAQ
 
 Ubuntu14.04快速安装指南：
@@ -27,20 +26,7 @@ Ubuntu14.04快速安装指南：
         sudo bash install-onlineTest.sh
     4、安装后访问服务器80端口上的web服务JudgeOnline目录
         例如 w3m http://127.0.0.1/test/
-=======
-Ubuntu14.04快速安装指南：  
-(16.04见https://github.com/zhblue/hustoj/tree/php7)  
 
-    1、安装Ubuntu 14.04 LTS  (16.04 need the php7 branch)  
-    2、执行如下命令  
-        sudo apt-get update  
-        sudo apt-get install subversion  
-        sudo svn co https://github.com/zhblue/hustoj/trunk/trunk/install hustoj  
-        cd hustoj  
-        sudo bash install-interactive.sh  
-    3、安装后访问服务器80端口上的web服务JudgeOnline目录  
-        例如 w3m http://127.0.0.1/JudgeOnline  
->>>>>>> zhblue/master
 
 安装过程首先会询问您数据库的<b>账号和密码</b>
 

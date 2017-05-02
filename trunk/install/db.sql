@@ -121,7 +121,7 @@ CREATE TABLE  `solution` (
   `in_date` datetime NOT NULL DEFAULT '2016-05-13 19:24:00',
   `result` smallint(6) NOT NULL DEFAULT '0',
   `language` INT UNSIGNED NOT NULL DEFAULT '0',
-  `ip` char(15) NOT NULL,
+  `ip` char(46) NOT NULL,
   `contest_id` int(11) DEFAULT NULL,
   `valid` tinyint(4) NOT NULL DEFAULT '1',
   `num` tinyint(4) NOT NULL DEFAULT '-1',
@@ -198,3 +198,20 @@ CREATE TABLE  `custominput` (
   PRIMARY KEY (`solution_id`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 
+
+delimiter //
+drop trigger if exists simfilter//
+create trigger simfilter
+before insert on sim
+for each row
+begin
+ declare new_user_id varchar(64);
+ declare old_user_id varchar(64);
+ select user_id from solution where solution_id=new.s_id into new_user_id;
+ select user_id from solution where solution_id=new.sim_s_id into old_user_id;
+ if old_user_id=new_user_id then
+	set new.s_id=0;
+ end if;
+ 
+end;//
+delimiter ;

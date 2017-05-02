@@ -594,6 +594,7 @@ int main(int argc, char** argv) {
 
 			j = work();
 
+			if(ONCE) break;
 		}
 		if(ONCE) break;
 		sleep(sleep_time);

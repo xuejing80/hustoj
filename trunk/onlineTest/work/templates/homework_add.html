@@ -53,18 +53,18 @@
             <label class="checkbox-inline">
                 <input type="checkbox" id="inlineCheckbox1" value="1" name="languages" checked> C++
             </label>
-            <label class="checkbox-inline">
+            <!--<label class="checkbox-inline">
                 <input type="checkbox" id="inlineCheckbox1" value="2" name="languages" checked> Pascal
-            </label>
+            </label>-->
             <label class="checkbox-inline">
                 <input type="checkbox" id="inlineCheckbox1" value="3" name="languages" checked> Java
             </label>
-            <label class="checkbox-inline">
+            <!--<label class="checkbox-inline">
                 <input type="checkbox" id="inlineCheckbox1" value="4" name="languages" checked> Ruby
-            </label>
-            <label class="checkbox-inline">
+            </label>-->
+            <!--<label class="checkbox-inline">
                 <input type="checkbox" id="inlineCheckbox1" value="5" name="languages" checked> Bash
-            </label>
+            </label>-->
             <label class="checkbox-inline">
                 <input type="checkbox" id="inlineCheckbox1" value="6" name="languages" checked> Python
             </label>
@@ -305,7 +305,7 @@
                             <th data-field="title" data-sortable="true" data-valign="middle">标题</th>
                             <th data-field="knowledge_point" data-valign="middle"> 知识点</th>
                             <th data-field="total_score">总分</th>
-                            <th data-field="tsetcases" data-visible="false"></th>
+                            <th data-field="tsetcases" data-visible="false" data-formatter="tcFormatter">测试用例</th>
                             <th data-field="update_date" data-sortable="true" data-valign="middle">最后修改日期</th>
                             {#                            <th data-field="id" data-valign="middle"></th>#}
                         </tr>
@@ -337,9 +337,9 @@
             <th data-field="title" data-valign="middle">标题</th>
             <th data-field="knowledge_point" data-valign="middle">知识点</th>
             <th data-field="total_score">总分</th>
-            <th data-field="tsetcases" data-visible="false"></th>
+            <th data-field="tsetcases" data-visible="false" data-formatter="tcFormatter">测试用例</th>
             <th data-field="update_date" data-valign="middle">最后修改日期</th>
-            <th data-field="action" data-formatter="actionFormatter" data-events="actionEvents">操作</th>
+            <th data-field="action" data-formatter="actionFormatter">操作</th>
         </tr>
         </thead>
     </table>
@@ -386,12 +386,13 @@
         });
         function actionFormatter(value, row, index) {
             return [
-                '<a class="like" href="javascript:void(0)" title="修改分值信息">',
+                '<a class="like" href="javascript:updateTC(' + row.id + ')" title="修改分值信息">',
                 '<i class="glyphicon glyphicon-wrench"></i>',
                 '</a>']
         }
-        window.actionEvents = {
-            'click .like': function (e, value, row, index) {
+        function updateTC(id){
+                row = $('#table2').bootstrapTable('getRowByUniqueId', id);
+                //alert(JSON.stringify(row));
                 id = row.id;
                 title = row.title;
                 score = $.map(row.testcases, function (item) {
@@ -422,7 +423,6 @@
                 $('#modal_tc').find("#title").text(title);
                 $('#modal_tc').find("#problem_id").text(id);
                 $('#modal_tc').modal('show');
-            }
         };
     </script>
 
@@ -439,8 +439,10 @@
                     return row.pk;
                 }).toString());
                 $('#problem-info').val(JSON.stringify($table2.bootstrapTable('getData')));
+                //alert($('#problem-info').val());
                 $('#choice-problem-info').val(JSON.stringify($table4.bootstrapTable('getData')));
-                $('#total_score').val($("#score").text())
+                $('#total_score').val($("#score").text());
+                //return false;
             }
 
         }
@@ -487,6 +489,7 @@
                 $.each($table.bootstrapTable('getAllSelections'), function (i, item) {
                     if ($.inArray(item.pk, ids) == -1) {
                         $table2.bootstrapTable('insertRow', {index: 0, row: item});
+                        //alert(JSON.stringify(item));
                     }
                 });
                 $table.bootstrapTable('refresh');
@@ -558,6 +561,9 @@
                 }
             }
             return value;
+        }
+        function tcFormatter(value, row, index) {
+            return JSON.stringify(row.testcases);
         }
         function stateFormatter2(value, row, index) {
             var ids = $.map($table4.bootstrapTable('getData'), function (row) {

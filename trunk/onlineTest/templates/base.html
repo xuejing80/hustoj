@@ -105,8 +105,10 @@
                     </a>
                 </li>
                 {% if user.is_authenticated %}
-                    <li><a href="{% url 'list_do_homework' %}" id="unfinished">未完成作业</a></li>
+                    <li><a href="{% url 'list_do_homework' %}" id="unfinished">我的作业列表</a></li>
+                    {% if 'work.add_homework' in perms %}
                     <li><a href="{% url 'list_finished_homework' %}" id="finished">查看作业结果</a></li>
+                    {% endif %}
                     {% if 'judge.add_problem' in perms %}
                         <li class="sub-menu">
                             <a href="javascript:;" id="problem_list">

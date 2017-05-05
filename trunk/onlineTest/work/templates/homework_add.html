@@ -197,12 +197,11 @@
                     >
                         <thead>
                         <tr>
-                            <th data-field="state" data-checkbox="true" data-formatter="stateFormatter2"></th>
+                            <th data-field="state" data-valign="middle" data-checkbox="true" data-formatter="stateFormatter2"></th>
                             <th data-field="pk" data-sortable="true" data-valign="middle">ID</th>
                             <th data-field="title" data-sortable="true" data-valign="middle">标题</th>
                             <th data-field="knowledge_point" data-valign="middle"> 知识点</th>
                             <th data-field="update_date" data-sortable="true" data-valign="middle">最后修改日期</th>
-                            <th data-field="id" data-valign="middle"></th>
                         </tr>
                         </thead>
                     </table>
@@ -218,8 +217,7 @@
 
     <table id="table4"
            data-toggle="table"
-           data-pagination="true"
-           data-page-list="[10, 20, 50, 100, 200]"
+           data-pagination="false"
            data-classes="table table-hover table-condensed"
            data-striped="true"
            data-use-row-attr-func="true"
@@ -228,12 +226,11 @@
     >
         <thead>
         <tr>
-            <th data-field="state" data-checkbox="true"></th>
+            <th data-field="state" data-valign="middle" data-checkbox="true"></th>
             <th data-field="pk" data-valign="middle">ID</th>
             <th data-field="title" data-valign="middle">标题</th>
-            <th data-field="knowledge_point" data-valign="middle"> 知识点</th>
-            <th data-field="total_score" data-editable="true">分数</th>
-            <th data-field="update_date" data-valign="middle">最后修改日期</th>
+            <th class="nobr" data-field="knowledge_point" data-valign="middle"> 知识点</th>
+            <th data-field="total_score" data-valign="middle" data-align="center" data-editable="true">分数</th>
         </tr>
         </thead>
     </table>
@@ -304,7 +301,7 @@
                             <th data-field="pk" data-sortable="true" data-valign="middle">ID</th>
                             <th data-field="title" data-sortable="true" data-valign="middle">标题</th>
                             <th data-field="knowledge_point" data-valign="middle"> 知识点</th>
-                            <th data-field="total_score">总分</th>
+                            <th data-valign="middle" data-align="center" data-field="total_score">总分</th>
                             <th data-field="tsetcases" data-visible="false" data-formatter="tcFormatter">测试用例</th>
                             <th data-field="update_date" data-sortable="true" data-valign="middle">最后修改日期</th>
                             {#                            <th data-field="id" data-valign="middle"></th>#}
@@ -322,8 +319,7 @@
 
     <table id="table2"
            data-toggle="table"
-           data-pagination="true"
-           data-page-list="[10, 20, 50, 100, 200]"
+           data-pagination="false"
            data-classes="table table-hover table-condensed"
            data-striped="true"
            data-use-row-attr-func="true"
@@ -336,9 +332,8 @@
             <th data-field="pk" data-valign="middle">ID</th>
             <th data-field="title" data-valign="middle">标题</th>
             <th data-field="knowledge_point" data-valign="middle">知识点</th>
-            <th data-field="total_score">总分</th>
+            <th data-field="total_score" data-align="center" data-valign="middle">总分</th>
             <th data-field="tsetcases" data-visible="false" data-formatter="tcFormatter">测试用例</th>
-            <th data-field="update_date" data-valign="middle">最后修改日期</th>
             <th data-field="action" data-formatter="actionFormatter">操作</th>
         </tr>
         </thead>

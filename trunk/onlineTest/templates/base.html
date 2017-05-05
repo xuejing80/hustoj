@@ -3,10 +3,10 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="南京邮电大学计算机语言作业平台">
+    <meta name="description" content="南京邮电大学程序设计类课程作业平台">
     <meta name="keyword" content="南邮,NJUPT,NUPT,C语言">
 
-    <title>{% block title %}计算机语言作业平台{% endblock %}</title>
+    <title>{% block title %}程序设计类课程作业平台{% endblock %}</title>
     {% load static %}
     <!-- Bootstrap core CSS -->
     <link href="{% static "assets/css/bootstrap.css" %}" rel="stylesheet">
@@ -37,7 +37,7 @@
             <div class="fa fa-bars tooltips" data-placement="right" data-original-title="Toggle Navigation"></div>
         </div>
         <!--logo start-->
-        <a href="{% url 'index' %}" class="logo"><b>计算机语言作业平台</b></a>
+        <a href="{% url 'index' %}" class="logo"><b>程序设计类课程作业平台</b></a>
         <!--logo end-->
         <div class="nav notify-row" id="top_menu">
             <!--  notification start -->
@@ -89,7 +89,6 @@
             <ul class="sidebar-menu" id="nav-accordion">
 
                 <p class="centered"><a href="{% url 'index' %}"></a></p>
-                <h5 class="centered">计算机语言作业平台</h5>
 
                 <li class="mt active">
                     <a href="{% url 'index' %}" id="index">

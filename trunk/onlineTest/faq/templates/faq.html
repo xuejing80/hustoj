@@ -70,14 +70,19 @@
                 },
 
                 success: function (data, textStatus) {
-                    //window.alert(data);
-                    var message = data["data"];
-                    if (message.length != 0) {
-                        $("#a").append('<div class="send">'+$("#q").val()+'</div>');
-                        $("#a").append('<div class="bot">'+message+'</div>');
-                        $("#a")[0].scrollTop = $("#a")[0].scrollHeight;
-                        $("#q").val('');
-                        $("#q").focus();
+                    window.alert(JSON.stringify(data));
+                    if(typeof(data["text"]) != "undefined"){
+                        var message = data["text"];
+                        if (message.length != 0) {
+                            $("#a").append('<div class="send">'+$("#q").val()+'</div>');
+                            var url = "";
+                            if(typeof(data["url"]) != "undefined")
+                                url = '：<a href="' + data["url"] + '" target="_blank">链接</a>'
+                            $("#a").append('<div class="bot">'+message+url+'</div>');
+                            $("#a")[0].scrollTop = $("#a")[0].scrollHeight;
+                            $("#q").val('');
+                            $("#q").focus();
+                        }
                     }
                     $("#send").attr("disabled",false);
                 },
@@ -87,6 +92,9 @@
                 }
             });
             return false;
+        });
+        $("#q").keypress(function(){
+            $("#send").trigger("click");
         });
     </script>
 {% endblock %}

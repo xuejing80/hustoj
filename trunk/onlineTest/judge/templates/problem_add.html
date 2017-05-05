@@ -292,11 +292,13 @@
             });
 
             elt.change(function () {
+                //alert('elt.chang:'+$(this).val());
                 $("#id_keypoint").val($(this).val());
             });
 
             var initVal = $("#id_keypoint").val();
             if (initVal) {
+                //alert('initVal:'+initVal);
                 json = JSON.parse(initVal);
                 for (var key in json) {
                     elt.tagsinput('add', {'value': key, 'text': json[key]});

@@ -661,7 +661,10 @@ def get_my_homework_todo(request):
             #查找对应作业的分数
             try:
                 homework_answer = HomeworkAnswer.objects.get(creator=user,homework_id=homework.pk)
-                score = "{}/{}".format(homework_answer.score,homework.total_score)
+                if homework_answer.judged==1:
+                    score = "{}/{}".format(homework_answer.score,homework.total_score)
+                else:
+                    score = "批阅中"
             except ObjectDoesNotExist:
                 score = "批阅中"
             allow_resubmit = homework.allow_resubmit if (homework.start_time < timezone.now() < homework.end_time) else False
@@ -997,18 +1000,23 @@ def test_run(request):
             result = 2  # 2代表通过全部测试用例
             right_num = wrong_num = 0  # 通过的测试点数量和未通过的测试点数量
             problem = Problem.objects.get(pk=request.POST['problem_id'])
-            cases = get_testCases(problem)
+            #cases = get_testCases(problem)
+            cases = []
             score = 0
             for info in json.loads(homework.problem_info):
                 if info['pk'] == solution.problem_id:
                     for case in info['testcases']:  # 获取题目的测试分数
                         try:
-                            if json.loads(solution.oi_info)[str(case['desc']) + '.in']['result'] == 4:  # 参照测试点，依次加测试点分数
+                            oi_info = json.loads(solution.oi_info)
+                            if oi_info[str(case['desc']) + '.in']['result'] == 4:  # 参照测试点，依次加测试点分数
+                                case['result'] = True
                                 score += int(case['score'])
                                 right_num += 1
                             else:
+                                case['result'] = False
                                 wrong_num += 1
                                 result = 1
+                            cases.append(case)
                         except:
                             pass
             #2017年3月22日，注释以下两句，保留学生做作业的过程
@@ -1016,8 +1024,8 @@ def test_run(request):
             #solution.delete()
             return JsonResponse({'status': 1, 'result': result,
                                  'info': {'total_cases': len(cases), 'right_num': right_num,
-                                          'wrong_num': wrong_num, 'score': score}})
-
+                                          'wrong_num': wrong_num, 'score': score},
+                                 'testcase': cases})
 
 @login_required()
 def delete_homeworkanswer(request, id):

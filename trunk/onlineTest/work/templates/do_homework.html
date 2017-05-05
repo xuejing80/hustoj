@@ -27,7 +27,7 @@
                 <div class="panel panel-default">
                     <div class="panel-heading" role="tab" id="heading{{ choice_problem.detail.id }}">
                         <h4 class="panel-title">
-                            <a {% if not forloop.first %}class="collapsed"{% endif %}role="button"
+                            <a style="line-height:150%" {% if not forloop.first %}class="collapsed"{% endif %}role="button"
                                data-toggle="collapse"
                                data-parent="#accordion"
                                href="#collapse{{ choice_problem.detail.id }}"
@@ -105,11 +105,11 @@
                                 <div id="description"><p>{{ problem.description|myFilter|safe|linebreaks }}</p></div>
                             </div>
                             <div class="section">
-                                <h4><span class="label label-primary">输入</span></h4>
+                                <h4><span class="label label-primary">输入描述</span></h4>
                                 <div id="input"><p>{{ problem.input|myFilter|safe|linebreaks }}</p></div>
                             </div>
                             <div class="section">
-                                <h4><span class="label label-primary">输出</span></h4>
+                                <h4><span class="label label-primary">输出描述</span></h4>
                                 <div id="output"><p>{{ problem.output|myFilter|safe|linebreaks }}</p></div>
                             </div>
                             {% if problem.sample_output %}
@@ -130,13 +130,13 @@
                                 <div class="section">
                                     <h4><span class="label label-primary">样例输入2:</span></h4>
                                     <div id="sample_input2">
-                                        <pre>{{ problem.sample_input2|myFilter|safe|linebreaks }}</pre>
+                                        <pre>{{ problem.sample_input2|myFilter|safe|linebreaksbr }}</pre>
                                     </div>
                                 </div>
                                 <div class="section">
                                     <h4><span class="label label-primary">样例输出2:</span></h4>
                                     <div id="sample_output2">
-                                        <pre>{{ problem.sample_output2|myFilter|safe|linebreaks }}</pre>
+                                        <pre>{{ problem.sample_output2|myFilter|safe|linebreaksbr }}</pre>
                                     </div>
                                 </div>
                             {% endif %}
@@ -322,7 +322,14 @@
                                                     result_div.html('<div class="alert alert-danger" role="alert"><pre>' + data.info.info + '</pre></div>');
                                                     break;
                                                 case 1:
-                                                    result_div.html('<div class="alert alert-warning" role="alert">' + '总共' + data.info.total_cases + '个测试点，你通过了其中的' + data.info.right_num + '个' + '</div>')
+                                                    var count=1;
+                                                    str = '<div class="alert alert-warning" role="alert">' + '总共' + data.info.total_cases + '个测试点，你通过了其中的' + data.info.right_num + '个：<ul>';
+                                                    data.testcase.forEach(function(val,index,arr){
+                                                        str += '<li>测试用例'+count+'：'+arr[index].info.replace(/#/g,"")+' - <strong>'+(arr[index].result?'正确':'错误')+'</strong></li>';
+                                                        count++;
+                                                    });
+                                                    str += '</ul></div>';
+                                                    result_div.html(str);
                                                     break;
                                                 case 2:
                                                     result_div.html('<div class="alert alert-success" role="alert">恭喜你通过了所有的测试点</div>');

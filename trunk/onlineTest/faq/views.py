@@ -11,7 +11,7 @@ def index(request):
 
 def send(request):
     receive = request.POST['q']
-    json_data = {}
+    result = {}
 
     try:
         faq = faqs.objects.get(question_content=receive)
@@ -28,9 +28,9 @@ def send(request):
         result = urllib.request.urlopen(request,binary_data).read()
         result = str(result, encoding = "utf-8")
         result = json.loads(result)
-        json_data['data'] = result['text']
+        #json_data['data'] = result['text']
         #json_data['data'] = "对不起，我听不懂你在说什么，我会把你的问题转交给管理员。"
     else:
-        json_data['data'] = faq.answer_content
+        result['text'] = faq.answer_content
         
-    return JsonResponse(json_data)
+    return JsonResponse(result)

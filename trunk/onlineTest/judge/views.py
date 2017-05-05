@@ -9,6 +9,7 @@ import re
 import shutil
 import string
 import zipfile
+import cgi
 
 from django.apps import apps
 from django.contrib.auth.decorators import permission_required
@@ -247,6 +248,7 @@ def get_json(request, model_name):
     if request.GET['order'] == 'desc':
         sort = '-' + sort
     for problem in problems.all().order_by(sort)[offset:offset + limit]:
+        title = cgi.escape(problem.title)
         knowledge_point = ''
         if isinstance(problem, Problem):
             testCases = get_testCases(problem)
@@ -255,8 +257,9 @@ def get_json(request, model_name):
             testCases = 0
             total_score = 5
         for point in problem.knowledgePoint2.all():
-            knowledge_point += point.upperPoint.classname.name + ' > ' + point.upperPoint.name + ' > ' + point.name + '<br>'
-        recode = {'title': problem.title, 'pk': problem.pk,
+            knowledge_point += point.upperPoint.name + ' > ' + point.name + '<br>'
+            #knowledge_point += point.upperPoint.classname.name + ' > ' + point.upperPoint.name + ' > ' + point.name + '<br>'
+        recode = {'title': title, 'pk': problem.pk,
                   'update_date': problem.update_date.strftime('%Y-%m-%d %H:%M:%S'), 'id': problem.pk,
                   'knowledge_point': knowledge_point, 'testcases': testCases, 'total_score': total_score}
         recodes.append(recode)

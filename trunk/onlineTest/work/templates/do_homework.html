@@ -169,6 +169,13 @@
                     </div>
                 </div>
             {% endfor %}
+        {% ifequal work_kind '实验' %}
+          <div class="form-group">
+            <label for="summary"><h2>实验小结</h2></label>
+            <textarea name="summary" id="summary" class="form-control" rows="6" ></textarea>
+            <span><span id="textNum">0</span>/500</span>
+          </div>
+        {% endifequal %}
         </div>
 
     </form>
@@ -242,6 +249,15 @@
 
         function check() {
             sync_code()
+            if($('#summary').val().length<200){
+                $.alert({
+                    title: '实验小结',
+                    content: '字数未达到要求（>200）',
+                    confirmButton: '确认',
+                    confirmButtonClass: 'btn-info',
+                })
+                return;
+            }
             $.confirm({
                 title: '确认提交',
                 content: '确定要提交作业吗？{% if homework.allow_resubmit %}此次作业允许提交多次，如果对成绩不满意，可以去已完成作业列表中选择重做{% else %} \
@@ -386,12 +402,23 @@
                                 $("#" + key).val(parseInt(value));
                                 //window.alert(value);
                             }
+                            if(key.indexOf('summary') !=-1){
+                                $("#" + key).val(value);
+                                $('#textNum').text($('#summary').val().length);//这句是在刷新的时候仍然显示字数
+                            }
                         });
                     }
                 }
             })
         })
 
+        $('#summary').on("keyup",function(){
+            $('#textNum').text($('#summary').val().length);//这句是在键盘按下时，实时的显示字数
+            if($('#summary').val().length > 500){
+                $('#textNum').text(500);//长度大于1000时0处显示的也只是1000
+                $('#summary').val($('#summary').val().substring(0,500));//长度大于1000时截取钱1000个字符
+            }
+        })
     </script>
 
 {% endblock %}

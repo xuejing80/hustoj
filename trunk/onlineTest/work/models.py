@@ -34,6 +34,7 @@ class HomeWork(models.Model):
     problem_info = models.TextField()
     choice_problem_info = models.TextField()
     allowed_languages = models.CharField(max_length=50)
+    work_kind = models.CharField(max_length=20,verbose_name="作业类型",default='作业')
     total_score = models.IntegerField()
 
     def __str__(self):
@@ -59,6 +60,7 @@ class MyHomework(models.Model):
     banji = models.ManyToManyField(BanJi)
     finished_students = models.ManyToManyField(MyUser, related_name='finished_students', null=True, blank=True)
     allow_resubmit = models.BooleanField(default=False, verbose_name='是否允许重复提交作业？')
+    work_kind = models.CharField(max_length=20,verbose_name="作业类型",default='作业')
     total_score = models.IntegerField()
 
     def __str__(self):
@@ -79,6 +81,8 @@ class HomeworkAnswer(models.Model):
     problem_score = models.IntegerField(null=False, verbose_name='编程题成绩', default=0)
     create_time = models.DateTimeField(auto_now_add=True, verbose_name='答题时间')
     judged = models.BooleanField(default=False, verbose_name='是否已经判分？')
+    summary = models.TextField(null=True, verbose_name='实验小结')
+    teacher_comment = models.TextField(null=True, verbose_name='教师评语')
 
     def __str__(self):
         return str(self.id)

@@ -82,5 +82,64 @@
                 </div>
             </div>
     {% endfor %}
+    {% ifequal work_kind '实验' %}
+    <!--  如果作业类型是 0 则代表是 实验-->
+      <div class="form-group">
+        <label for="summary"><h3>实验小结</h3></label>
+        <pre>{{ summary|linebreaksbr }}</pre>
+      </div>
+    {% endifequal %}
+    {% ifequal user.isTeacher True %}
+    <div class="form-group">
+      <label for="teacher_comment"><h3>教师评语</h3></label>
+      <textarea name="teacher_comment" rows="6" class="form-control">{% if teacher_comment %}{{teacher_comment}}{% endif %}</textarea>
+      <label for="teacher_comment"><h3>重新评分</h3></label><br>
+      <input type="text" id="change" name="change" placeholder="当前分数：{{ score }}" onkeyup="this.value=this.value.replace(/\D/g,'')" onafterpaste="this.value=this.value.replace(/\D/g,'')"><hr>
+      <button type="button" id="comment" class="btn btn-info">提交教师意见</button>
+    </div>
+    {% else %}
+    <div class="form-group">
+      <label for="teacher_comment"><h3>教师评语</h3></label>
+      <pre>{{ teacher_comment|linebreaksbr }}</pre>
+    </div>
+    {% endifequal %}
     <script>hljs.initHighlightingOnLoad();</script>
+
+    <!--异步提交老师评论以及人工重新判分  -->
+    <script type="text/javascript">
+      $('document').ready(function(){
+        $('#comment').click(function(){
+          var $change = $("input[name='change']").val();
+          if($change == ''){$change = -1;}
+          var comment = $("textarea[name='teacher_comment']").val();
+          // 获取答案ID
+          re = new RegExp('result-');
+          var href = window.location.href;
+          var answerId = href.split(re)[1].split('/')[0];
+          $.ajaxSetup({
+              data: {csrfmiddlewaretoken: '{{ csrf_token }}'}
+          });
+          $.ajax({
+            type:"POST",
+            dataType:'json',
+            data:{change:$change,teacher_comment:comment,answerId:answerId},
+            url:"{% url 'comment_change' %}",
+            success:function(response){
+                if(response==1){
+                    alert("提交成功")
+                    /*
+                    $.alert({
+                        title: '提交成功',
+                        content: '作业信息已成功提交！',
+                        confirmButton: '确认',
+                        confirmButtonClass: 'btn-info',
+                    })*/
+                  //$('#comment').popover(delay:{ show: 500, hide: 100 });
+                };
+            },
+          });
+        });
+      });
+    </script>
+
 {% endblock %}

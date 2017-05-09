@@ -56,7 +56,8 @@ def add_homework(request):
                             end_time=request.POST['end_time'],
                             allowed_languages=','.join(request.POST.getlist('languages')),
                             total_score=request.POST['total_score'],
-                            creater=request.user)
+                            creater=request.user,
+                            work_kind=request.POST['work_kind'])
         homework.save()
         return redirect(reverse("homework_detail", args=[homework.pk]))
     classnames = ClassName.objects.all()
@@ -149,7 +150,7 @@ def show_homework(request, pk):
     """
     homework = get_object_or_404(HomeWork, pk=pk)
     context = {'id': homework.id, 'name': homework.name, 'courser': homework.courser.name,
-               'start_time': homework.start_time, 'end_time': homework.end_time,
+               'start_time': homework.start_time, 'end_time': homework.end_time, 'work_kind': homework.work_kind,
                'title': '公开作业“' + homework.name + '”的详细'}
     return render(request, 'homework_detail.html', context=context)
 
@@ -169,7 +170,7 @@ def show_my_homework(request, pk):
         total_students_number += banji.students.count()  # 需要完成作业总人数
     context = {'id': homework.id, 'name': homework.name, 'courser': homework.courser.name,
                'start_time': homework.start_time, 'end_time': homework.end_time, 'banjis': homework.banji.all(),
-               "finished_students_number": homework.finished_students.count(),
+               "finished_students_number": homework.finished_students.count(), 'work_kind': homework.work_kind,
                'total_students_number': total_students_number, 'title': '我的私有作业“' + homework.name + '”的详细'}
     return render(request, 'my_homework_detail.html', context=context)
 
@@ -211,12 +212,14 @@ def update_public_homework(request, pk):
         homework.total_score = request.POST['total_score']
         homework.choice_problem_info = request.POST['choice-problem-info']
         homework.allowed_languages = ','.join(request.POST.getlist('languages'))
+        homework.work_kind = request.POST['work_kind']
         homework.save()
         return redirect(reverse("homework_detail", args=[homework.pk]))
     else:
         context = {'languages': homework.allowed_languages, 'classnames': ClassName.objects.all(),
                    'name': homework.name, 'courser_id': homework.courser.id, 'start_time': homework.start_time,
-                   'end_time': homework.end_time, 'title': '修改公开作业 "' + homework.name + '"'}
+                   'end_time': homework.end_time, 'title': '修改公开作业 "' + homework.name + '"',
+                   'work_kind': homework.work_kind}
     return render(request, 'homework_add.html', context=context)
 
 
@@ -241,13 +244,15 @@ def update_my_homework(request, pk):
         homework.allowed_languages = ','.join(request.POST.getlist('languages'))
         homework.choice_problem_info = request.POST['choice-problem-info']
         homework.allow_resubmit = True if request.POST['allow_resubmit'] == '1' else False
+        homework.work_kind = request.POST['work_kind']
         homework.save()
         return redirect(reverse('my_homework_detail', args=[homework.pk]))
     else:
         context = {'languages': homework.allowed_languages, 'classnames': ClassName.objects.all(),
                    'name': homework.name, 'courser_id': homework.courser.id, 'start_time': homework.start_time,
                    'end_time': homework.end_time, 'title': '修改我的作业"' + homework.name + '"',
-                   'allow_resubmit': '1' if homework.allow_resubmit else '0'}
+                   'allow_resubmit': '1' if homework.allow_resubmit else '0',
+                   'work_kind': homework.work_kind}
     return render(request, 'homework_add.html', context=context)  # 查看作业结果
 
 
@@ -291,7 +296,9 @@ def show_homework_result(request, id):
     return render(request, 'homework_result.html',
                   context={'choice_problems': choice_problems, 'problem_score': homework_answer.problem_score,
                            'choice_problem_score': homework_answer.choice_problem_score,
-                           'score': homework_answer.score, 'problems': problems,
+                           'score': homework_answer.score, 'problems': problems, 
+                           'work_kind': homework.work_kind, 'summary': homework_answer.summary,
+                           'teacher_comment': homework_answer.teacher_comment,
                            'title': ' {}的"{}"详细'.format(homework_answer.creator.username, homework.name)})
 
 
@@ -384,6 +391,7 @@ def do_homework(request, homework_id):
                 homeworkAnswer.solution_set.add(solution)
         homeworkAnswer.wrong_choice_problems = wrong_ids
         homeworkAnswer.wrong_choice_problems_info = wrong_info
+        homeworkAnswer.summary = request.POST['summary']
         homeworkAnswer.save()
         # output.close()
 
@@ -395,19 +403,19 @@ def do_homework(request, homework_id):
             pass
         return redirect(reverse('show_homework_result', args=[homeworkAnswer.id]))
     else:  # 当正常访问时
-        homeowork = MyHomework.objects.get(pk=homework_id)
+        homework = MyHomework.objects.get(pk=homework_id)
         choice_problems = []
-        for id in homeowork.choice_problem_ids.split(','):
+        for id in homework.choice_problem_ids.split(','):
             if id:
                 choice_problems.append({'detail': ChoiceProblem.objects.get(pk=id),
-                                        'score': json.loads(homeowork.choice_problem_info)[0]['total_score']})
+                                        'score': json.loads(homework.choice_problem_info)[0]['total_score']})
         problems = []
-        for id in homeowork.problem_ids.split(','):
+        for id in homework.problem_ids.split(','):
             if id:
                 problems.append(Problem.objects.get(pk=id))
         return render(request, 'do_homework.html',
-                      context={'homework': homeowork, 'problems': problems, 'choice_problems': choice_problems,
-                               'title': homeowork.name})
+                      context={'homework': homework, 'problems': problems, 'choice_problems': choice_problems,
+                               'title': homework.name, 'work_kind': homework.work_kind})
 
 
 @permission_required('work.add_banji')
@@ -878,7 +886,6 @@ def delete_kp1(request):
     except:
         return HttpResponse(0)
 
-
 @permission_required('work.delete_knowledgepoint2')
 def delete_kp2(request):
     try:
@@ -952,7 +959,8 @@ def add_myhomework(request):
                               allowed_languages=','.join(request.POST.getlist('languages')),
                               total_score=request.POST['total_score'],
                               creater=request.user,
-                              allow_resubmit=allow_resubmit)
+                              allow_resubmit=allow_resubmit,
+                              work_kind=request.POST['work_kind'])
         homework.save()
         return redirect(reverse("my_homework_detail", args=[homework.pk]))
     classnames = ClassName.objects.all()
@@ -1090,6 +1098,23 @@ def init_homework_data(request):
 
 def file_download(request):
     return render(request, 'file_download.html', context={'title': '教学资源下载', 'position': 'source'})
+
+@login_required()
+def comment_change(request):
+    if request.method == 'POST':
+        answerId = request.POST['answerId']
+        comment = request.POST['teacher_comment']
+        change = request.POST['change']
+        try:
+            homework_answer = HomeworkAnswer.objects.filter(pk=answerId)
+            if eval(change) == -1:
+                homework_answer.update(teacher_comment=comment)
+            else:
+                homework_answer.update(teacher_comment=comment,score=change)
+        except:
+            pass
+        return HttpResponse(1)
+
 
 # def list_depl_homeworks(request):
 #     return render(request,'depl_homework_list.html')

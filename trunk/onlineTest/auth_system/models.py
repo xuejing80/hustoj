@@ -67,6 +67,9 @@ class MyUser(AbstractBaseUser, PermissionsMixin):
     def __str__(self):  # __unicode__ on Python 2
         return self.username
 
+    def isTeacher(self):
+        return self.groups.all()[0].pk==1
+
     @property
     def is_staff(self):
         "Is the user a member of staff?"

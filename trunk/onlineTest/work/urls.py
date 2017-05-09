@@ -57,6 +57,7 @@ urlpatterns = [
     url(r'save-homework',save_homework_temp,name='save_homework'),
     url(r'get-init-homework-data',init_homework_data,name='get_init_homework_data'),
     url(r'download',file_download,name='download'),
+    url(r'homework-result-comment_change$',comment_change,name='comment_change'),
 
   
 ]

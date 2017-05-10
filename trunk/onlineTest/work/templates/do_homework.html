@@ -248,8 +248,8 @@
         });
 
         function check() {
-            sync_code()
-            if($('#summary').val().length<200){
+            sync_code();
+            if(typeof($('#summary').val())!='undefined' && $('#summary').val().length<200){
                 $.alert({
                     title: '实验小结',
                     content: '字数未达到要求（>200）',

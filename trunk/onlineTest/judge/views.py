@@ -19,8 +19,8 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.utils.datastructures import MultiValueDictKeyError
 from django.views.generic.detail import DetailView
 
-from judge.forms import ProblemAddForm, ChoiceAddForm
-from .models import KnowledgePoint1, ClassName, ChoiceProblem, Problem
+from judge.forms import ProblemAddForm, ChoiceAddForm, TiankongProblemAddForm, GaicuoProblemAddForm
+from .models import KnowledgePoint1, ClassName, ChoiceProblem, Problem, TiankongProblem, GaicuoProblem
 
 BUFSIZE = 4096
 BOMLEN = len(codecs.BOM_UTF8)
@@ -57,6 +57,43 @@ def add_problem(request):
         form = ProblemAddForm()
     return render(request, 'problem_add.html', {'form': form, 'title': '新建编程题'})
 
+# 添加程序填空题
+@permission_required('judge.add_tiankong')
+def add_tiankong(request):
+    if request.method == 'POST':  # 当提交表单时
+        form = TiankongProblemAddForm(request.POST)  # form 包含提交的数据
+        if form.is_valid():  # 如果提交的数据合法
+            problem = form.save(user=request.user)  # 保存题目
+            old_path = '/tmp/' + request.POST['random_name'] + '/' + request.POST['file_name'] + '_files/'
+            shutil.move(old_path, '/home/judge/data/')
+            os.rename('/home/judge/data/' + request.POST['file_name'] + '_files',
+                      '/home/judge/data/' + str(problem.problem_id))
+            print(request.POST['random_name'])
+            shutil.rmtree('/tmp/' + request.POST['random_name'])
+            return redirect(reverse("tiankong_detail", args=[problem.problem_id]))
+    else:  # 当正常访问时
+        form = TiankongProblemAddForm()
+    return render(request, 'tiankong_problem_add.html', {'form': form, 'title': '新建程序填空题'})
+
+
+# 添加程序改错题
+@permission_required('judge.add_gaicuo')
+def add_gaicuo(request):
+    if request.method == 'POST':  # 当提交表单时
+        form = GaicuoProblemAddForm(request.POST)  # form 包含提交的数据
+        if form.is_valid():  # 如果提交的数据合法
+            problem = form.save(user=request.user)  # 保存题目
+            old_path = '/tmp/' + request.POST['random_name'] + '/' + request.POST['file_name'] + '_files/'
+            shutil.move(old_path, '/home/judge/data/')
+            os.rename('/home/judge/data/' + request.POST['file_name'] + '_files',
+                      '/home/judge/data/' + str(problem.problem_id))
+            print(request.POST['random_name'])
+            shutil.rmtree('/tmp/' + request.POST['random_name'])
+            return redirect(reverse("gaicuo_detail", args=[problem.problem_id]))
+    else:  # 当正常访问时
+        form = GaicuoProblemAddForm()
+    return render(request, 'gaicuo_problem_add.html', {'form': form, 'title': '新建程序改错题'})
+
 
 # 删除编程题
 @permission_required('judge.delete_problem')
@@ -89,6 +126,39 @@ def del_choice_problem(request):
     else:
         return HttpResponse(0)
 
+
+# 删除gaicuo题
+@permission_required('judge.delete_gaicuo')
+def delete_gaicuo(request):
+    if request.method == 'POST':
+        ids = request.POST.getlist('ids[]')
+        try:
+            for pk in ids:
+                if os.path.exists('/home/judge/data/' + str(pk)):
+                    shutil.rmtree('/home/judge/data/' + str(pk))
+                GaicuoProblem.objects.filter(pk=pk).delete()
+        except:
+            return HttpResponse(0)
+        return HttpResponse(1)
+    else:
+        return HttpResponse(0)
+
+
+# 删除程序填空题
+@permission_required("judge.delete_tiankong")
+def delete_tiankong(request):
+        if request.method == 'POST':
+            ids = request.POST.getlist('ids[]')
+            try:
+                for pk in ids:
+                    if os.path.exists('/home/judge/data/' + str(pk)):
+                        shutil.rmtree('/home/judge/data/' + str(pk))
+                    TiankongProblem.objects.filter(pk=pk).delete()
+            except:
+                return HttpResponse(0)
+            return HttpResponse(1)
+        else:
+            return HttpResponse(0)
 
 # 处理选择知识点时的ajax请求
 def select_point(request):
@@ -138,6 +208,37 @@ class ChoiceProblemDetailView(DetailView):
         context['title'] = '选择题“' + self.object.title + '”的详细信息'
         return context
 
+
+# 程序改错题详细视图
+class GaicuoProblemDetailView(DetailView):
+    model = GaicuoProblem
+    template_name = 'gaicuo_problem_detail.html'
+    context_object_name = 'problem'
+
+    def get_context_data(self, **kwargs):
+        context = super(GaicuoProblemDetailView, self).get_context_data(**kwargs)
+        str = ''
+        for point in self.object.knowledgePoint2.all():
+            str += point.upperPoint.classname.name + ' > ' + point.upperPoint.name + ' > ' + point.name + '\n'
+        context['knowledge_point'] = str
+        context['title'] = '程序改错题“' + self.object.title + '”的详细信息'
+        return context
+
+
+ #  程序填空题详细视图
+class TiankongProblemDetailView(DetailView):
+        model = TiankongProblem
+        template_name = 'tiankong_problem_detail.html'
+        context_object_name = 'problem'
+
+        def get_context_data(self, **kwargs):
+            context = super( TiankongProblemDetailView, self).get_context_data(**kwargs)
+            str = ''
+            for point in self.object.knowledgePoint2.all():
+                str += point.upperPoint.classname.name + ' > ' + point.upperPoint.name + ' > ' + point.name + '\n'
+            context['knowledge_point'] = str
+            context['title'] = '程序填空题“' + self.object.title + '”的详细信息'
+            return context
 
 # 更新编程题
 @permission_required('judge.change_problem')
@@ -202,21 +303,110 @@ def update_choice_problem(request, id):
             return redirect(reverse("choice_problem_detail", args=[id]))
     return render(request, 'choice_problem_add.html', {'form': ChoiceAddForm(initial=initial)})
 
+# 更新程序改错题
+@permission_required('judge.change_problem')
+def update_gaicuo(request, id):
+    problem = get_object_or_404(GaicuoProblem, pk=id)
+    json_dic = {}  # 知识点选择的需要的初始化数据
+    for point in problem.knowledgePoint2.all():
+        json_dic[point.id] = point.upperPoint.classname.name + ' > ' + point.upperPoint.name + ' > ' + point.name
+    initial = {'title': problem.title,
+               'description': problem.description,
+               'time_limit': problem.time_limit,
+               'memory_limit': problem.memory_limit,
+               'input': problem.input,
+               'output': problem.output,
+               'program': problem.program,
+               'sample_input1': problem.sample_input,
+               'sample_output1': problem.sample_output,
+               'sample_input2': problem.sample_input2,
+               'sample_output2': problem.sample_output2,
+               'classname': 0,
+               'keypoint': json.dumps(json_dic, ensure_ascii=False).encode('utf8')
+               }  # 生成表单的初始化数据
+    if request.method == "POST":  # 当提交表单时
+        form = GaicuoProblemAddForm(request.POST)
+        if form.is_valid():
+            form.save(user=request.user, problemid=id)
+            if request.POST['file_name'] != '':
+                try:  # 对文件进行解压和保存
+                    old_path = '/tmp/' + request.POST['random_name'] + '/' + request.POST['file_name'] + '_files/'
+                    store_dir = '/home/judge/data/' + str(id)
+                    if os.path.exists(store_dir):
+                        shutil.rmtree(store_dir)
+                    shutil.move(old_path, '/home/judge/data/')
+                    os.rename('/home/judge/data/' + request.POST['file_name'] + '_files',
+                              '/home/judge/data/' + str(id))
+                    shutil.rmtree('/tmp/' + request.POST['random_name'])
+                except Exception as  e:
+                    print(e)
+                    pass
+            return redirect(reverse("gaicuo_detail", args=[id]))
+    return render(request, 'gaicuo_problem_add.html', {'form': GaicuoProblemAddForm(initial=initial)})
+
+# 更新程序填空题
+@permission_required('judge.update_tiankong')
+def update_tiankong(request, id):
+    problem = get_object_or_404(TiankongProblem, pk=id)
+    json_dic = {}  # 知识点选择的需要的初始化数据
+    for point in problem.knowledgePoint2.all():
+        json_dic[point.id] = point.upperPoint.classname.name + ' > ' + point.upperPoint.name + ' > ' + point.name
+    initial = {'title': problem.title,
+               'description': problem.description,
+               'time_limit': problem.time_limit,
+               'memory_limit': problem.memory_limit,
+               'input': problem.input,
+               'output': problem.output,
+               'program':problem.program,
+               'sample_input1': problem.sample_input,
+               'sample_output1': problem.sample_output,
+               'sample_input2': problem.sample_input2,
+               'sample_output2': problem.sample_output2,
+               'classname': 0,
+               'keypoint': json.dumps(json_dic, ensure_ascii=False).encode('utf8')
+               }  # 生成表单的初始化数据
+    if request.method == "POST":  # 当提交表单时
+        form = TiankongProblemAddForm(request.POST)
+        if form.is_valid():
+            form.save(user=request.user, problemid=id)
+            if request.POST['file_name'] != '':
+                try:  # 对文件进行解压和保存
+                    old_path = '/tmp/' + request.POST['random_name'] + '/' + request.POST['file_name'] + '_files/'
+                    store_dir = '/home/judge/data/' + str(id)
+                    if os.path.exists(store_dir):
+                        shutil.rmtree(store_dir)
+                    shutil.move(old_path, '/home/judge/data/')
+                    os.rename('/home/judge/data/' + request.POST['file_name'] + '_files',
+                              '/home/judge/data/' + str(id))
+                    shutil.rmtree('/tmp/' + request.POST['random_name'])
+                except Exception as  e:
+                    print(e)
+                    pass
+            return redirect(reverse("tiankong_detail", args=[id]))
+    return render(request, 'tiankong_problem_add.html', {'form': TiankongProblemAddForm(initial=initial)})
+
 
 # 编程提列表
 @permission_required('judge.add_problem')
 def list_problems(request):
     classnames = ClassName.objects.all()
-    return render(request, 'problem_list.html',
-                  context={'classnames': classnames, 'title': '编程题题库', 'position': 'biancheng_list'})
-
+    return render(request, 'problem_list.html', context={'classnames': classnames, 'title': '编程题题库', 'position': 'biancheng_list'})
 
 # 选择题列表
 @permission_required('judge.add_choiceproblem')
 def list_choices(request):
     classnames = ClassName.objects.all()
-    return render(request, 'choice_problem_list.html', context={'classnames': classnames, 'title': '选择题题库','position':'choice_list'})
+    return render(request, 'choice_problem_list.html', context={'classnames': classnames, 'title': '选择题题库', 'position': 'choice_list'})
 
+# 程序填空题列表
+def list_tiankong(request):
+    classnames = ClassName.objects.all()
+    return render(request, 'tiankong_problem_list.html', context={'classnames': classnames, 'title': '程序填空题题库', 'position': 'tiankong_list'})
+
+# 程序gaicuo题列表
+def list_gaicuo(request):
+    classnames = ClassName.objects.all()
+    return render(request, 'gaicuo_problem_list.html', context={'classnames': classnames, 'title': '程序改错题题库', 'position': 'gaicuo_list'})
 
 # 返回含有问题数据的json
 def get_json(request, model_name):

@@ -17,6 +17,9 @@ from django.conf.urls import url, include
 from django.contrib import admin
 from django.views.generic import TemplateView
 from judge.views import get_json
+from django.views.generic.base import RedirectView
+
+favicon_view = RedirectView.as_view(url='/static/favicon.ico', permanent=True)
 
 urlpatterns = [
     url(r'^admin/', admin.site.urls, name='adminView'),
@@ -26,6 +29,6 @@ urlpatterns = [
     url(r'^work/', include('work.urls')),
     url(r'^faq/', include('faq.urls')),
     url(r'get-json-(?P<model_name>\w+)/$', get_json,name='get_json'),
+    url(r'^favicon\.ico$',favicon_view),
     url(r'^$', TemplateView.as_view(template_name="index.html")),
-    
 ]

@@ -1,0 +1,378 @@
+{% extends 'base.html' %}
+{% block extrahead %}
+    <script src="//cdn.bootcss.com/bootstrap-tagsinput/0.8.0/bootstrap-tagsinput.min.js"></script>
+    <link href="//cdn.bootcss.com/bootstrap-tagsinput/0.8.0/bootstrap-tagsinput-typeahead.css" rel="stylesheet">
+    <link href="//cdn.bootcss.com/bootstrap-tagsinput/0.8.0/bootstrap-tagsinput.css" rel="stylesheet">
+    <link href="//cdn.bootcss.com/bootstrap-fileinput/4.3.3/css/fileinput.min.css" rel="stylesheet">
+    <script src="//cdn.bootcss.com/bootstrap-fileinput/4.3.3/js/fileinput.min.js"></script>
+    <script src="//cdn.bootcss.com/bootstrap-fileinput/4.3.3/js/locales/zh.min.js"></script>
+    <script src="//cdn.bootcss.com/jquery-form-validator/2.3.26/jquery.form-validator.min.js"></script>
+{% endblock %}
+{% block content %}
+    <ol class="breadcrumb">
+        <li><a href="{% url 'index' %}">主页</a></li>
+        <li class="active"><a href="{% url 'gaicuo_problem_list' %}"></a>程序改错题题库管理</li>
+        <li class="active">{{ title }}</li>
+    </ol>
+    <div class="panel panel-default">
+        <div class="panel-body">
+            <form action="" method="post" enctype="multipart/form-data" onsubmit="return submitTest();"
+                  id="problem-form">{% csrf_token %}
+
+                <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+                    <div class="modal-dialog" role="document">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <button type="button" class="close" data-dismiss="modal" aria-hidden="true"
+                                        onclick="$('#result').html('');">×
+                                </button>
+                                <h4 class="modal-title">上传测试用例</h4>
+                            </div>
+                            <div class="modal-body">
+                                <div id="help" name="help">测试数据打包文件格式说明：
+                                    <ol>
+
+                                        <li>压缩格式只支持zip</li>
+                                        <li>压缩包内文件不要有目录结构，所有文件放在最上层</li>
+                                        <li>压缩包内文件名 <span style="color: red">区分大小写，文件名中不允许出现中文</span></li>
+                                        <li>输入文件名为 [case_name].in 输出文件名为 [case_name].out 分数文件名为 scores.txt</li>
+                                        <li>所有文件都必须为Unix格式<span style="color: red"><strong>(UTF-8)</strong></span>文本
+                                        </li>
+                                        <li>分数文件中每行格式为[case_name] [score] #[要点提示]#，空格分开，其中[case_name]如果省略，则默认使用0, 1,
+                                            2依次递增；[要点提示]不超过40个中文字符，简要描述测试要点，如果省略，则为无提示
+                                        </li>
+                                    </ol>
+                                    {% load staticfiles %}
+                                    测试数据打包文件样例：<a href="{% static 'file/sample.zip' %}">sample.zip</a></div>
+                                <label class="control-label">选择文件</label>
+                                <input id="input-43" name="file_upload" accept=".zip" type="file" multiple
+                                       class="file-loading">
+                                {% csrf_token %}
+                                <div id="successBlock" class="help-block"></div>
+                                <div id="alert-info" class="alert alert-success hidden" role="alert">
+                                    文件有效！
+                                </div>
+                                <input type="hidden" id="id_valid">
+                                <div id="result" name="result"></div>
+                            </div>
+                            <div class="modal-footer">
+                                <button id="close" name="close" type="button" class="btn btn-default"
+                                        data-dismiss="modal">完成
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+               <!-- 标题-->
+                <div class="form-group {% if form.title.errors %} has-error {% endif %}">
+                    <label class="control-label"
+                           for="{% if form.title.errors %} inputError1 {% endif %}">{{ form.title.label }}</label>
+                    {% if form.title.errors %}
+                        <span class="text-danger pull-right">{{ form.title.errors }}</span>
+                    {% endif %}
+                    {{ form.title }}
+                    <p class="text-muted">{{ form.title.help_text }}</p>
+                </div>
+
+                <!-- 知识点-->
+                <div class="form-group {% if form.keypoint.errors %} has-error {% endif %}">
+                    <label class="control-label"
+                           for="{% if form.keypoint.errors %} inputError1 {% endif %}">{{ form.keypoint.label }}</label>
+                    {% if form.keypoint.errors %}
+                        <span class="text-danger pull-right">{{ form.keypoint.errors }}</span>
+                    {% endif %}
+                    {{ form.keypoint }}
+                    <br>
+                    <input type="text" id="tags" class="form-control">
+                    <p class="text-muted">{{ form.keypoint.help_text }}</p>
+                </div>
+
+
+                <input type="text" name="random_name" id="random-name" hidden>
+                <input type="text" name="file_name" id="file-name" hidden>
+
+                <!-- 所属课程及知识点 -->
+                <div class="form-group row">
+                    <div class="form-group {% if form.classname.errors %} has-error {% endif %}  col-xs-3 col-md-3">
+                        <label class="control-label"
+                               for="{% if form.classname.errors %} inputError1 {% endif %}">{{ form.classname.label }}</label>
+                        {% if form.classname.errors %}
+                            <span class="text-danger pull-right">{{ form.classname.errors }}</span>
+                        {% endif %}
+                        {{ form.classname }}
+                        <p class="text-muted">{{ form.classname.help_text }}</p>
+                    </div>
+                    <div class="form-group col-xs-3 col-md-3">
+                        <label class="control-label"
+                               for="">一级知识点</label>
+                        <select class="form-control" id="id_knowledgePoint1" name="knowledgePoint1">
+                        </select>
+                    </div>
+                    <div class="form-group col-xs-3 col-md-3">
+                        <label class="control-label"
+                               for="">二级知识点</label>
+                        <select class="form-control" id="id_knowledgePoint2" name="knowledgePoint2">
+                        </select>
+                    </div>
+                    <div class="col-xs-3 col-md-3">
+                        <br>
+                        <button type="button" class="form-control btn btn-primary addkp">添加</button>
+                    </div>
+                </div>
+
+                <!-- 题目描述 -->
+                <div class="form-group {% if form.description.errors %} has-error {% endif %}">
+                    <label class="control-label"
+                           for="{% if form.description.errors %} inputError1 {% endif %}">{{ form.description.label }}</label>
+                    {% if form.description.errors %}
+                        <span class="text-danger pull-right">{{ form.description.errors }}</span>
+                    {% endif %}
+                    {{ form.description }}
+                    <p class="text-muted">{{ form.description.help_text }}</p>
+                </div>
+
+                <!-- 输入描述-->
+                <div class="form-group {% if form.input.errors %} has-error {% endif %}">
+                    <label class="control-label"
+                           for="{% if form.input.errors %} inputError1 {% endif %}">{{ form.input.label }}</label>
+                    {% if form.input.errors %}
+                        <span class="text-danger pull-right">{{ form.input.errors }}</span>
+                    {% endif %}
+                    {{ form.input }}
+                    <p class="text-muted">{{ form.input.help_text }}</p>
+                </div>
+
+                <!-- 输出描述 -->
+                <div class="form-group {% if form.output.errors %} has-error {% endif %}">
+                    <label class="control-label"
+                           for="{% if form.output.errors %} inputError1 {% endif %}">{{ form.output.label }}</label>
+                    {% if form.output.errors %}
+                        <span class="text-danger pull-right">{{ form.output.errors }}</span>
+                    {% endif %}
+                    {{ form.output }}
+                    <p class="text-muted">{{ form.output.help_text }}</p>
+                </div>
+
+                <!-- 程序代码 -->
+                <div class="form-group {% if form.program.errors %} has-error {% endif %}">
+                    <label class="control-label"
+                           for="{% if form.program.errors %} inputError1 {% endif %}">{{ form.program.label }}</label>
+                    {% if form.program.errors %}
+                        <span class="text-danger pull-right">{{ form.program.errors }}</span>
+                    {% endif %}
+                    {{ form.program }}
+                    <p class="text-muted">{{ form.output.help_text }}</p>
+                </div>
+
+                <!-- 输入输出样例 -->
+                <div class="form-group row">
+                    <div class="col-xs-12 col-md-12">
+                        <div class="panel panel-primary ">
+                            <div class="panel-heading">输入和输出样例</div>
+                            <div class="panel-body">
+                                <div class="col-xs-6 col-md-6">
+                                    <div class="form-group {% if form.sample_input1.errors %} has-error {% endif %}">
+                                        <label class="control-label"
+                                               for="{% if form.sample_input1.errors %} inputError1 {% endif %}">{{ form.sample_input1.label }}</label>
+                                        {% if form.sample_input1.errors %}
+                                            <span class="text-danger pull-right">{{ form.sample_input1.errors }}</span>
+                                        {% endif %}
+                                        {{ form.sample_input1 }}
+                                        <p class="text-muted">{{ form.sample_input1.help_text }}</p>
+                                    </div>
+                                    <div class="form-group {% if form.sample_output1.errors %} has-error {% endif %}">
+                                        <label class="control-label"
+                                               for="{% if form.sample_output1.errors %} inputError1 {% endif %}">{{ form.sample_output1.label }}</label>
+                                        {% if form.sample_output1.errors %}
+                                            <span class="text-danger pull-right">{{ form.sample_output1.errors }}</span>
+                                        {% endif %}
+                                        {{ form.sample_output1 }}
+                                        <p class="text-muted">{{ form.sample_output1.help_text }}</p>
+                                    </div>
+                                </div>
+                                <div class="col-xs-6 col-md-6">
+                                    <div class="form-group {% if form.sample_input2.errors %} has-error {% endif %}">
+                                        <label class="control-label"
+                                               for="{% if form.sample_input2.errors %} inputError1 {% endif %}">{{ form.sample_input2.label }}</label>
+                                        {% if form.sample_input2.errors %}
+                                            <span class="text-danger pull-right">{{ form.sample_input2.errors }}</span>
+                                        {% endif %}
+                                        {{ form.sample_input2 }}
+                                        <p class="text-muted">{{ form.sample_input2.help_text }}</p>
+                                    </div>
+                                    <div class="form-group {% if form.sample_output2.errors %} has-error {% endif %}">
+                                        <label class="control-label"
+                                               for="{% if form.sample_output2.errors %} inputError1 {% endif %}">{{ form.sample_output2.label }}</label>
+                                        {% if form.sample_output2.errors %}
+                                            <span class="text-danger pull-right">{{ form.sample_output2.errors }}</span>
+                                        {% endif %}
+                                        {{ form.sample_output2 }}
+                                        <p class="text-muted">{{ form.sample_output2.help_text }}</p>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 限制条件等 -->
+                <div class="form-group {% if form.time_limit.errors %} has-error {% endif %}">
+                    <label class="control-label"
+                           for="{% if form.time_limit.errors %} inputError1 {% endif %}">{{ form.time_limit.label }}</label>
+                    {% if form.time_limit.errors %}
+                        <span class="text-danger pull-right">{{ form.time_limit.errors }}</span>
+                    {% endif %}
+                    <div class="input-group">
+                        {{ form.time_limit }}
+                        <span class="input-group-addon" id="basic-addon2">秒</span>
+                    </div>
+                    <p class="text-muted">{{ form.time_limit.help_text }}</p>
+                </div>
+
+                <div class="form-group {% if form.memory_limit.errors %} has-error {% endif %}">
+                    <label class="control-label"
+                           for="{% if form.memory_limit.errors %} inputError1 {% endif %}">{{ form.memory_limit.label }}</label>
+                    {% if form.memory_limit.errors %}
+                        <span class="text-danger pull-right">{{ form.memory_limit.errors }}</span>
+                    {% endif %}
+                    <div class="input-group">
+                        {{ form.memory_limit }}
+                        <span class="input-group-addon" id="basic-addon2">MB</span>
+                    </div>
+                    <p class="text-muted">{{ form.memory_limit.help_text }}</p>
+                </div>
+
+                <button type="button" class="btn btn-primary btn-lg" data-toggle="modal" data-target="#myModal">
+                    上传测试用例
+                </button>
+                <button type="submit" class="btn btn-success btn-lg">保存题目</button>
+            </form>
+        </div>
+    </div>
+
+
+    <script type="text/javascript">
+        $.ajaxSetup({
+            data: {csrfmiddlewaretoken: '{{ csrf_token }}'},
+        });
+
+        jQuery(document).ready(function () {
+
+            $("[name='classname']").change(function () {
+                $.ajax({
+                    type: "post",
+                    url: "{% url 'select_point' %}",
+                    dataType: "json",
+                    data: {'course': $(this).val(), 'parent': 0},
+                    success: function (data) {
+                        $("[name='knowledgePoint2']").empty();
+                        $("[name='knowledgePoint1']").empty();
+                        $("[name='knowledgePoint1']").append("<option value=\"0\">请选择一级知识点</option>");
+                        for (var p in data) {
+                            $("[name='knowledgePoint1']").append("<option value=\"" + p + "\">" + data [p] + "</option>");
+                        }
+                    },
+                    error: function () {
+                        $("[name='knowledgePoint1']").empty();
+                        $("[name='knowledgePoint2']").empty();
+                    }
+                });
+            });
+            $("[name='knowledgePoint1']").change(function () {
+                $.ajax({
+                    type: "post",
+                    url: "{% url 'select_point' %}",
+                    dataType: "json",
+                    data: {'parent': $(this).val()},
+                    success: function (data) {
+                        $("[name='knowledgePoint2']").empty();
+                        $("[name='knowledgePoint2']").append("<option value=\"0\">请选择二级知识点</option>");
+                        for (var p in data) {
+                            $("[name='knowledgePoint2']").append("<option value=\"" + p + "\">" + data [p] + "</option>");
+                        }
+                    },
+                    error: function () {
+                        $("[name='knowledgePoint2']").empty();
+                    }
+                });
+            });
+            var elt = $('#tags');
+            elt.tagsinput({
+                itemValue: 'value',
+                itemText: 'text'
+            });
+            $(".addkp").click(function () {
+                if ($('[name="knowledgePoint2"]').val() > 0) {
+                    var str = $('[name="classname"]').find("option:selected").text() + ' > ' + $('[name="knowledgePoint1"]').find("option:selected").text() + ' > ' + $('[name="knowledgePoint2"]').find("option:selected").text();
+                    elt.tagsinput('add', {'value': $('[name="knowledgePoint2"]').val(), 'text': str});
+                }
+            });
+
+            elt.change(function () {
+                $("#id_keypoint").val($(this).val());
+            });
+
+            var initVal = $("#id_keypoint").val();
+            if (initVal) {
+                json = JSON.parse(initVal);
+                for (var key in json) {
+                    elt.tagsinput('add', {'value': key, 'text': json[key]});
+                }
+                $("#id_keypoint").val($(elt).val());
+            }
+        });
+        $.validate({});
+    </script>
+    <script>
+        var valid = false
+        $(document).on('ready', function () {
+            $("#input-43").fileinput({
+                uploadUrl: '{% url 'verify_file' %}',
+                showPreview: false,
+                browseLabel: "选择文件",
+                removeLabel: "移除",
+                uploadLabel: "上传验证",
+                cancelLable: "取消",
+                elErrorContainer: "#errorBlock",
+                uploadAsync: true,
+                maxFileCount: 5,
+                allowedFileExtensions: ["zip"],
+                uploadExtraData: {
+                    csrfmiddlewaretoken: '{{ csrf_token }}'
+                }
+            });
+
+            $("#input-43").on("fileuploaded", function (event, data, previewId, index) {
+                var info = $("#alert-info")
+                var result = data.response.result;
+                if (result == 1) {
+                    info.html("文件有效！");
+                    $("#random-name").val(data.response.info);
+                    $("#file-name").val(data.response.filename);
+                    info.attr("class", "alert alert-success");
+                    valid = true
+                }
+                else {
+                    info.html("<strong>错误！</strong>" + data.response.info);
+                    info.attr("class", "alert alert-danger");
+                    valid = false
+                }
+            });
+        });
+        function submitTest() {
+            if (window.location.href.indexOf('add-gaicuo') != -1) {
+                if (valid) {
+                    return true
+                } else {
+                    alert("您未上传测试用例或测试用例格式不正确，请检查后重试");
+                    return false
+                }
+            }else{
+                return true
+            }
+        }
+    </script>
+{% endblock %}
+

@@ -21,6 +21,7 @@
         <div class="alert alert-danger" role="alert"><strong>注意！</strong>此作业只能提交一次！(临时保存次数无限制)</div>{% endif %}
     <form method="post">
         {% csrf_token %}
+        <input type="hidden" name="homework_id" size="20" value="{{ homework.id }}"/>
         <h2>选择题</h2>
         <div class="panel-group" id="accordion" role="tablist" aria-multiselectable="true">
             {% for choice_problem in choice_problems %}
@@ -291,8 +292,8 @@
                 closeIcon: false, // hides the close icon.
                 content: '<i class="fa fa-spinner fa-spin fa-3x fa-fw"></i> <span class="sr-only">正在上传你的答案,请稍等</span>正在上传你的答案,请稍等' // hides content block.
             });
-            var htmlstr = '<input type="hidden" name="homework_id" size="20" value="{{ homework.id }}"/>';
-            $("form").append(htmlstr);
+            //var htmlstr = '<input type="hidden" name="homework_id" size="20" value="{{ homework.id }}"/>';
+            //$("form").append(htmlstr);
             $("form").attr("action", "{% url 'save_homework' %}");
             $("form").submit()
         }

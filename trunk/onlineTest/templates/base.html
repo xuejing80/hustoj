@@ -115,9 +115,10 @@
                                 <span>题库管理</span>
                             </a>
                             <ul class="sub" id="extend_problem_list">
+                                <li id="choice_list"><a href="{% url 'choice_problem_list' %}">选择题题库</a></li>
                                 <li id="biancheng_list"><a href="{% url 'problemlist' %}">编程题题库</a></li>
-                                <li id="choice_list"><a href="{% url 'choice_problem_list' %}"
-                                                        id="biancheng_list">选择题题库</a></li>
+                                <li id="tiankong_list"><a href="{% url 'tiankong_problem_list' %}">程序填空题题库</a></li>
+                                <li id="gaicuo_list"><a href="{% url 'gaicuo_problem_list' %}">程序改错题题库</a></li>
                             </ul>
                         </li>
                     {% endif %}
@@ -248,6 +249,16 @@
                 break
             case 'choice_list':
                 $("#choice_list").addClass("active");
+                $("#problem_list").addClass('active');
+                $("#extend_problem_list").css('display', 'block')
+                break;
+            case 'tiankong_list':
+                $("#tiankong_list").addClass("active");
+                $("#problem_list").addClass('active');
+                $("#extend_problem_list").css('display', 'block')
+                break;
+            case 'gaicuo_list':
+                $("#gaicuo_list").addClass("active");
                 $("#problem_list").addClass('active');
                 $("#extend_problem_list").css('display', 'block')
                 break;

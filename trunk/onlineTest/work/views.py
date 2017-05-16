@@ -19,6 +19,9 @@ from judge.views import get_testCases
 from work.models import HomeWork, HomeworkAnswer, BanJi, MyHomework, TempHomeworkAnswer
 from django.contrib.auth.decorators import permission_required, login_required
 
+#import logging
+#logger = logging.getLogger(__name__)
+
 """
 有关hustoj的一些记录
 solution.result的意义：
@@ -391,7 +394,10 @@ def do_homework(request, homework_id):
                 homeworkAnswer.solution_set.add(solution)
         homeworkAnswer.wrong_choice_problems = wrong_ids
         homeworkAnswer.wrong_choice_problems_info = wrong_info
-        homeworkAnswer.summary = request.POST['summary']
+        try:
+            homeworkAnswer.summary = request.POST['summary']
+        except:
+            pass
         homeworkAnswer.save()
         # output.close()
 

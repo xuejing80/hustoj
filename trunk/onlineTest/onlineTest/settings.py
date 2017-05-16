@@ -126,7 +126,7 @@ USE_L10N = True
 EMAIL_HOST = 'smtp.163.com'  # SMTP地址
 EMAIL_PORT = 25  # SMTP端口
 EMAIL_HOST_USER = 'fornjupt@163.com'  # 我自己的邮箱
-EMAIL_HOST_PASSWORD = ' - - '  # 我的邮箱密码
+EMAIL_HOST_PASSWORD = 'password'  # 我的邮箱密码
 EMAIL_SUBJECT_PREFIX = '计算机语言作业平台'  # 为邮件Subject-line前缀,默认是'[django]'
 EMAIL_USE_TLS = True  # 与SMTP服务器通信时，是否启动TLS链接(安全链接)。默认是false
 
@@ -141,3 +141,61 @@ STATICFILES_DIRS = [os.path.join(BASE_DIR, "static"), ]
 STATIC_ROOT = '/var/www/html/static'
 
 LOGIN_URL = '/test/accounts/login/'
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {#格式器
+        'verbose': {#详细
+            'format': '>>[%(asctime)s][%(name)s:%(lineno)d][%(levelname)s]-%(message)s'
+        },
+        'simple': {#简单
+            'format': '$[%(threadName)s:%(thread)d] [%(levelname)s]- %(message)s'
+        },
+    },
+    'filters': {
+        'require_debug_false': {
+            '()': 'django.utils.log.RequireDebugFalse',
+            },
+    },
+    'handlers': {
+        'mail_admins': {
+            'level': 'ERROR',
+            'class': 'django.utils.log.AdminEmailHandler',
+            'include_html': True,
+        },
+        #'default': {
+        #    'level':'DEBUG',
+        #    'class':'logging.handlers.RotatingFileHandler',
+        #    'filename': os.path.join('/home/judge/log/','django_all.log'), #日志所在路径
+        #    'maxBytes': 1024*1024*50, # 5 MB
+        #    'backupCount': 5,
+        #    'formatter':'verbose',
+        #},
+        'console':{
+            'level': 'DEBUG',
+            'class': 'logging.StreamHandler',
+            'formatter': 'simple'
+        },
+        'file':{
+            'level':'WARNING',
+            'class':'logging.handlers.RotatingFileHandler',
+            'filename': os.path.join('/home/judge/log/','django.log'),
+            'maxBytes': 1024*1024*50, # 5 MB
+            'backupCount': 5,
+            'formatter':'verbose',
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['file'],
+            'level': 'DEBUG',
+            'propagate': False
+        }
+        #'django.request':{
+        #    'handlers':['file'],
+        #    'level':'INFO',
+        #    'propagate':True,
+        #},
+    }
+}

@@ -72,7 +72,7 @@ class ChoiceProblem(models.Model):
 
 
 class Problem(models.Model):
-    problem_id = models.AutoField('题目id', primary_key=True)
+    problem_id = models.IntegerField('题目id', primary_key=True)
     title = models.CharField(verbose_name='标题', max_length=200)
     description = models.TextField('描述', blank=True, null=True)
     input = models.TextField('输入描述', blank=True, null=True)
@@ -106,6 +106,77 @@ class Problem(models.Model):
         verbose_name = '编程题'
         verbose_name_plural = '编程题'
 
+class GaicuoProblem(models.Model):
+    problem_id = models.IntegerField('题目id', primary_key=True)
+    title = models.CharField(verbose_name='标题', max_length=200)
+    description = models.TextField('描述', blank=True, null=True)
+    input = models.TextField('输入描述', blank=True, null=True)
+    output = models.TextField('输出描述', blank=True, null=True)
+    program = models.TextField('程序代码', blank=True, null=True)
+    sample_input = models.TextField('样例输入1', blank=True, null=True)
+    sample_output = models.TextField('样例输出1', blank=True, null=True)
+    sample_input2 = models.TextField('样例输入2', blank=True, null=True)
+    sample_output2 = models.TextField('样例输出2', blank=True, null=True)
+    spj = models.CharField(max_length=1, default=0)
+    hint = models.TextField(blank=True, null=True)
+    source = models.CharField(max_length=100, blank=True, null=True)
+    in_date = models.DateTimeField('录入时间', blank=True, null=True, auto_now_add=True)
+    update_date = models.DateTimeField(auto_now=True, verbose_name='最后修改时间', blank=True, null=True)
+    time_limit = models.IntegerField('限制时间', default=1)
+    memory_limit = models.IntegerField('限制内存', default=128)
+    defunct = models.CharField(max_length=1, default='N')
+    accepted = models.IntegerField('AC数量', blank=True, null=True, default=0)
+    submit = models.IntegerField('提交数量', blank=True, null=True, default=0)
+    solved = models.IntegerField(blank=True, null=True)
+    knowledgePoint1 = models.ManyToManyField(KnowledgePoint1, verbose_name='一级知识点')
+    knowledgePoint2 = models.ManyToManyField(KnowledgePoint2, verbose_name='二级知识点')
+    classname = models.ManyToManyField(ClassName, verbose_name='所属课程')
+    creater = models.ForeignKey(MyUser)
+
+    def __str__(self):
+        return self.title
+
+    class Meta:
+        db_table = 'gaicuoproblem'
+        ordering = ['problem_id']
+        verbose_name = '程序改错题'
+        verbose_name_plural = '程序改错题'
+
+class TiankongProblem(models.Model):
+    problem_id = models.IntegerField('题目id', primary_key=True)
+    title = models.CharField(verbose_name='标题', max_length=200)
+    description = models.TextField('描述', blank=True, null=True)
+    input = models.TextField('输入描述', blank=True, null=True)
+    output = models.TextField('输出描述', blank=True, null=True)
+    program=models.TextField('程序代码', blank=True, null=True)
+    sample_input = models.TextField('样例输入1', blank=True, null=True)
+    sample_output = models.TextField('样例输出1', blank=True, null=True)
+    sample_input2 = models.TextField('样例输入2', blank=True, null=True)
+    sample_output2 = models.TextField('样例输出2', blank=True, null=True)
+    spj = models.CharField(max_length=1, default=0)
+    hint = models.TextField(blank=True, null=True)
+    source = models.CharField(max_length=100, blank=True, null=True)
+    in_date = models.DateTimeField('录入时间', blank=True, null=True, auto_now_add=True)
+    update_date = models.DateTimeField(auto_now=True, verbose_name='最后修改时间', blank=True, null=True)
+    time_limit = models.IntegerField('限制时间', default=1)
+    memory_limit = models.IntegerField('限制内存', default=128)
+    defunct = models.CharField(max_length=1, default='N')
+    accepted = models.IntegerField('AC数量', blank=True, null=True, default=0)
+    submit = models.IntegerField('提交数量', blank=True, null=True, default=0)
+    solved = models.IntegerField(blank=True, null=True)
+    knowledgePoint1 = models.ManyToManyField(KnowledgePoint1, verbose_name='一级知识点')
+    knowledgePoint2 = models.ManyToManyField(KnowledgePoint2, verbose_name='二级知识点')
+    classname = models.ManyToManyField(ClassName, verbose_name='所属课程')
+    creater = models.ForeignKey(MyUser)
+
+    def __str__(self):
+        return self.title
+
+    class Meta:
+        db_table = 'tiankongproblem'
+        ordering = ['problem_id']
+        verbose_name = '程序填空题'
+        verbose_name_plural = '程序填空题'
 
 class Runtimeinfo(models.Model):
     solution_id = models.IntegerField(primary_key=True)

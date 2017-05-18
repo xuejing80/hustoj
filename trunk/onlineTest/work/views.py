@@ -19,8 +19,16 @@ from judge.views import get_testCases
 from work.models import HomeWork, HomeworkAnswer, BanJi, MyHomework, TempHomeworkAnswer
 from django.contrib.auth.decorators import permission_required, login_required
 
-#import logging
-#logger = logging.getLogger(__name__)
+import logging
+logfile = r'/home/judge/log/django.log'
+log_format = '>>[%(asctime)s][work/view.py:%(lineno)d][%(levelname)s]-%(message)s'
+
+#logging.basicConfig(format=log_format, filename=logfile,level=logging.DEBUG)
+handler = logging.FileHandler(logfile, "a", encoding = "UTF-8")
+formatter = logging.Formatter(log_format)
+handler.setFormatter(formatter)
+logger = logging.getLogger(__name__)
+logger.addHandler(handler)
 
 """
 有关hustoj的一些记录
@@ -409,20 +417,24 @@ def do_homework(request, homework_id):
             pass
         return redirect(reverse('show_homework_result', args=[homeworkAnswer.id]))
     else:  # 当正常访问时
-        homework = MyHomework.objects.get(pk=homework_id)
-        choice_problems = []
-        for id in homework.choice_problem_ids.split(','):
-            if id:
-                choice_problems.append({'detail': ChoiceProblem.objects.get(pk=id),
-                                        'score': json.loads(homework.choice_problem_info)[0]['total_score']})
-        problems = []
-        for id in homework.problem_ids.split(','):
-            if id:
-                problems.append(Problem.objects.get(pk=id))
-        return render(request, 'do_homework.html',
-                      context={'homework': homework, 'problems': problems, 'choice_problems': choice_problems,
-                               'title': homework.name, 'work_kind': homework.work_kind})
-
+        try:
+            homework = MyHomework.objects.get(pk=homework_id)
+            choice_problems = []
+            for id in homework.choice_problem_ids.split(','):
+                if id:
+                    choice_problems.append({'detail': ChoiceProblem.objects.get(pk=id),
+                                            'score': json.loads(homework.choice_problem_info)[0]['total_score']})
+            problems = []
+            for id in homework.problem_ids.split(','):
+                if id:
+                    problems.append(Problem.objects.get(pk=id))
+            return render(request, 'do_homework.html',
+                          context={'homework': homework, 'problems': problems, 'choice_problems': choice_problems,
+                                   'title': homework.name, 'work_kind': homework.work_kind})
+        except:
+            logger.exception("Exception Logged")
+            logger.error("指定的作业编号不存在{{homework_id:{},user:{}({},{})}}".format(homework_id,request.user.username,request.user.id_num,request.user.email))
+            return render(request, 'do_homework_list.html')
 
 @permission_required('work.add_banji')
 def add_banji(request):
@@ -1086,11 +1098,15 @@ def save_homework_temp(request):
     :return: 重定向到作业列表
     """
     data = request.POST.dict()
-    homework = MyHomework.objects.get(id=data['homework_id'])
-    del data['csrfmiddlewaretoken']  # 去除表单中的scrf项
-    del data['homework_id']  # 去除表单中的homework_id项
-    TempHomeworkAnswer.objects.update_or_create(homework=homework, creator=request.user,
+    try:
+        homework = MyHomework.objects.get(id=data['homework_id'])
+        del data['csrfmiddlewaretoken']  # 去除表单中的scrf项
+        del data['homework_id']  # 去除表单中的homework_id项
+        TempHomeworkAnswer.objects.update_or_create(homework=homework, creator=request.user,
                                                 defaults={'data': json.dumps(data)})
+    except:
+        logger.exception("Exception Logged")
+        logger.error("暂存作业失败{{request.POST:{}}}".format(data))
     return redirect(reverse('list_do_homework'))
 
 

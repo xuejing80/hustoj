@@ -2412,3 +2412,8 @@ label {
     width: auto;
     overflow: hidden;
 }
+
+table td.nobr{white-space: nowrap;}
+
+table th.nobr{white-space: nowrap;}
+

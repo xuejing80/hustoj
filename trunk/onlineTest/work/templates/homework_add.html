@@ -15,6 +15,7 @@
     <link href="{% static 'assets/css/bootstrap-datetimepicker.min.css' %}"
           rel="stylesheet">
     <script src="{% static 'assets/js/bootstrap-datetimepicker.min.js' %}"></script>
+    <script type="text/javascript" src="{% static 'assets/js/bootstrap-datetimepicker.zh-CN.js' %}" charset="UTF-8"></script>
     <script src="{% static 'js/jquery.tablednd.js' %}"></script>
     <link href="{% static 'assets/css/bootstrap-table-reorder-rows.min.css' %}"
           rel="stylesheet">
@@ -92,7 +93,7 @@
             <div class='col-sm-6'>
                 <div class="form-group">
                     <label for="start_time">开始时间</label>
-                    <div class='input-group date' id='datetimepicker1'>
+                    <div class='input-group date form_datetime' id='datetimepicker1'>
                         <input type='text' class="form-control" name="start_time" id="start_time"/>
                         <span class="input-group-addon">
                         <span class="glyphicon glyphicon-calendar"></span>
@@ -373,20 +374,24 @@
         $(function () {
             $('#datetimepicker1').datetimepicker(
                     {
-                        format: 'YYYY-MM-DD HH:mm:ss',
-                        sideBySide: true,
-                        defaultDate: moment()
+                        format: 'yyyy-mm-dd hh:ii',
+                        viewSelect: 'hour',
+                        autoclose: true,
+                        todayBtn: true,
+                        minuteStep: 30,
                     }
             );
         });
         $(function () {
             $('#datetimepicker2').datetimepicker(
                     {
-                        format: 'YYYY-MM-DD HH:mm:ss', sideBySide: true,
-                        defaultDate: moment("23:59:59", "HH-mm-ss").add(7, 'days')
+                        format: 'yyyy-mm-dd hh:ii',
+                        viewSelect: 'hour',
+                        autoclose: true,
+                        todayBtn: true,
+                        minuteStep: 30,
                     }
-            )
-            ;
+            );
         });
         function actionFormatter(value, row, index) {
             return [
@@ -642,8 +647,16 @@
                 $('input[name=languages]').attr("checked", false);
                 setTimeout(function () {
                             $("#name").val('{{ name }}');
-                            $('#datetimepicker1').data("DateTimePicker").date('{{ start_time }}');
-                            $('#datetimepicker2').data("DateTimePicker").date('{{ end_time }}');
+                            start_time = '{{ start_time|date:"Y-m-d H:i" }}';
+                            if(start_time!='')
+                                $('#start_time').val(start_time);
+                            else
+                                $('#start_time').val(moment().format("YYYY-MM-DD kk:mm"));
+                            end_time = '{{ end_time|date:"Y-m-d H:i" }}'
+                            if(end_time!='')
+                                $('#end_time').val(end_time);
+                            else
+                                $('#end_time').val(moment("23:59:59", "HH-mm-ss").add(7, 'days').format("YYYY-MM-DD kk:mm"));
                             $("#classname option[value='{{ courser_id }}']").attr("selected", true);
                             $('#allow_resubmit[value="{{ allow_resubmit }}"]').attr('checked', true);
                             $('#work_kind[value="{{ work_kind }}"]').attr('checked',true);
@@ -659,11 +672,10 @@
                                     $table4.bootstrapTable('append', data.choice_problem_info);
                                     $table2.bootstrapTable('append', data.problem_info);
                                 }
-                            })
-                            ;
-                            for (var i = 0; i < "{{ languages }}".split(',').length; i++) {
+                            });
+                            for (var i = 0; "{{ languages }}"!="" && i < "{{ languages }}".split(',').length; i++) {
                                 id = "{{ languages }}".split(',')[i];
-                                $("input[name=languages][value=" + id + "]").prop("checked", true)
+                                $("input[name=languages][value=" + id + "]").prop("checked", true);
                             }
                         }, 0
                 );

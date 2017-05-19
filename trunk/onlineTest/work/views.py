@@ -177,11 +177,18 @@ def show_my_homework(request, pk):
     """
     homework = get_object_or_404(MyHomework, pk=pk)
     total_students_number = 0
+    homework_answers = homework.homeworkanswer_set
+    banjiList = []
     for banji in homework.banji.all():
-        total_students_number += banji.students.count()  # 需要完成作业总人数
+        if time.mktime(banji.start_time.timetuple()) < time.time() < time.mktime(banji.end_time.timetuple()):
+            banjiList.append(banji.pk)
+            total_students_number += banji.students.count()  # 需要完成作业总人数
+    homework_answers = homework_answers.filter(
+        creator__banJi_students=BanJi.objects.get(id__in=banjiList))
+
     context = {'id': homework.id, 'name': homework.name, 'courser': homework.courser.name,
                'start_time': homework.start_time, 'end_time': homework.end_time, 'banjis': homework.banji.all(),
-               "finished_students_number": homework.finished_students.count(), 'work_kind': homework.work_kind,
+               "finished_students_number": homework_answers.count(), 'work_kind': homework.work_kind,
                'total_students_number': total_students_number, 'title': '我的私有作业“' + homework.name + '”的详细'}
     return render(request, 'my_homework_detail.html', context=context)
 
@@ -839,6 +846,13 @@ def get_finished_students(request):
     if request.GET['banji_id'] != '0':
         homework_answers = homework_answers.filter(
             creator__banJi_students=BanJi.objects.get(id=request.GET['banji_id']))
+    else:
+        banjiList = []
+        for banji in homework.banji.all():
+            if time.mktime(banji.start_time.timetuple()) < time.time() < time.mktime(banji.end_time.timetuple()):
+                banjiList.append(banji.pk)
+        homework_answers = homework_answers.filter(
+            creator__banJi_students=BanJi.objects.get(id__in=banjiList))
     try:
         homework_answers = homework_answers.filter(creator__id_num__icontains=request.GET['search'])
     except:

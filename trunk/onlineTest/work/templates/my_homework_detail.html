@@ -73,6 +73,7 @@
            data-side-pagination="server"
            data-pagination="true"
            data-page-size="500"
+           data-page-list="[ALL]"
            data-classes="table table-hover table-condensed"
            data-toolbar="#toolbar"
            data-striped="true"
@@ -116,6 +117,10 @@
                     ' <a class="btn btn-primary btn-xs" href="{% url '_rejudge_homework' %}' + value + '/" title="重新判分"><span class="glyphicon glyphicon-repeat"></span></a>'
 
         }
+
+        $('#table').on('load-success.bs.table', function () {
+            //window.alert('load-success');
+        });
 
         {#        function rejudge(id) {#}
         {#            $.ajax({#}

@@ -50,6 +50,7 @@ sudo chown -R judge /home/judge
 sudo chgrp -R $APACHEUSER /home/judge/data
 sudo chgrp -R root /home/judge/etc /home/judge/run?
 sudo chmod 775 /home/judge /home/judge/data /home/judge/etc /home/judge/run?
+sudo chmod 777 /home/judge/log
 
 #boot up judged
 sudo cp judged /etc/init.d/judged

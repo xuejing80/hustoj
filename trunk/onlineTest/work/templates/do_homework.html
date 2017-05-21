@@ -381,7 +381,7 @@
                 data: {
                     'homework_id':{{ homework.id }}
                 },
-                success: function (data) {
+                success: function (data) {//alert(JSON.stringify(data));
                     if (data.result == 1) {
                         $.each(data.data, function (key, value) {
                             if (key.indexOf('language') != -1) {

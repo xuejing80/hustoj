@@ -29,6 +29,7 @@ formatter = logging.Formatter(log_format)
 handler.setFormatter(formatter)
 logger = logging.getLogger(__name__)
 logger.addHandler(handler)
+logger.setLevel(logging.INFO)
 
 """
 有关hustoj的一些记录
@@ -201,12 +202,17 @@ def ajax_for_homework_info(request):
     :return: 含有作业信息的json
     """
     homework_id = request.POST['homework_id']
-    if request.POST['my'] == 'true':
-        homework = MyHomework.objects.get(pk=homework_id)
-    else:
-        homework = HomeWork.objects.get(pk=homework_id)
-    result = {'problem_info': json.loads(homework.problem_info),
-              'choice_problem_info': json.loads(homework.choice_problem_info)}
+    result = []
+    try:
+        if request.POST['my'] == 'true':
+            homework = MyHomework.objects.get(pk=homework_id)
+        else:
+            homework = HomeWork.objects.get(pk=homework_id)
+        result = {'problem_info': json.loads(homework.problem_info),
+                  'choice_problem_info': json.loads(homework.choice_problem_info)}
+    except:
+        logger.exception("Exception Logged")
+        #logger.info("执行动作：暂存作业，用户信息：{}({}:{})，POST数据：{}".format(request.user.username,request.user.pk,request.user.id_num,request.POST.dict()))
     return JsonResponse(result)
 
 
@@ -419,29 +425,26 @@ def do_homework(request, homework_id):
         # 开启判题进程，保存编程题目分数
         _thread.start_new_thread(judge_homework, (homeworkAnswer,))
         try:  # 如果有暂存的该作业答案，删除掉
+            logger.info("执行动作：删除暂存作业，用户信息：{}({}:{})，作业ID：{}".format(request.user.username,request.user.pk,request.user.id_num,homework))
             TempHomeworkAnswer.objects.get(creator=request.user, homework=homework).delete()
         except ObjectDoesNotExist:
+            logger.info("执行动作：未找到对应的暂存作业，用户信息：{}({}:{})，作业ID：{}".format(request.user.username,request.user.pk,request.user.id_num,homework))
             pass
         return redirect(reverse('show_homework_result', args=[homeworkAnswer.id]))
     else:  # 当正常访问时
-        try:
-            homework = MyHomework.objects.get(pk=homework_id)
-            choice_problems = []
-            for id in homework.choice_problem_ids.split(','):
-                if id:
-                    choice_problems.append({'detail': ChoiceProblem.objects.get(pk=id),
-                                            'score': json.loads(homework.choice_problem_info)[0]['total_score']})
-            problems = []
-            for id in homework.problem_ids.split(','):
-                if id:
-                    problems.append(Problem.objects.get(pk=id))
-            return render(request, 'do_homework.html',
-                          context={'homework': homework, 'problems': problems, 'choice_problems': choice_problems,
-                                   'title': homework.name, 'work_kind': homework.work_kind})
-        except:
-            logger.exception("Exception Logged")
-            logger.error("指定的作业编号不存在{{homework_id:{},user:{}({},{})}}".format(homework_id,request.user.username,request.user.id_num,request.user.email))
-            return render(request, 'do_homework_list.html')
+        homework = get_object_or_404(MyHomework, pk=homework_id)
+        choice_problems = []
+        for id in homework.choice_problem_ids.split(','):
+            if id:
+                choice_problems.append({'detail': ChoiceProblem.objects.get(pk=id),
+                                        'score': json.loads(homework.choice_problem_info)[0]['total_score']})
+        problems = []
+        for id in homework.problem_ids.split(','):
+            if id:
+                problems.append(Problem.objects.get(pk=id))
+        return render(request, 'do_homework.html',
+                      context={'homework': homework, 'problems': problems, 'choice_problems': choice_problems,
+                               'title': homework.name, 'work_kind': homework.work_kind})
 
 @permission_required('work.add_banji')
 def add_banji(request):
@@ -1111,6 +1114,7 @@ def save_homework_temp(request):
     :param request: 请求
     :return: 重定向到作业列表
     """
+    logger.info("执行动作：暂存作业，用户信息：{}({}:{})，POST数据：{}".format(request.user.username,request.user.pk,request.user.id_num,request.POST.dict()))
     data = request.POST.dict()
     try:
         homework = MyHomework.objects.get(id=data['homework_id'])
@@ -1120,7 +1124,7 @@ def save_homework_temp(request):
                                                 defaults={'data': json.dumps(data)})
     except:
         logger.exception("Exception Logged")
-        logger.error("暂存作业失败{{request.POST:{}}}".format(data))
+        logger.error("暂存作业失败-request.POST:{},user:{}({}:{})".format(data,request.user.username,request.user.pk,request.user.id_num))
     return redirect(reverse('list_do_homework'))
 
 

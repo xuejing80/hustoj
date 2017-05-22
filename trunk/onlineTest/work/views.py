@@ -185,7 +185,7 @@ def show_my_homework(request, pk):
             banjiList.append(banji.pk)
             total_students_number += banji.students.count()  # 需要完成作业总人数
     homework_answers = homework_answers.filter(
-        creator__banJi_students=BanJi.objects.get(id__in=banjiList))
+        creator__banJi_students__in=BanJi.objects.filter(id__in=banjiList))
 
     context = {'id': homework.id, 'name': homework.name, 'courser': homework.courser.name,
                'start_time': homework.start_time, 'end_time': homework.end_time, 'banjis': homework.banji.all(),
@@ -855,7 +855,7 @@ def get_finished_students(request):
             if time.mktime(banji.start_time.timetuple()) < time.time() < time.mktime(banji.end_time.timetuple()):
                 banjiList.append(banji.pk)
         homework_answers = homework_answers.filter(
-            creator__banJi_students=BanJi.objects.get(id__in=banjiList))
+            creator__banJi_students__in=BanJi.objects.filter(id__in=banjiList))
     try:
         homework_answers = homework_answers.filter(creator__id_num__icontains=request.GET['search'])
     except:

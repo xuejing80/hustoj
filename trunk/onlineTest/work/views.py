@@ -20,16 +20,7 @@ from work.models import HomeWork, HomeworkAnswer, BanJi, MyHomework, TempHomewor
 from django.contrib.auth.decorators import permission_required, login_required
 
 import logging
-logfile = r'/home/judge/log/django.log'
-log_format = '>>[%(asctime)s][work/view.py:%(lineno)d][%(levelname)s]-%(message)s'
-
-#logging.basicConfig(format=log_format, filename=logfile,level=logging.DEBUG)
-handler = logging.FileHandler(logfile, "a", encoding = "UTF-8")
-formatter = logging.Formatter(log_format)
-handler.setFormatter(formatter)
-logger = logging.getLogger(__name__)
-logger.addHandler(handler)
-logger.setLevel(logging.INFO)
+logger = logging.getLogger('django')
 
 """
 有关hustoj的一些记录
@@ -333,9 +324,10 @@ def get_choice_score(homework_answer):
     :return: 选择题成绩
     """
     choice_problem_score = 0
-    for info in json.loads(homework_answer.homework.choice_problem_info):  # 获取并遍历所属作业的选择题信息
-        if str(info['id']) not in homework_answer.wrong_choice_problems.split(','):  # 如果答案正确
-            choice_problem_score += int(info['total_score'])
+    if homework_answer.homework.choice_problem_info is not None:
+        for info in json.loads(homework_answer.homework.choice_problem_info):  # 获取并遍历所属作业的选择题信息
+            if str(info['id']) not in homework_answer.wrong_choice_problems.split(','):  # 如果答案正确
+                choice_problem_score += int(info['total_score'])
     return choice_problem_score
 
 
@@ -350,7 +342,7 @@ def do_homework(request, homework_id):
     """
     if request.method == 'POST':  # 当提交作业时
         wrong_ids, wrong_info = '', ''
-        homework = MyHomework.objects.get(pk=homework_id)
+        homework = get_object_or_404(MyHomework, pk=homework_id)
         if time.mktime(homework.end_time.timetuple()) < time.time():
             return render(request, 'warning.html', context={'info': '提交时间晚于作业的截止时间，提交失败'})
         if not homework.allow_resubmit:
@@ -425,10 +417,11 @@ def do_homework(request, homework_id):
         # 开启判题进程，保存编程题目分数
         _thread.start_new_thread(judge_homework, (homeworkAnswer,))
         try:  # 如果有暂存的该作业答案，删除掉
-            logger.info("执行动作：删除暂存作业，用户信息：{}({}:{})，作业ID：{}".format(request.user.username,request.user.pk,request.user.id_num,homework))
+            log = "执行动作：删除暂存作业，用户信息：{}({}:{})，作业ID：{}".format(request.user.username,request.user.pk,request.user.id_num,homework)
             TempHomeworkAnswer.objects.get(creator=request.user, homework=homework).delete()
+            logger.info(log + "，执行结果：成功")
         except ObjectDoesNotExist:
-            logger.info("执行动作：未找到对应的暂存作业，用户信息：{}({}:{})，作业ID：{}".format(request.user.username,request.user.pk,request.user.id_num,homework))
+            logger.info(log + "，执行结果：失败")
             pass
         return redirect(reverse('show_homework_result', args=[homeworkAnswer.id]))
     else:  # 当正常访问时
@@ -745,13 +738,16 @@ def get_problem_score(homework_answer, judged_score=0):
         try:
             solution = solutions.get(problem_id=info['id'])  # 获取题目
             for case in info['testcases']:  # 获取题目的测试分数
-                if solution.result == 11:  # 如果题目出现编译错误，直接判断为0分，不再继续判断
+                if solution.result == 11 or solution.result == 6:  # 如果题目出现编译错误，直接判断为0分，不再继续判断
                     break
                 if json.loads(solution.oi_info)[str(case['desc']) + '.in']['result'] == 4:  # 参照测试点，依次加测试点分数
                     score += int(case['score'])
         except Exception as e:
-            print("error on get problem score！homework_id: %d ,error : %s args: %s" % (
-                homework.pk, e, e.args.__str__()))
+            logger.exception("Exception Logged")
+            user = homework_answer.creator;
+            logger.error("获取编程题得分失败{{homework_id:{},answer_id:{},user:{}({},{})}}".format(homework.pk,homework_answer.pk,user.username,user.id_num,user.email))
+            #print("error on get problem score！homework_id: %d ,error : %s args: %s" % (
+            #    homework.pk, e, e.args.__str__()))
     return score
 
 
@@ -1114,7 +1110,7 @@ def save_homework_temp(request):
     :param request: 请求
     :return: 重定向到作业列表
     """
-    logger.info("执行动作：暂存作业，用户信息：{}({}:{})，POST数据：{}".format(request.user.username,request.user.pk,request.user.id_num,request.POST.dict()))
+    log = "执行动作：暂存作业，用户信息：{}({}:{})，POST数据：{}".format(request.user.username,request.user.pk,request.user.id_num,request.POST.dict())
     data = request.POST.dict()
     try:
         homework = MyHomework.objects.get(id=data['homework_id'])
@@ -1122,9 +1118,10 @@ def save_homework_temp(request):
         del data['homework_id']  # 去除表单中的homework_id项
         TempHomeworkAnswer.objects.update_or_create(homework=homework, creator=request.user,
                                                 defaults={'data': json.dumps(data)})
+        logger.info(log + "，执行结果：成功")
     except:
         logger.exception("Exception Logged")
-        logger.error("暂存作业失败-request.POST:{},user:{}({}:{})".format(data,request.user.username,request.user.pk,request.user.id_num))
+        logger.error(log + "，执行结果：失败")
     return redirect(reverse('list_do_homework'))
 
 

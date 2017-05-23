@@ -25,6 +25,8 @@ SECRET_KEY = 'GG'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
+ADMINS = [('XueJing', 'xuejing_cn@163.com'),]
+
 ALLOWED_HOSTS = ['*']
 
 LOGIN_REDIRECT_URL = '/index/'
@@ -125,7 +127,7 @@ USE_L10N = True
 # email配置#########################################
 EMAIL_HOST = 'smtp.163.com'  # SMTP地址
 EMAIL_PORT = 25  # SMTP端口
-EMAIL_HOST_USER = 'fornjupt@163.com'  # 我自己的邮箱
+EMAIL_HOST_USER = 'xuejing_cn@163.com'  # 我自己的邮箱
 EMAIL_HOST_PASSWORD = 'password'  # 我的邮箱密码
 EMAIL_SUBJECT_PREFIX = '计算机语言作业平台'  # 为邮件Subject-line前缀,默认是'[django]'
 EMAIL_USE_TLS = True  # 与SMTP服务器通信时，是否启动TLS链接(安全链接)。默认是false
@@ -160,7 +162,7 @@ LOGGING = {
     },
     'handlers': {
         'mail_admins': {
-            'level': 'ERROR',
+            'level': 'INFO',
             'class': 'django.utils.log.AdminEmailHandler',
             'include_html': True,
         },
@@ -178,23 +180,24 @@ LOGGING = {
             'formatter': 'simple'
         },
         'file':{
-            'level':'WARNING',
+            'level':'INFO',
             'class':'logging.handlers.RotatingFileHandler',
             'filename': os.path.join('/home/judge/log/','django.log'),
             'maxBytes': 1024*1024*50, # 5 MB
             'backupCount': 5,
             'formatter':'verbose',
+            'encoding':'UTF-8',
         },
     },
     'loggers': {
         'django': {
             'handlers': ['file'],
-            'level': 'DEBUG',
+            'level': 'INFO',
             'propagate': False
-        }
+        },
         #'django.request':{
-        #    'handlers':['file'],
-        #    'level':'INFO',
+        #    'handlers':['mail_admins'],
+        #    'level':'WARNING',
         #    'propagate':True,
         #},
     }

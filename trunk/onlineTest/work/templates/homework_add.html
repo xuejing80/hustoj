@@ -661,6 +661,8 @@
                             $('#allow_resubmit[value="{{ allow_resubmit }}"]').attr('checked', true);
                             $('#work_kind[value="{{ work_kind }}"]').attr('checked',true);
                             data = window.location.pathname.split('-').pop();
+                            if(data.replace("/","")=="myhomework")
+                                return;
                             $.ajax({
                                 type: "post",
                                 url: "{% url 'get_homework_info' %}",

@@ -5,60 +5,6 @@ Author: Carlos Alvarez
 Website: http://blacktie.co
 Premium: http://www.gridgum.com
 */
-/* Import fonts */
-/* latin-ext */
-@font-face {
-    font-family: 'Ruda';
-    font-style: normal;
-    font-weight: 400;
-    src: local('Ruda'), url(http://fonts.gstatic.com/s/ruda/v7/1sL847GoOH8xYu1qOqsKrw.woff2) format('woff2');
-    unicode-range: U+0100-024F, U+1E00-1EFF, U+20A0-20AB, U+20AD-20CF, U+2C60-2C7F, U+A720-A7FF;
-}
-
-/* latin */
-@font-face {
-    font-family: 'Ruda';
-    font-style: normal;
-    font-weight: 400;
-    src: local('Ruda'), url(http://fonts.gstatic.com/s/ruda/v7/T9zdIB5JGDJjRO8KNoV_pA.woff2) format('woff2');
-    unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2212, U+2215, U+E0FF, U+EFFD, U+F000;
-}
-
-/* latin-ext */
-@font-face {
-    font-family: 'Ruda';
-    font-style: normal;
-    font-weight: 700;
-    src: local('Ruda Bold'), local('Ruda-Bold'), url(http://fonts.gstatic.com/s/ruda/v7/Cq8KyqhCX-f1J9BsOyq_FvY6323mHUZFJMgTvxaG2iE.woff2) format('woff2');
-    unicode-range: U+0100-024F, U+1E00-1EFF, U+20A0-20AB, U+20AD-20CF, U+2C60-2C7F, U+A720-A7FF;
-}
-
-/* latin */
-@font-face {
-    font-family: 'Ruda';
-    font-style: normal;
-    font-weight: 700;
-    src: local('Ruda Bold'), local('Ruda-Bold'), url(http://fonts.gstatic.com/s/ruda/v7/ioyuq9I92dSCu7pGUbx7zA.woff2) format('woff2');
-    unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2212, U+2215, U+E0FF, U+EFFD, U+F000;
-}
-
-/* latin-ext */
-@font-face {
-    font-family: 'Ruda';
-    font-style: normal;
-    font-weight: 900;
-    src: local('Ruda Black'), local('Ruda-Black'), url(http://fonts.gstatic.com/s/ruda/v7/AV-eDyU_-j5hBe_Ff6xI1_Y6323mHUZFJMgTvxaG2iE.woff2) format('woff2');
-    unicode-range: U+0100-024F, U+1E00-1EFF, U+20A0-20AB, U+20AD-20CF, U+2C60-2C7F, U+A720-A7FF;
-}
-
-/* latin */
-@font-face {
-    font-family: 'Ruda';
-    font-style: normal;
-    font-weight: 900;
-    src: local('Ruda Black'), local('Ruda-Black'), url(http://fonts.gstatic.com/s/ruda/v7/9WoKvbp3ZUwn9qM5AIuMOg.woff2) format('woff2');
-    unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2212, U+2215, U+E0FF, U+EFFD, U+F000;
-}
 
 /* BASIC THEME CONFIGURATION */
 body {

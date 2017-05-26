@@ -203,7 +203,7 @@ def ajax_for_homework_info(request):
                   'choice_problem_info': json.loads(homework.choice_problem_info)}
     except:
         logger.exception("Exception Logged")
-        #logger.info("执行动作：暂存作业，用户信息：{}({}:{})，POST数据：{}".format(request.user.username,request.user.pk,request.user.id_num,request.POST.dict()))
+        logger.info("执行动作：请求作业信息，用户信息：{}({}:{})，POST数据：{}".format(request.user.username,request.user.pk,request.user.id_num,request.POST.dict()))
     return JsonResponse(result)
 
 
@@ -343,15 +343,19 @@ def do_homework(request, homework_id):
     if request.method == 'POST':  # 当提交作业时
         wrong_ids, wrong_info = '', ''
         homework = get_object_or_404(MyHomework, pk=homework_id)
+        log = "执行动作：提交作业，用户信息：{}({}:{})，作业ID：{}，POST数据：{}".format(request.user.username,request.user.pk,request.user.id_num,homework_id,request.POST.dict())
         if time.mktime(homework.end_time.timetuple()) < time.time():
+            logger.info(log + "，执行结果：失败（时间不允许）")
             return render(request, 'warning.html', context={'info': '提交时间晚于作业的截止时间，提交失败'})
         if not homework.allow_resubmit:
             if request.user in homework.finished_students.all():  # 防止重复提交
+                logger.info(log + "，执行结果：失败（重复提交）")
                 return render(request, 'warning.html', context={'info': '您已提交过此题目，请勿重复提交'})
             else:
                 homework.finished_students.add(request.user)
                 try:
                     HomeworkAnswer.objects.get(homework=homework, creator=request.user)
+                    logger.info(log + "，执行结果：失败（重复提交）")
                     return render(request, 'warning.html', context={'info': '您已提交过此题目，请勿重复提交'})
                 except ObjectDoesNotExist:
                     pass
@@ -412,6 +416,7 @@ def do_homework(request, homework_id):
         except:
             pass
         homeworkAnswer.save()
+        logger.info(log + "，执行结果：成功")
         # output.close()
 
         # 开启判题进程，保存编程题目分数
@@ -421,11 +426,11 @@ def do_homework(request, homework_id):
             TempHomeworkAnswer.objects.get(creator=request.user, homework=homework).delete()
             logger.info(log + "，执行结果：成功")
         except ObjectDoesNotExist:
-            logger.info(log + "，执行结果：失败")
-            pass
+            logger.info(log + "，执行结果：无暂存作业")
         return redirect(reverse('show_homework_result', args=[homeworkAnswer.id]))
     else:  # 当正常访问时
         homework = get_object_or_404(MyHomework, pk=homework_id)
+        log = "执行动作：打开作业，用户信息：{}({}:{})，作业ID：{}".format(request.user.username,request.user.pk,request.user.id_num,homework_id)
         choice_problems = []
         for id in homework.choice_problem_ids.split(','):
             if id:
@@ -435,6 +440,7 @@ def do_homework(request, homework_id):
         for id in homework.problem_ids.split(','):
             if id:
                 problems.append(Problem.objects.get(pk=id))
+        logger.info(log + "，执行结果：成功，选择题信息：{}，编程题信息：{}".format(choice_problems,problems))
         return render(request, 'do_homework.html',
                       context={'homework': homework, 'problems': problems, 'choice_problems': choice_problems,
                                'title': homework.name, 'work_kind': homework.work_kind})
@@ -738,7 +744,9 @@ def get_problem_score(homework_answer, judged_score=0):
         try:
             solution = solutions.get(problem_id=info['id'])  # 获取题目
             for case in info['testcases']:  # 获取题目的测试分数
-                if solution.result == 11 or solution.result == 6:  # 如果题目出现编译错误，直接判断为0分，不再继续判断
+                if solution.result == 11:  # 如果题目出现编译错误，直接判断为0分，不再继续判断
+                    break
+                if solution.oi_info is None:
                     break
                 if json.loads(solution.oi_info)[str(case['desc']) + '.in']['result'] == 4:  # 参照测试点，依次加测试点分数
                     score += int(case['score'])

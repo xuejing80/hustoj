@@ -19,6 +19,7 @@ from judge.views import get_testCases
 from work.models import HomeWork, HomeworkAnswer, BanJi, MyHomework, TempHomeworkAnswer
 from django.contrib.auth.decorators import permission_required, login_required
 
+from django.conf import settings
 import logging
 logger = logging.getLogger('django')
 
@@ -39,7 +40,8 @@ solution.result的意义：
  OJ_CO 12  Compile_OK
 
 """
-
+def global_settings(request):
+    return{'SITE_NAME':settings.SITE_NAME}
 
 @permission_required('work.add_homework')
 def add_homework(request):
@@ -440,7 +442,7 @@ def do_homework(request, homework_id):
         for id in homework.problem_ids.split(','):
             if id:
                 problems.append(Problem.objects.get(pk=id))
-        logger.info(log + "，执行结果：成功，选择题信息：{}，编程题信息：{}".format(choice_problems,problems))
+        logger.info(log + "，执行结果：成功")
         return render(request, 'do_homework.html',
                       context={'homework': homework, 'problems': problems, 'choice_problems': choice_problems,
                                'title': homework.name, 'work_kind': homework.work_kind})
@@ -664,6 +666,7 @@ def list_do_homework(request):
 # 获取待做作业列表
 @login_required()
 def get_my_homework_todo(request):
+    log = "执行动作：读取作业列表，用户信息：{}({}:{})，POST数据：{}".format(request.user.username,request.user.pk,request.user.id_num,request.POST.dict())
     user = request.user
     json_data = {}
     recodes = []
@@ -684,7 +687,7 @@ def get_my_homework_todo(request):
         sort = 'pk'
     if request.GET['order'] == 'desc':
         sort = '-' + sort
-    #重复项目去重
+    #重复作业项目去重，不同班级中若布置了同一作业，只显示一次
     listed = []
     for homework in homeworks.all().order_by(sort):
         if homework.pk in listed :
@@ -694,13 +697,14 @@ def get_my_homework_todo(request):
 
         if (request.user in homework.finished_students.all()):
             #查找对应作业的分数
-            try:
-                homework_answer = HomeworkAnswer.objects.get(creator=user,homework_id=homework.pk)
+            homework_answers = HomeworkAnswer.objects.filter(creator=user,homework_id=homework.pk).order_by('-create_time')
+            if homework_answers.exists():
+                homework_answer=homework_answers[0]
                 if homework_answer.judged==1:
                     score = "{}/{}".format(homework_answer.score,homework.total_score)
                 else:
                     score = "批阅中"
-            except ObjectDoesNotExist:
+            else:
                 score = "批阅中"
             allow_resubmit = homework.allow_resubmit if (homework.start_time < timezone.now() < homework.end_time) else False
             recode = {'name': homework.name, 'pk': homework.pk,
@@ -1111,7 +1115,7 @@ def rejudge_homework(request, id):
     homework_answer.homework.finished_students.add(homework_answer.creator)
     return redirect(reverse('my_homework_detail', args=(homework_answer.homework.id,)))
 
-
+@login_required()
 def save_homework_temp(request):
     """
     暂存作业
@@ -1130,6 +1134,8 @@ def save_homework_temp(request):
     except:
         logger.exception("Exception Logged")
         logger.error(log + "，执行结果：失败")
+        return render(request, 'warning.html', context={
+            'info': '对不起，暂存作业失败了，请及时联系管理员老师' + settings.CONTACT_INFO})
     return redirect(reverse('list_do_homework'))
 
 

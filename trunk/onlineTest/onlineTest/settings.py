@@ -25,6 +25,8 @@ SECRET_KEY = 'GG'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
+SITE_NAME = "程序设计类课程作业平台"
+CONTACT_INFO = "薛景老师（QQ群：230689474）"
 ADMINS = [('XueJing', 'xuejing_cn@163.com'),]
 
 ALLOWED_HOSTS = ['*']
@@ -71,6 +73,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'work.views.global_settings',
             ],
         },
     },

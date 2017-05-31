@@ -6,7 +6,7 @@
     <meta name="description" content="南京邮电大学程序设计类课程作业平台">
     <meta name="keyword" content="南邮,NJUPT,NUPT,C语言">
 
-    <title>{% block title %}程序设计类课程作业平台{% endblock %}</title>
+    <title>{% block title %}{{ SITE_NAME }}{% endblock %}</title>
     {% load static %}
     <!-- Bootstrap core CSS -->
     <link href="{% static "assets/css/bootstrap.css" %}" rel="stylesheet">
@@ -37,7 +37,7 @@
             <div class="fa fa-bars tooltips" data-placement="right" data-original-title="Toggle Navigation"></div>
         </div>
         <!--logo start-->
-        <a href="{% url 'index' %}" class="logo"><b>程序设计类课程作业平台</b></a>
+        <a href="{% url 'index' %}" class="logo"><b>{{ SITE_NAME }}</b></a>
         <!--logo end-->
         <div class="nav notify-row" id="top_menu">
             <!--  notification start -->

@@ -19,7 +19,7 @@ Ubuntu14.04快速安装指南：
         sudo svn co https://github.com/xuejing80/hustoj/trunk/trunk/install hustoj
         cd hustoj
         sudo bash install-interactive.sh
-    3、执行如下命令，修改81,82行的数据库账号和密码,如需配置发送邮件功能，设置122到127行中邮箱账号和密码
+    3、执行如下命令，修改90,91行的数据库账号和密码,如需配置发送邮件功能，设置131到136行中邮箱账号和密码
         sudo vi /var/www/html/onlineTest/onlineTest/settings.py
         sudo bash install-onlineTest.sh
     4、安装后访问服务器80端口上的web服务JudgeOnline目录

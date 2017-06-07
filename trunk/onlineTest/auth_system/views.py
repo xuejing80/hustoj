@@ -258,7 +258,8 @@ def update_user(request, pk):
     user = MyUser.objects.get(pk=pk)
     if request.method == 'POST':
         group = Group.objects.get(pk=request.POST['group_id'])
-        user.set_password(request.POST['password'])
+        if request.POST['password']!="":
+            user.set_password(request.POST['password'])
         user.groups.clear()
         user.groups.add(group)
         user.save()

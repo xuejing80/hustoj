@@ -92,26 +92,29 @@
 
                 <li class="mt active">
                     <a href="{% url 'index' %}" id="index">
-                        <i class="fa fa-dashboard"></i>
+                        <i class="fa fa-dashboard" aria-hidden="true"></i>
                         <span>主页</span>
                     </a>
                 </li>
                 <li class="mt" style="margin-top: 0">
                     <a href="{% url 'download' %}" id="source">
                         <i class="fa fa-cloud-download" aria-hidden="true"></i>
-
                         <span>教学资源</span>
                     </a>
                 </li>
                 {% if user.is_authenticated %}
-                    <li><a href="{% url 'list_do_homework' %}" id="unfinished">我的作业列表</a></li>
+                    <li><a href="{% url 'list_do_homework' %}" id="unfinished">
+                        <i class="fa fa-edit" aria-hidden="true"></i>
+                        <span>我的作业列表</span></a></li>
                     {% if 'work.add_homework' in perms %}
-                    <li><a href="{% url 'list_finished_homework' %}" id="finished">查看作业结果</a></li>
+                        <li><a href="{% url 'list_finished_homework' %}" id="finished">
+                            <i class="fa fa-list-ul" aria-hidden="true"></i>
+                            <span>查看作业结果</span></a></li>
                     {% endif %}
                     {% if 'judge.add_problem' in perms %}
                         <li class="sub-menu">
                             <a href="javascript:;" id="problem_list">
-                                <i class="fa fa-table" aria-hidden="true"></i>
+                                <i class="fa fa-graduation-cap" aria-hidden="true"></i>
                                 <span>题库管理</span>
                             </a>
                             <ul class="sub" id="extend_problem_list">
@@ -152,14 +155,12 @@
                     </a>
                     <ul class="sub">
                         {% if user.is_authenticated %}
-                            <li><a href="{% url 'change_password' %}"><i class="fa fa-key" aria-hidden="true"></i>
-                                修改密码</a></li>
-                            <li><a href="javascript:;" class="logout-button"><i class="fa fa-sign-out"
-                                                                                aria-hidden="true"></i> 注销</a></li>
+                            <li><a href="{% url 'change_password' %}">修改密码</a></li>
+                            <li><a href="javascript:;" class="logout-button">注销</a></li>
                             {% if user.is_superuser %}
-                                <li><a href="{% url 'user_list' %}"><i class="fa fa-users" aria-hidden="true"></i> 账号管理</a>
+                                <li><a href="{% url 'user_list' %}">账号管理</a>
                                 </li>
-                                <li><a href="{% url 'add_users' %}"><i class="fa fa-user-md" aria-hidden="true"></i>批量创建账号</a>
+                                <li><a href="{% url 'add_users' %}">批量创建账号</a>
                                 </li>
                             {% endif %}
                         {% else %}
@@ -169,7 +170,8 @@
                     </ul>
                 </li>
                 {% if user.is_superuser %}
-                    <li><a href="/test/admin">django系统管理</a></li>
+                    <li><a href="/test/admin"><i class="fa fa-key" aria-hidden="true"></i>
+                    <span>系统管理</span></a></li>
                 {% endif %}
 
             </ul>

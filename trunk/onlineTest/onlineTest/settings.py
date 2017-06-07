@@ -187,14 +187,21 @@ LOGGING = {
             'class':'logging.handlers.RotatingFileHandler',
             'filename': os.path.join('/home/judge/log/','django.log'),
             'maxBytes': 1024*1024*50, # 5 MB
-            'backupCount': 5,
+            'backupCount': 0, # 保留日志的数量，0代表不自动删除
+            'formatter':'verbose',
+            'encoding':'UTF-8',
+        },
+        'all':{
+            'level':'INFO',
+            'class':'logging.FileHandler',
+            'filename': os.path.join('/home/judge/log/','all.log'),
             'formatter':'verbose',
             'encoding':'UTF-8',
         },
     },
     'loggers': {
         'django': {
-            'handlers': ['file'],
+            'handlers': ['file','all'],
             'level': 'INFO',
             'propagate': False
         },

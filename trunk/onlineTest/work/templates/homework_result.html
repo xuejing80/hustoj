@@ -86,7 +86,7 @@
     <!--  如果作业类型是 0 则代表是 实验-->
       <div class="form-group">
         <label for="summary"><h3>实验小结</h3></label>
-        <pre>{{ summary|linebreaksbr }}</pre>
+        <pre style="white-space: pre-wrap;word-wrap: break-word;">{{ summary|linebreaksbr }}</pre>
       </div>
     {% endifequal %}
     {% ifequal user.isTeacher True %}

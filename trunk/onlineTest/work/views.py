@@ -798,11 +798,13 @@ def get_finished_homework(request):
                     if answer :
                         record['score' + str(count)] = {
                                 'pk': answer.pk,
-                                'score': answer.score
+                                'score': answer.score,
+                                'work_kind':homework.work_kind
                             }
                     else :
                         record['score' + str(count)] = {
-                                'score': "无"
+                                'score': "无",
+                                'work_kind':homework.work_kind
                             }
                     count = count + 1
                 records.append(record)
@@ -844,6 +846,41 @@ def get_finished_homework(request):
     json_data['rows'] = recodes
     #return JsonResponse(json_data)
 
+@permission_required('work.add_homework')
+def get_finished_homework_workInformation(request):
+    """
+    在作业结果页面中返回作业的详细信息
+    """
+    json_data = {}
+    record = []
+    if request.GET.get('class_name','') != '0':
+        banji = BanJi.objects.get(pk=request.GET['class_name'])
+        homeworks = banji.myhomework_set.all().order_by('start_time')
+        students = banji.students.all().order_by('id_num')
+        stuCount = banji.students.all().count() - 1
+        json_data['stuCount'] = stuCount
+        i = 1  #计数实验次数
+        j = 1  #计数作业次数
+        json_data['实验'] = {}
+        json_data['作业'] = {}
+        for homework in homeworks:
+            no_answer = 0  #没有写作业的人数
+            for student in students:
+                if student.groups.all()[0].pk == 2:
+                    if not homework.finished_students.filter(id=student.id):
+                            no_answer = no_answer + 1
+
+            record.append(no_answer)
+            record.append(homework.name)
+            record.append(homework.total_score)
+            if homework.work_kind == '实验':
+                json_data['实验'][str(i)] = record
+                i = i + 1
+            else:
+                json_data['作业'][str(j)] = record
+                j = j + 1
+            record = []
+    return JsonResponse(json_data)
 
 @permission_required('work.add_homework')
 def get_finished_students(request):

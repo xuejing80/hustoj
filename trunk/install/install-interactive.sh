@@ -28,7 +28,6 @@ fi
 if uname -a|grep 'Ubuntu\|Debian'
 then
 sudo apt-get update
-sudo apt-get install make flex g++ clang libmysqlclient-dev libmysql++-dev php apache2 mysql-server php-mysql php-gd php-cli mono-gmcs subversion  redis-server php-redis
 sudo apt-get install make flex g++ clang libmysqlclient-dev libmysql++-dev php5 apache2 mysql-server php5-mysql php5-gd php5-cli mono-gmcs subversion  redis-server php5-redis
 sudo /etc/init.d/mysql start
 HTTP_START="sudo /etc/init.d/apache2 restart"
@@ -80,8 +79,8 @@ sudo    mkdir /home/judge/run2
 sudo    mkdir /home/judge/run3
 sudo cp java0.policy  judge.conf /home/judge/etc
 
-sudo chown -R $APACHEUSER /home/judge/data
-sudo chown -R root /home/judge/log /home/judge/etc /home/judge/run?
+sudo chown -R $APACHEUSER /home/judge/data /home/judge/log
+sudo chown -R root /home/judge/etc /home/judge/run?
 sudo chmod 711 /home/judge /home/judge/data
 sudo chgrp judge /home/judge/run?
 sudo chmod 771 /home/judge/run?

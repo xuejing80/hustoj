@@ -22,6 +22,8 @@
     <form method="post">
         {% csrf_token %}
         <input type="hidden" name="homework_id" size="20" value="{{ homework.id }}"/>
+
+        {% if choice_problems %}
         <h2>选择题</h2>
         <div class="panel-group" id="accordion" role="tablist" aria-multiselectable="true">
             {% for choice_problem in choice_problems %}
@@ -78,10 +80,19 @@
                     </div>
                 </div>
             {% endfor %}
-
         </div>
-        <h2>编程题</h2>
-        <div class="panel-group" id="accordion2" role="tablist" aria-multiselectable="true">
+        {% endif %}
+
+        {% for problems in problemsList %}
+            {% if forloop.counter == 1 and problems %}
+                <h2>编程题</h2>
+            {% elif forloop.counter == 2 and problems %}
+                <h2>程序填空题</h2>
+            {% elif forloop.counter == 3 and problems %}
+                <h2>程序改错题</h2>
+            {% endif %}
+
+            <div class="panel-group" id="accordion2" role="tablist" aria-multiselectable="true">
             {% for problem in problems %}
                 <div class="panel panel-default">
                     <div class="panel-heading" role="tab" id="heading-{{ problem.problem_id }}">
@@ -153,7 +164,8 @@
                                     <label for="source{{ problem.problem_id }}">代码</label>
                                     <textarea class="form-control code-input" cols="50" rows="10"
                                               name="source-{{ problem.problem_id }}"
-                                              id="source{{ problem.problem_id }}" spellcheck="false"></textarea>
+                                              id="source{{ problem.problem_id }}" spellcheck="false"
+                                    >{% if problem.sample_code %}{{ problem.sample_code }}{% endif %}</textarea>
                                 </div>
                             </div>
                             <div id="result-{{ problem.problem_id }}"></div>
@@ -170,6 +182,8 @@
                     </div>
                 </div>
             {% endfor %}
+        {% endfor %}
+
         {% ifequal work_kind '实验' %}
           <div class="form-group">
             <label for="summary"><h2>实验小结</h2></label>
@@ -319,6 +333,7 @@
                     'homework_id':{{ homework.id }}
                 },
                 success: function (data) {
+                    console.log(data);
                     if (data.result == 1) {
                         $("#solution-" + id).val(data.solution_id);
                         var int = setInterval(function () {
@@ -333,6 +348,7 @@
                                         'homework_id':{{ homework.id }}
                                     },
                                     success: function (data) {
+                                        console.log(data);
                                         if (data.status == 1) {
                                             switch (data.result) {
                                                 case 0:

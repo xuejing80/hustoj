@@ -62,17 +62,22 @@
         $(function () {
             $('#datetimepicker1').datetimepicker(
                     {
-                        format: 'YYYY-MM-DD HH:mm:ss',
-                        sideBySide: true,
-                        defaultDate: moment()
+                        format: 'yyyy-mm-dd hh:ii',
+                        viewSelect: 'hour',
+                        autoclose: true,
+                        todayBtn: true,
+                        minuteStep: 30,
                     }
             );
         });
         $(function () {
             $('#datetimepicker2').datetimepicker(
                     {
-                        format: 'YYYY-MM-DD HH:mm:ss', sideBySide: true,
-                        defaultDate: moment("23:59:59", "HH-mm-ss").add(7, 'days')
+                        format: 'yyyy-mm-dd hh:ii',
+                        viewSelect: 'hour',
+                        autoclose: true,
+                        todayBtn: true,
+                        minuteStep: 30,
                     }
             )
             ;
@@ -82,8 +87,14 @@
         if (window.location.pathname.indexOf('add_banji') == -1) {
             setTimeout(function () {
                 $("#name").val('{{ name }}');
-                $('#datetimepicker1').data("DateTimePicker").date('{{ start_time }}');
-                $('#datetimepicker2').data("DateTimePicker").date('{{ end_time }}');
+                start_time = '{{ start_time|date:"Y-m-d H:i" }}';
+                if(start_time!='')
+                    $('#start_time').val(start_time);
+                //$('#datetimepicker1').data("DateTimePicker").date('{{ start_time }}');
+                end_time = '{{ end_time|date:"Y-m-d H:i" }}'
+                if(end_time!='')
+                    $('#end_time').val(end_time);
+                //$('#datetimepicker2').data("DateTimePicker").date('{{ end_time }}');
                 $("#classname option[value='{{ courser_id }}']").attr("selected", true);
             })
         }

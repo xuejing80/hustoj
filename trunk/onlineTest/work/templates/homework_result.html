@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load filters %}
 {% block title %}查看作业成绩详细{% endblock %}
 {% block extrahead %}
     {% load static %}
@@ -12,10 +13,10 @@
         <li class="active">作业结果详细</li>
     </ol>
     <h2>总分：{{ score }}</h2>
+    {% if choice_problems %}
     <h3>选择题得分：{{ choice_problem_score }}</h3>
-
-    {% for choice_problem in choice_problems %}
-        {% if choice_problem.right %}
+        {% for choice_problem in choice_problems %}
+            {% if choice_problem.right %}
             <div class="panel panel-success">
                 <div class="panel-heading"><span class="glyphicon glyphicon-ok"
                                                  aria-hidden="true"></span> {{ forloop.counter }}. {{ choice_problem.detail.title }}
@@ -42,7 +43,7 @@
                 <div class="panel-footer">正确答案是: {{ choice_problem.detail.right_answer|upper }}
                 </div>
             </div>
-        {% else %}
+            {% else %}
             <div class="panel panel-danger">
                 <div class="panel-heading"><span class="glyphicon glyphicon-remove"
                                                  aria-hidden="true"></span> {{ forloop.counter }}. {{ choice_problem.detail.title }}
@@ -69,19 +70,54 @@
                 <div class="panel-footer">正确答案是: {{ choice_problem.detail.right_answer|upper }}
                     你的答案是: {{ choice_problem.info|upper }}</div>
             </div>
-        {% endif %}
-    {% endfor %}
+            {% endif %}
+        {% endfor %}
+    {% endif %}
+    {% if problems %}
     <h3>编程题得分：{{ problem_score }}</h3>
-    {% for problem in problems %}
+        {% for problem in problems %}
          <div class="panel panel-{% if problem.result == 4 %}success{% else %}danger{% endif %}">
                 <div class="panel-heading"><span class="glyphicon glyphicon-{% if problem.result == 4 %}ok{% else %}remove{% endif %}"
                                                  aria-hidden="true"></span> {{ problem.title }}
                 </div>
-                <div class="panel-body">
-                <p><pre><code>{{ problem.code }}</code></pre></p>
+                <div class="panel-body">{{ problem.desc|myFilter|safe|linebreaks }}</div>
+                <div class="panel-footer">
+                <pre><code>{{ problem.code }}</code></pre>
+                </div>
+         </div>
+        {% endfor %}
+    {% endif %}
+
+    {% if tiankong_problems %}
+     <h3>程序填空题得分：{{ tiankong_score }}</h3>
+        {% for problem in tiankong_problems %}
+         <div class="panel panel-{% if problem.result == 4 %}success{% else %}danger{% endif %}">
+                <div class="panel-heading"><span class="glyphicon glyphicon-{% if problem.result == 4 %}ok{% else %}remove{% endif %}"
+                                                 aria-hidden="true"></span> {{ problem.title }}
+                </div>
+                <div class="panel-body">{{ problem.desc|myFilter|safe|linebreaks }}</div>
+                <div class="panel-footer">
+                <pre><code>{{ problem.code }}</code></pre>
                 </div>
             </div>
-    {% endfor %}
+        {% endfor %}
+    {% endif %}
+
+    {% if gaicuo_problems %}
+    <h3>程序改错题得分：{{ gaicuo_score }}</h3>
+        {% for problem in gaicuo_problems %}
+         <div class="panel panel-{% if problem.result == 4 %}success{% else %}danger{% endif %}">
+                <div class="panel-heading"><span class="glyphicon glyphicon-{% if problem.result == 4 %}ok{% else %}remove{% endif %}"
+                                                 aria-hidden="true"></span> {{ problem.title }}
+                </div>
+                <div class="panel-body">{{ problem.desc|myFilter|safe|linebreaks }}</div>
+                <div class="panel-footer">
+                <pre><code>{{ problem.code }}</code></pre>
+                </div>
+            </div>
+        {% endfor %}
+    {% endif %}
+
     {% ifequal work_kind '实验' %}
     <!--  如果作业类型是 0 则代表是 实验-->
       <div class="form-group">

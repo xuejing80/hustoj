@@ -37,11 +37,14 @@ class Migration(migrations.Migration):
                 ('start_time', models.DateTimeField(verbose_name='开始时间')),
                 ('end_time', models.DateTimeField(verbose_name='结束时间')),
                 ('problem_ids', models.CharField(max_length=200, verbose_name='编程题列表id列表')),
+                ('gaicuo_problem_ids', models.CharField(max_length=200, null=True, verbose_name='改错题列表id列表')),
+                ('tiankong_problem_ids', models.CharField(max_length=200, null=True, verbose_name='填空题列表id列表')),
                 ('choice_problem_ids', models.CharField(max_length=200, verbose_name='选择题id列表')),
                 ('problem_info', models.TextField()),
                 ('choice_problem_info', models.TextField()),
                 ('allowed_languages', models.CharField(max_length=50)),
                 ('total_score', models.IntegerField()),
+                ('work_kind', models.CharField(max_length=20,verbose_name="作业类型",default='作业')),
                 ('courser', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='judge.ClassName', verbose_name='所属课程')),
                 ('creater', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL, verbose_name='创建者')),
             ],
@@ -74,6 +77,7 @@ class Migration(migrations.Migration):
                 ('allowed_languages', models.CharField(max_length=50)),
                 ('allow_resubmit', models.BooleanField(default=False, verbose_name='是否允许重复提交作业？')),
                 ('total_score', models.IntegerField()),
+                ('work_kind', models.CharField(max_length=20,verbose_name="作业类型",default='作业')),
                 ('banji', models.ManyToManyField(to='work.BanJi')),
                 ('courser', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='judge.ClassName', verbose_name='所属课程')),
                 ('creater', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL, verbose_name='创建者')),
@@ -94,4 +98,30 @@ class Migration(migrations.Migration):
             name='homework',
             field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, to='work.MyHomework', verbose_name='作业'),
         ),
+         migrations.AddField(
+            model_name='homeworkanswer',
+            name='summary',
+            field=models.TextField(null=True, verbose_name='实验小结'),
+        ),
+        migrations.AddField(
+            model_name='homeworkanswer',
+            name='teacher_comment',
+            field=models.TextField(null=True, verbose_name='教师评语'),
+        ),
+        migrations.AddField(
+            model_name='homeworkanswer',
+            name='tiankong_score',
+            field=models.IntegerField(default=0, verbose_name='程序填空题成绩'),
+        ),
+        migrations.AlterField(
+            model_name='homework',
+            name='choice_problem_ids',
+            field=models.CharField(blank=True, max_length=200, null=True, verbose_name='选择题id列表'),
+        ),
+        migrations.AlterField(
+            model_name='myhomework',
+            name='finished_students',
+            field=models.ManyToManyField(blank=True, related_name='finished_students', to=settings.AUTH_USER_MODEL),
+        ),
+
     ]

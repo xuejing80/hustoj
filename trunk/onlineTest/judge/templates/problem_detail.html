@@ -4,7 +4,7 @@
 {% block content %}
     <div class="btn-group">
         <p>
-            <a class="btn btn-primary btn-l" href="{% url 'problemlist' %}" role="button">返回列表</a>
+            <a class="btn btn-primary btn-l" href="{% url 'problem_list' %}" role="button">返回列表</a>
             <button type="button" class="btn btn-danger" id="delete" onclick="delete_item(self)">删除此题</button>
             <a class="btn btn-success btn-l" href="{% url 'update_problem' problem.problem_id %}"
                role="button">重新编辑</a>

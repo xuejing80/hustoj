@@ -74,7 +74,7 @@
         });
 
         function editFormatter(value, row, index) {
-            if(row.status==0)
+            if(row.status==0||row.status==2)
                 return '<a class="btn btn-success btn-xs" href="{% url '_do_homework' %}' + value + '/" title="完成作业" aria-label="完成作业" data-pjax="0"><span class="glyphicon glyphicon-pencil"></span></a>';
             if(row.status==1){
                 link = '<a class="btn btn-primary btn-xs" href="{% url '_show_homework_result' %}' + value + '/" title="查看详细"><span class="glyphicon glyphicon-eye-open"></span></a>';
@@ -85,11 +85,13 @@
         }
         function getStatus(value, row, index) {
             if(value==0)
-                return '未做';
+                return '未开始';
             if(value==-1)
                 return '时间不允许';
             if(value==1)
                 return '已完成';
+            if(value==2)
+                return '未完成';
         }
         $(function () {
             //$('#table').bootstrapTable('hideColumn', 'status');

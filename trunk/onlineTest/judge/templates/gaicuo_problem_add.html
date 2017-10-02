@@ -154,14 +154,14 @@
                     <p class="text-muted">{{ form.output.help_text }}</p>
                 </div>
 
-                <!-- 程序代码 -->
-                <div class="form-group {% if form.program.errors %} has-error {% endif %}">
+                <!-- 包含错误的程序代码 -->
+                <div class="form-group {% if form.sample_code.errors %} has-error {% endif %}">
                     <label class="control-label"
-                           for="{% if form.program.errors %} inputError1 {% endif %}">{{ form.program.label }}</label>
-                    {% if form.program.errors %}
-                        <span class="text-danger pull-right">{{ form.program.errors }}</span>
+                           for="{% if form.sample_code.errors %} inputError1 {% endif %}">{{ form.sample_code.label }}</label>
+                    {% if form.sample_code.errors %}
+                        <span class="text-danger pull-right">{{ form.sample_code.errors }}</span>
                     {% endif %}
-                    {{ form.program }}
+                    {{ form.sample_code }}
                     <p class="text-muted">{{ form.output.help_text }}</p>
                 </div>
 

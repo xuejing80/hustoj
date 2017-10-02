@@ -18,6 +18,7 @@ from django.http import HttpResponse, Http404
 import logging
 import re
 from django.db.models import Q
+from django.conf import settings
 
 # logger
 logger = logging.getLogger('django')
@@ -93,18 +94,18 @@ class UserControl(View):
             current_site = get_current_site(request)
             site_name = current_site.name
             domain = current_site.domain
-            title = u"欢迎注册计算机语言作业平台！"
-            message = u"你好！ %s ,感谢注册计算机语言作业平台 ！\n\n" % (username) + \
+            title = u"欢迎注册%s！" % (settings.SITE_NAME)
+            message = u"你好！ %s ,感谢注册%s ！\n\n" % (username,settings.SITE_NAME) + \
                       u"请牢记以下信息：\n" + \
                       u"用户名：%s \n" % id_num + \
                       u"昵称：%s" % username + "\n" + \
                       u"邮箱：%s" % email + "\n" + \
-                      u"网站：http://%s" % domain + "/test\n\n"
-            from_email = 'fornjupt@163.com'
+                      u"网站：http://%s" % domain + "/\n\n"
+            from_email = settings.EMAIL_HOST_USER
             try:
                 send_mail(title, message, from_email, [email])
             except Exception as e:
-                logger.error(u'[UserControl]用户注册邮件发送失败:[%s]/[%s]' % (username, email))
+                logger.error(u'[UserControl]用户注册邮件发送失败:[%s]/[%s](%s)' % (username, email, repr(e)))
                 print(e)
                 return HttpResponse(u"发送邮件错误!\n注册失败", status=500)
 

@@ -2,7 +2,7 @@ from django import forms
 from django.db import transaction
 from django.core.exceptions import ObjectDoesNotExist
 
-from judge.models import Problem, ClassName, KnowledgePoint2, ChoiceProblem, TiankongProblem, GaicuoProblem
+from judge.models import Problem, ClassName, KnowledgePoint2, ChoiceProblem
 
 
 class ProblemAddForm(forms.Form):
@@ -61,9 +61,7 @@ class ProblemAddForm(forms.Form):
             problem.knowledgePoint1.clear()
             problem.knowledgePoint1.clear()
         else:
-            id=get_problemid()
             problem = Problem(
-                problem_id=id,
                 title=title,
                 description=description,
                 time_limit=time_limit,
@@ -74,7 +72,8 @@ class ProblemAddForm(forms.Form):
                 sample_output=sample_output1,
                 sample_input2=sample_input2,
                 sample_output2=sample_output2,
-                creater=user
+                creater=user,
+                problem_type="编程"
             )
         problem.save()
         for point in keypoint:
@@ -146,7 +145,7 @@ class GaicuoProblemAddForm(forms.Form):
                             required=False)
     output = forms.CharField(label='输出描述', widget=forms.Textarea(attrs={'class': 'form-control', 'rows': '3'}),
                              required=False)
-    program = forms.CharField(label='程序代码', widget=forms.Textarea(
+    sample_code = forms.CharField(label='包含错误的程序代码', widget=forms.Textarea(
         attrs={'class': 'form-control', 'rows': '20',"spellcheck":"false",
                'placeholder': '示例：\n#include<stdio.h>\nint main(){\n  int a,b;\n  /*---------found-------*/\n  scanf(%d,%d,a,b);\n  sum=a+b;\n  /*---------found-------*/\n  return 0;\n}'}),
                               required=False)
@@ -173,7 +172,7 @@ class GaicuoProblemAddForm(forms.Form):
         description = cd['description']
         input = cd['input']
         output = cd['output']
-        program = cd['program']
+        sample_code = cd['sample_code']
         sample_input1 = cd['sample_input1']
         sample_output1 = cd['sample_output1']
         sample_input2 = cd['sample_input2']
@@ -182,14 +181,13 @@ class GaicuoProblemAddForm(forms.Form):
         memory_limit = cd['memory_limit']
         keypoint = cd['keypoint'].split(',')
         if problemid:
-            problem = GaicuoProblem.objects.get(pk=problemid)
+            problem = Problem.objects.get(pk=problemid)
             problem.title = title
             problem.description = description
             problem.time_limit = time_limit
             problem.memory_limit = memory_limit
             problem.input = input
             problem.output = output
-            problem.program = program
             problem.sample_input = sample_input1
             problem.sample_output = sample_output1
             problem.sample_input2 = sample_input2
@@ -197,22 +195,22 @@ class GaicuoProblemAddForm(forms.Form):
             problem.creater = user
             problem.knowledgePoint1.clear()
             problem.knowledgePoint1.clear()
+            problem.sample_code = sample_code
         else:
-            id=get_problemid()
-            problem = GaicuoProblem(
-                problem_id=id,
+            problem = Problem(
                 title=title,
                 description=description,
                 time_limit=time_limit,
                 memory_limit=memory_limit,
                 input=input,
                 output=output,
-                program=program,
                 sample_input=sample_input1,
                 sample_output=sample_output1,
                 sample_input2=sample_input2,
                 sample_output2=sample_output2,
-                creater=user
+                creater=user,
+		problem_type="改错",
+                sample_code=sample_code
             )
         problem.save()
         for point in keypoint:
@@ -234,7 +232,7 @@ class TiankongProblemAddForm(forms.Form):
                             required=False)
     output = forms.CharField(label='输出描述', widget=forms.Textarea(attrs={'class': 'form-control', 'rows': '3'}),
                              required=False)
-    program = forms.CharField(label='程序代码', widget=forms.Textarea(
+    sample_code = forms.CharField(label='未完善的程序代码', widget=forms.Textarea(
         attrs={'class': 'form-control', 'rows': '20', "spellcheck": "false",
                "placeholder": "示例：\n#include<stdio.h>\nint fun(int,int);\nint main(){\n  int a,b;\n  scanf(\"%d,%d\",a,b); \n  sum=a+b;\n  return 0;\n}\n//请在下面填写你的答案\nint fun(int,int)"}),
                               required=False)
@@ -261,7 +259,7 @@ class TiankongProblemAddForm(forms.Form):
         description = cd['description']
         input = cd['input']
         output = cd['output']
-        program = cd['program']
+        sample_code = cd['sample_code']
         sample_input1 = cd['sample_input1']
         sample_output1 = cd['sample_output1']
         sample_input2 = cd['sample_input2']
@@ -270,14 +268,13 @@ class TiankongProblemAddForm(forms.Form):
         memory_limit = cd['memory_limit']
         keypoint = cd['keypoint'].split(',')
         if problemid:
-            problem = TiankongProblem.objects.get(pk=problemid)
+            problem = Problem.objects.get(pk=problemid)
             problem.title = title
             problem.description = description
             problem.time_limit = time_limit
             problem.memory_limit = memory_limit
             problem.input = input
             problem.output = output
-            problem.program = program
             problem.sample_input = sample_input1
             problem.sample_output = sample_output1
             problem.sample_input2 = sample_input2
@@ -285,10 +282,9 @@ class TiankongProblemAddForm(forms.Form):
             problem.creater = user
             problem.knowledgePoint1.clear()
             problem.knowledgePoint1.clear()
+            problem.sample_code = sample_code
         else:
-            id=get_problemid()
-            problem = TiankongProblem(
-                problem_id=id,
+            problem = Problem(
                 title=title,
                 description=description,
                 time_limit=time_limit,
@@ -300,7 +296,9 @@ class TiankongProblemAddForm(forms.Form):
                 sample_output=sample_output1,
                 sample_input2=sample_input2,
                 sample_output2=sample_output2,
-                creater=user
+                creater=user,
+		problem_type="填空",
+                sample_code = sample_code
             )
         problem.save()
         for point in keypoint:
@@ -312,29 +310,3 @@ class TiankongProblemAddForm(forms.Form):
         problem.save()
         return problem
 
-def get_problemid():
-    max=0
-
-    try:
-        problem_max = Problem.objects.order_by('-problem_id')[0:1].get()
-        if problem_max.problem_id>max :
-            max=problem_max.problem_id
-    except ObjectDoesNotExist:
-        pass
-
-    try:
-        tiankong_max = TiankongProblem.objects.order_by('-problem_id')[0:1].get()
-        if tiankong_max.problem_id>max :
-            max=tiankong_max.problem_id
-    except ObjectDoesNotExist:
-        pass
-
-    try:
-        gaicuo_max = GaicuoProblem.objects.order_by('-problem_id')[0:1].get()
-        if gaicuo_max.problem_id>max :
-            max=gaicuo_max.problem_id
-    except ObjectDoesNotExist:
-        pass
-
-    max=max+1
-    return max

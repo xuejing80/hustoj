@@ -19,14 +19,14 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.utils.datastructures import MultiValueDictKeyError
 from django.views.generic.detail import DetailView
 
-from judge.forms import ProblemAddForm, ChoiceAddForm, TiankongProblemAddForm, GaicuoProblemAddForm
-from .models import KnowledgePoint1, ClassName, ChoiceProblem, Problem, TiankongProblem, GaicuoProblem
+from judge.forms import ProblemAddForm, ChoiceAddForm,TiankongProblemAddForm,GaicuoProblemAddForm
+from .models import KnowledgePoint1, ClassName, ChoiceProblem, Problem
 
 BUFSIZE = 4096
 BOMLEN = len(codecs.BOM_UTF8)
 
 
-# 添加编程题
+# 添加选择题
 @permission_required('judge.add_choiceproblem')
 def add_choice(request):
     if request.method == 'POST':
@@ -39,7 +39,7 @@ def add_choice(request):
     return render(request, 'choice_problem_add.html', {'form': form, 'title': '新建选择题'})
 
 
-# 添加选择题
+# 添加编程题
 @permission_required('judge.add_problem')
 def add_problem(request):
     if request.method == 'POST':  # 当提交表单时
@@ -58,7 +58,7 @@ def add_problem(request):
     return render(request, 'problem_add.html', {'form': form, 'title': '新建编程题'})
 
 # 添加程序填空题
-@permission_required('judge.add_tiankong')
+@permission_required('judge.add_problem')
 def add_tiankong(request):
     if request.method == 'POST':  # 当提交表单时
         form = TiankongProblemAddForm(request.POST)  # form 包含提交的数据
@@ -70,14 +70,14 @@ def add_tiankong(request):
                       '/home/judge/data/' + str(problem.problem_id))
             print(request.POST['random_name'])
             shutil.rmtree('/tmp/' + request.POST['random_name'])
-            return redirect(reverse("tiankong_detail", args=[problem.problem_id]))
+            return redirect(reverse("tiankong_problem_detail", args=[problem.problem_id]))
     else:  # 当正常访问时
         form = TiankongProblemAddForm()
     return render(request, 'tiankong_problem_add.html', {'form': form, 'title': '新建程序填空题'})
 
 
 # 添加程序改错题
-@permission_required('judge.add_gaicuo')
+@permission_required('judge.add_problem')
 def add_gaicuo(request):
     if request.method == 'POST':  # 当提交表单时
         form = GaicuoProblemAddForm(request.POST)  # form 包含提交的数据
@@ -89,7 +89,7 @@ def add_gaicuo(request):
                       '/home/judge/data/' + str(problem.problem_id))
             print(request.POST['random_name'])
             shutil.rmtree('/tmp/' + request.POST['random_name'])
-            return redirect(reverse("gaicuo_detail", args=[problem.problem_id]))
+            return redirect(reverse("gaicuo_problem_detail", args=[problem.problem_id]))
     else:  # 当正常访问时
         form = GaicuoProblemAddForm()
     return render(request, 'gaicuo_problem_add.html', {'form': form, 'title': '新建程序改错题'})
@@ -128,7 +128,7 @@ def del_choice_problem(request):
 
 
 # 删除gaicuo题
-@permission_required('judge.delete_gaicuo')
+@permission_required('judge.delete_problem')
 def delete_gaicuo(request):
     if request.method == 'POST':
         ids = request.POST.getlist('ids[]')
@@ -136,7 +136,7 @@ def delete_gaicuo(request):
             for pk in ids:
                 if os.path.exists('/home/judge/data/' + str(pk)):
                     shutil.rmtree('/home/judge/data/' + str(pk))
-                GaicuoProblem.objects.filter(pk=pk).delete()
+                Problem.objects.filter(pk=pk).delete()
         except:
             return HttpResponse(0)
         return HttpResponse(1)
@@ -145,7 +145,7 @@ def delete_gaicuo(request):
 
 
 # 删除程序填空题
-@permission_required("judge.delete_tiankong")
+@permission_required("judge.delete_problem")
 def delete_tiankong(request):
         if request.method == 'POST':
             ids = request.POST.getlist('ids[]')
@@ -153,7 +153,7 @@ def delete_tiankong(request):
                 for pk in ids:
                     if os.path.exists('/home/judge/data/' + str(pk)):
                         shutil.rmtree('/home/judge/data/' + str(pk))
-                    TiankongProblem.objects.filter(pk=pk).delete()
+                    Problem.objects.filter(pk=pk).delete()
             except:
                 return HttpResponse(0)
             return HttpResponse(1)
@@ -192,6 +192,37 @@ class ProblemDetailView(DetailView):
         context['title'] = '编程题“' + self.object.title + '”的详细信息'
         return context
 
+# 程序改错题详细视图
+class GaicuoProblemDetailView(DetailView):
+    model = Problem
+    template_name = 'gaicuo_problem_detail.html'
+    context_object_name = 'problem'
+
+    def get_context_data(self, **kwargs):
+        context = super(GaicuoProblemDetailView, self).get_context_data(**kwargs)
+        str = ''
+        for point in self.object.knowledgePoint2.all():
+            str += point.upperPoint.classname.name + ' > ' + point.upperPoint.name + ' > ' + point.name + '\n'
+        context['knowledge_point'] = str
+        context['title'] = '程序改错题“' + self.object.title + '”的详细信息'
+        return context
+
+
+ #  程序填空题详细视图
+class TiankongProblemDetailView(DetailView):
+        model = Problem
+        template_name = 'tiankong_problem_detail.html'
+        context_object_name = 'problem'
+
+        def get_context_data(self, **kwargs):
+            context = super( TiankongProblemDetailView, self).get_context_data(**kwargs)
+            str = ''
+            for point in self.object.knowledgePoint2.all():
+                str += point.upperPoint.classname.name + ' > ' + point.upperPoint.name + ' > ' + point.name + '\n'
+            context['knowledge_point'] = str
+            context['title'] = '程序填空题“' + self.object.title + '”的详细信息'
+            return context
+
 
 # 选择题详细视图
 class ChoiceProblemDetailView(DetailView):
@@ -208,37 +239,6 @@ class ChoiceProblemDetailView(DetailView):
         context['title'] = '选择题“' + self.object.title + '”的详细信息'
         return context
 
-
-# 程序改错题详细视图
-class GaicuoProblemDetailView(DetailView):
-    model = GaicuoProblem
-    template_name = 'gaicuo_problem_detail.html'
-    context_object_name = 'problem'
-
-    def get_context_data(self, **kwargs):
-        context = super(GaicuoProblemDetailView, self).get_context_data(**kwargs)
-        str = ''
-        for point in self.object.knowledgePoint2.all():
-            str += point.upperPoint.classname.name + ' > ' + point.upperPoint.name + ' > ' + point.name + '\n'
-        context['knowledge_point'] = str
-        context['title'] = '程序改错题“' + self.object.title + '”的详细信息'
-        return context
-
-
- #  程序填空题详细视图
-class TiankongProblemDetailView(DetailView):
-        model = TiankongProblem
-        template_name = 'tiankong_problem_detail.html'
-        context_object_name = 'problem'
-
-        def get_context_data(self, **kwargs):
-            context = super( TiankongProblemDetailView, self).get_context_data(**kwargs)
-            str = ''
-            for point in self.object.knowledgePoint2.all():
-                str += point.upperPoint.classname.name + ' > ' + point.upperPoint.name + ' > ' + point.name + '\n'
-            context['knowledge_point'] = str
-            context['title'] = '程序填空题“' + self.object.title + '”的详细信息'
-            return context
 
 # 更新编程题
 @permission_required('judge.change_problem')
@@ -306,7 +306,7 @@ def update_choice_problem(request, id):
 # 更新程序改错题
 @permission_required('judge.change_problem')
 def update_gaicuo(request, id):
-    problem = get_object_or_404(GaicuoProblem, pk=id)
+    problem = get_object_or_404(Problem, pk=id)
     json_dic = {}  # 知识点选择的需要的初始化数据
     for point in problem.knowledgePoint2.all():
         json_dic[point.id] = point.upperPoint.classname.name + ' > ' + point.upperPoint.name + ' > ' + point.name
@@ -316,7 +316,7 @@ def update_gaicuo(request, id):
                'memory_limit': problem.memory_limit,
                'input': problem.input,
                'output': problem.output,
-               'program': problem.program,
+               'sample_code': problem.sample_code,
                'sample_input1': problem.sample_input,
                'sample_output1': problem.sample_output,
                'sample_input2': problem.sample_input2,
@@ -341,13 +341,13 @@ def update_gaicuo(request, id):
                 except Exception as  e:
                     print(e)
                     pass
-            return redirect(reverse("gaicuo_detail", args=[id]))
+            return redirect(reverse("gaicuo_problem_detail", args=[id]))
     return render(request, 'gaicuo_problem_add.html', {'form': GaicuoProblemAddForm(initial=initial)})
 
 # 更新程序填空题
-@permission_required('judge.update_tiankong')
+@permission_required('judge.change_problem')
 def update_tiankong(request, id):
-    problem = get_object_or_404(TiankongProblem, pk=id)
+    problem = get_object_or_404(Problem, pk=id)
     json_dic = {}  # 知识点选择的需要的初始化数据
     for point in problem.knowledgePoint2.all():
         json_dic[point.id] = point.upperPoint.classname.name + ' > ' + point.upperPoint.name + ' > ' + point.name
@@ -357,7 +357,7 @@ def update_tiankong(request, id):
                'memory_limit': problem.memory_limit,
                'input': problem.input,
                'output': problem.output,
-               'program':problem.program,
+               'sample_code':problem.sample_code,
                'sample_input1': problem.sample_input,
                'sample_output1': problem.sample_output,
                'sample_input2': problem.sample_input2,
@@ -382,11 +382,11 @@ def update_tiankong(request, id):
                 except Exception as  e:
                     print(e)
                     pass
-            return redirect(reverse("tiankong_detail", args=[id]))
+            return redirect(reverse("tiankong_problem_detail", args=[id]))
     return render(request, 'tiankong_problem_add.html', {'form': TiankongProblemAddForm(initial=initial)})
 
 
-# 编程提列表
+# 编程题列表
 @permission_required('judge.add_problem')
 def list_problems(request):
     classnames = ClassName.objects.all()
@@ -398,12 +398,15 @@ def list_choices(request):
     classnames = ClassName.objects.all()
     return render(request, 'choice_problem_list.html', context={'classnames': classnames, 'title': '选择题题库', 'position': 'choice_list'})
 
+
 # 程序填空题列表
+@permission_required('judge.add_problem')
 def list_tiankong(request):
     classnames = ClassName.objects.all()
     return render(request, 'tiankong_problem_list.html', context={'classnames': classnames, 'title': '程序填空题题库', 'position': 'tiankong_list'})
 
 # 程序gaicuo题列表
+@permission_required('judge.add_problem')
 def list_gaicuo(request):
     classnames = ClassName.objects.all()
     return render(request, 'gaicuo_problem_list.html', context={'classnames': classnames, 'title': '程序改错题题库', 'position': 'gaicuo_list'})
@@ -417,15 +420,32 @@ def get_json(request, model_name):
     knowledgePoint2 = request.GET['knowledgePoint2']
     classname = request.GET['classname']
     knowledgePoint1 = request.GET['knowledgePoint1']
+    if model_name=="Problem":
+        model_name="Problem"
+        pro_type="编程"
+    elif model_name=="TiankongProblem":
+        model_name="Problem"
+        pro_type="填空"
+    elif model_name=="GaicuoProblem":
+        model_name="Problem"
+        pro_type="改错"
+    elif model_name=="ChoiceProblem":
+        model_name="ChoiceProblem"
+        pro_type="选择" 
     model = apps.get_model(app_label='judge', model_name=model_name)
+    
+    if pro_type != "选择" :
+   	 problems = model.objects.filter(problem_type=pro_type)
+    elif pro_type == "选择" :
+   	 problems = model.objects.all()
+    
     if knowledgePoint2 != '0':
-        problems = model.objects.filter(knowledgePoint2__id=knowledgePoint2)
+        problems = problems.filter(knowledgePoint2__id=knowledgePoint2)
     elif knowledgePoint1 != '0':
-        problems = model.objects.filter(knowledgePoint1__id=knowledgePoint1)
+        problems = problems.filter(knowledgePoint1__id=knowledgePoint1)
     elif classname != '0':
-        problems = model.objects.filter(classname__id=classname)
-    else:
-        problems = model.objects
+        problems = problems.filter(classname__id=classname)
+
     try:
         problems = problems.filter(title__icontains=request.GET['search'])
     except:

@@ -54,9 +54,11 @@ def add_homework(request):
         homework = HomeWork(name=request.POST['name'],
                             choice_problem_ids=request.POST['choice-problem-ids'],
                             problem_ids=request.POST['problem-ids'],
+                            tiankong_problem_ids=request.POST['tiankong-problem-ids'],
+                            gaicuo_problem_ids=request.POST['gaicuo-problem-ids'],
                             problem_info=request.POST['problem-info'],
                             choice_problem_info=request.POST['choice-problem-info'],
-                            courser=ClassName.objects.get(pk=request.POST['classname']),
+                            courser=ClassName.objects.get(pk=request.POST['course']),
                             start_time=request.POST['start_time'],
                             end_time=request.POST['end_time'],
                             allowed_languages=','.join(request.POST.getlist('languages')),
@@ -102,7 +104,8 @@ def get_json_work(request):
         recode = {'name': homework.name, 'pk': homework.pk,
                   'courser': homework.courser.name, 'id': homework.pk,
                   'start_time': homework.start_time.strftime('%Y-%m-%d %H:%M:%S'),
-                  'end_time': homework.end_time.strftime('%Y-%m-%d %H:%M:%S')}
+                  'end_time': homework.end_time.strftime('%Y-%m-%d %H:%M:%S'),
+                  'creator': homework.creater.username}
         recodes.append(recode)
     json_data['rows'] = recodes
     return HttpResponse(json.dumps(json_data))
@@ -156,7 +159,7 @@ def show_homework(request, pk):
     homework = get_object_or_404(HomeWork, pk=pk)
     context = {'id': homework.id, 'name': homework.name, 'courser': homework.courser.name,
                'start_time': homework.start_time, 'end_time': homework.end_time, 'work_kind': homework.work_kind,
-               'title': '公开作业“' + homework.name + '”的详细'}
+               'title': '公共作业“' + homework.name + '”的详细'}
     return render(request, 'homework_detail.html', context=context)
 
 
@@ -201,8 +204,17 @@ def ajax_for_homework_info(request):
             homework = MyHomework.objects.get(pk=homework_id)
         else:
             homework = HomeWork.objects.get(pk=homework_id)
+
+        tiankong_info = homework.tiankong_problem_info
+        if tiankong_info is None:
+            tiankong_info = "[]"
+        gaicuo_info = homework.gaicuo_problem_info
+        if gaicuo_info is None:
+            gaicuo_info = "[]"
         result = {'problem_info': json.loads(homework.problem_info),
-                  'choice_problem_info': json.loads(homework.choice_problem_info)}
+                  'choice_problem_info': json.loads(homework.choice_problem_info),
+                  'tiankong_problem_info': json.loads(tiankong_info),
+                  'gaicuo_problem_info': json.loads(gaicuo_info)}
     except:
         logger.exception("Exception Logged")
         logger.info("执行动作：请求作业信息，用户信息：{}({}:{})，POST数据：{}".format(request.user.username,request.user.pk,request.user.id_num,request.POST.dict()))
@@ -219,28 +231,34 @@ def update_public_homework(request, pk):
     """
     homework = get_object_or_404(HomeWork, pk=pk)
     if request.method == 'POST':
-        homework.name = request.POST['name']
-        homework.choice_problem_ids = request.POST['choice-problem-ids']
-        homework.problem_ids = request.POST['problem-ids']
-        homework.courser = ClassName.objects.get(pk=request.POST['classname'])
-        homework.start_time = request.POST['start_time']
-        homework.end_time = request.POST['end_time']
-        homework.problem_info = request.POST['problem-info']
-        homework.total_score = request.POST['total_score']
-        homework.choice_problem_info = request.POST['choice-problem-info']
-        homework.allowed_languages = ','.join(request.POST.getlist('languages'))
-        homework.work_kind = request.POST['work_kind']
+        homework.name=request.POST['name']
+        homework.choice_problem_ids=request.POST['choice-problem-ids']
+        homework.problem_ids=request.POST['problem-ids']
+        homework.tiankong_problem_ids=request.POST['tiankong-problem-ids']
+        homework.gaicuo_problem_ids=request.POST['gaicuo-problem-ids']
+        homework.problem_info=request.POST['problem-info']
+        homework.choice_problem_info=request.POST['choice-problem-info']
+        homework.tiankong_problem_info=request.POST['tiankong-problem-info']
+        homework.gaicuo_problem_info=request.POST['gaicuo-problem-info']
+        homework.courser = ClassName.objects.get(pk=request.POST['course'])
+        homework.start_time=request.POST['start_time']
+        homework.end_time=request.POST['end_time']
+        homework.allowed_languages=','.join(request.POST.getlist('languages'))
+        homework.total_score=request.POST['total_score']
+        homework.creater=request.user
+        homework.work_kind=request.POST['work_kind']
         homework.save()
         return redirect(reverse("homework_detail", args=[homework.pk]))
     else:
         context = {'languages': homework.allowed_languages, 'classnames': ClassName.objects.all(),
-                   'name': homework.name, 'courser_id': homework.courser.id, 'start_time': homework.start_time,
-                   'end_time': homework.end_time, 'title': '修改公开作业 "' + homework.name + '"',
+                   'name': homework.name,  'courser_id': homework.courser.id,
+                  
+                   'start_time': homework.start_time,
+                  
+                   'end_time': homework.end_time, 'title': '修改公共作业" ' + homework.name + '"',
                    'work_kind': homework.work_kind}
     return render(request, 'homework_add.html', context=context)
 
-
-@permission_required('work.change_homework')
 def update_my_homework(request, pk):
     """
     更新私有作业
@@ -253,15 +271,22 @@ def update_my_homework(request, pk):
         homework.name = request.POST['name']
         homework.choice_problem_ids = request.POST['choice-problem-ids']
         homework.problem_ids = request.POST['problem-ids']
-        homework.courser = ClassName.objects.get(pk=request.POST['classname'])
+        homework.tiankong_problem_ids=request.POST['tiankong-problem-ids']
+        homework.gaicuo_problem_ids=request.POST['gaicuo-problem-ids']
+        homework.courser = ClassName.objects.get(pk=request.POST['course'])
         homework.start_time = request.POST['start_time']
         homework.end_time = request.POST['end_time']
         homework.problem_info = request.POST['problem-info']
         homework.total_score = request.POST['total_score']
         homework.allowed_languages = ','.join(request.POST.getlist('languages'))
         homework.choice_problem_info = request.POST['choice-problem-info']
+        homework.tiankong_problem_info=request.POST['tiankong-problem-info']
+        homework.gaicuo_problem_info=request.POST['gaicuo-problem-info']
         homework.allow_resubmit = True if request.POST['allow_resubmit'] == '1' else False
         homework.work_kind = request.POST['work_kind']
+        #2017年9月新增功能
+        tiankong_problem_ids = request.POST['tiankong-problem-ids'],
+        gaicuo_problem_ids = request.POST['gaicuo-problem-ids'],
         homework.save()
         return redirect(reverse('my_homework_detail', args=[homework.pk]))
     else:
@@ -271,7 +296,6 @@ def update_my_homework(request, pk):
                    'allow_resubmit': '1' if homework.allow_resubmit else '0',
                    'work_kind': homework.work_kind}
     return render(request, 'homework_add.html', context=context)  # 查看作业结果
-
 
 @login_required()
 def show_homework_result(request, id):
@@ -295,6 +319,8 @@ def show_homework_result(request, id):
     homework = homework_answer.homework
     choice_problems = []
     problems = []
+    tiankong_problems = []
+    gaicuo_problems = []
     for info in json.loads(homework.choice_problem_info):  # 载入作业的选择题信息，并进行遍历
         if str(info['id']) in wrong_id:  # 如果答案有错
             choice_problems.append(
@@ -303,21 +329,69 @@ def show_homework_result(request, id):
         else:  # 如果答案正确
             choice_problems.append(
                 {'detail': ChoiceProblem.objects.get(pk=info['id']), 'right': True})
-    for solution in homework_answer.solution_set.all():  # 遍历homework_answer的所有solution
+    #获得编程题
+    try:
+        problem_ids = list(map(int,homework.problem_ids.split()))
+    except:
+        problem_ids = []
+    for pid in problem_ids:
         try:
-            sourceCode = SourceCode.objects.get(solution_id=solution.solution_id).source
-        except ObjectDoesNotExist:
-            sourceCode = "代码未找到"
-        problems.append({'code': sourceCode,
-                         'title': Problem.objects.get(pk=solution.problem_id).title, 'result': solution.result})
-    return render(request, 'homework_result.html',
-                  context={'choice_problems': choice_problems, 'problem_score': homework_answer.problem_score,
-                           'choice_problem_score': homework_answer.choice_problem_score,
-                           'score': homework_answer.score, 'problems': problems, 
-                           'work_kind': homework.work_kind, 'summary': homework_answer.summary,
-                           'teacher_comment': homework_answer.teacher_comment,
-                           'title': ' {}的"{}"详细'.format(homework_answer.creator.username, homework.name)})
+            solution = Solution.objects.get(problem_id=pid,homework_answer=homework_answer)
+            try:
+                sourceCode = SourceCode.objects.get(solution_id=solution.solution_id).source
+            except ObjectDoesNotExist:
+                sourceCode = "代码未找到"
+        except:
+            sourceCode = "未提交"
+        problem = Problem.objects.get(pk=pid)
+        problems.append({'code': sourceCode, 'desc': problem.description,
+                         'title': problem.title, 'result': solution.result})
+    #获得程序填空题
+    try:
+        tiankong_ids = list(map(int,homework.tiankong_problem_ids.split()))
+    except:
+        tiankong_ids = []
+    for pid in tiankong_ids:
+        try:
+            solution = Solution.objects.get(problem_id=pid,homework_answer=homework_answer)
+            try:
+                sourceCode = SourceCode.objects.get(solution_id=solution.solution_id).source
+            except ObjectDoesNotExist:
+                sourceCode = "代码未找到"
+        except:
+            sourceCode = "未提交"
+        problem = Problem.objects.get(pk=pid)
+        tiankong_problems.append({'code': sourceCode, 'desc': problem.description,
+                         'title': problem.title, 'result': solution.result})
+    #获得程序改错题
+    try:
+        gaicuo_ids = list(map(int,homework.gaicuo_problem_ids.split()))
+    except:
+        gaicuo_ids = []
+    for pid in gaicuo_ids:
+        try:
+            solution = Solution.objects.get(problem_id=pid,homework_answer=homework_answer)
+            try:
+                sourceCode = SourceCode.objects.get(solution_id=solution.solution_id).source
+            except ObjectDoesNotExist:
+                sourceCode = "代码未找到"
+        except:
+            sourceCode = "未提交"
+        problem = Problem.objects.get(pk=solution.problem_id)
+        gaicuo_problems.append({'code': sourceCode, 'desc': problem.description,
+                         'title': problem.title, 'result': solution.result})
 
+    context={'choice_problems': choice_problems, 'problem_score': homework_answer.problem_score,
+                       'choice_problem_score': homework_answer.choice_problem_score,
+                       'gaicuo_score': homework_answer.gaicuo_score,
+                       'tiankong_score':homework_answer.tiankong_score,
+                       'score': homework_answer.score, 'problems': problems,
+                       'tiankong_problems': tiankong_problems, 'gaicuo_problems': gaicuo_problems,
+                       'work_kind': homework.work_kind, 'summary': homework_answer.summary,
+                       'teacher_comment': homework_answer.teacher_comment,
+                       'title': ' {}的"{}"详细'.format(homework_answer.creator.username, homework.name)}
+    logger.info(str(context))
+    return render(request, 'homework_result.html',context)
 
 def get_choice_score(homework_answer):
     """
@@ -434,17 +508,47 @@ def do_homework(request, homework_id):
         homework = get_object_or_404(MyHomework, pk=homework_id)
         log = "执行动作：打开作业，用户信息：{}({}:{})，作业ID：{}".format(request.user.username,request.user.pk,request.user.id_num,homework_id)
         choice_problems = []
-        for id in homework.choice_problem_ids.split(','):
-            if id:
-                choice_problems.append({'detail': ChoiceProblem.objects.get(pk=id),
-                                        'score': json.loads(homework.choice_problem_info)[0]['total_score']})
+        if homework.choice_problem_ids is not None:
+            for id in homework.choice_problem_ids.split(','):
+                if id:
+                    try:
+                        choice_problems.append({'detail': ChoiceProblem.objects.get(pk=id),
+                                                'score': json.loads(homework.choice_problem_info)[0]['total_score']})
+                    except ObjectDoesNotExist:
+                       return render(request, 'warning.html', context={
+            'info': '对不起，本作业(ID={})中请求的填空题(ID={})不在题库中，请及时联系管理员：'.format(homework_id,id) + settings.CONTACT_INFO})
         problems = []
-        for id in homework.problem_ids.split(','):
-            if id:
-                problems.append(Problem.objects.get(pk=id))
+        if homework.problem_ids is not None:
+            for id in homework.problem_ids.split(','):
+                if id:
+                    try:
+                        problems.append(Problem.objects.get(pk=id))
+                    except ObjectDoesNotExist:
+                       return render(request, 'warning.html', context={
+            'info': '对不起，本作业(ID={})中请求的编程题(ID={})不在题库中，请及时联系管理员：'.format(homework_id,id) + settings.CONTACT_INFO}) 
+        tiankong_problems = []
+        if homework.tiankong_problem_ids is not None:
+            for id in homework.tiankong_problem_ids.split(','):
+                if id:
+                    try:
+                        tiankong_problems.append(Problem.objects.get(pk=id))
+                    except ObjectDoesNotExist:
+                       return render(request, 'warning.html', context={
+            'info': '对不起，本作业(ID={})中请求的程序填空题(ID={})不在题库中，请及时联系管理员：'.format(homework_id,id) + settings.CONTACT_INFO})
+        gaicuo_problems = []
+        if homework.gaicuo_problem_ids is not None:
+            for id in homework.gaicuo_problem_ids.split(','):
+                if id:
+                    try:
+                        gaicuo_problems.append(Problem.objects.get(pk=id))
+                    except ObjectDoesNotExist:
+                       return render(request, 'warning.html', context={
+            'info': '对不起，本作业(ID={})中请求的程序改错题(ID={})不在题库中，请及时联系管理员：'.format(homework_id,id) + settings.CONTACT_INFO})
         logger.info(log + "，执行结果：成功")
         return render(request, 'do_homework.html',
-                      context={'homework': homework, 'problems': problems, 'choice_problems': choice_problems,
+                      context={'homework': homework, 'problemsType': ['编程题','程序填空题','程序改错题'],
+                               'choice_problems': choice_problems,
+                               'problemsList':[problems, tiankong_problems, gaicuo_problems],
                                'title': homework.name, 'work_kind': homework.work_kind})
 
 @permission_required('work.add_banji')
@@ -572,6 +676,11 @@ def copy_to_my_homework(request):
                                   choice_problem_ids=old_homework.choice_problem_ids,
                                   problem_info=old_homework.problem_info,
                                   choice_problem_info=old_homework.choice_problem_info,
+                                  #2017年9月16日增加新题型
+                                  tiankong_problem_ids=old_homework.tiankong_problem_ids,
+                                  gaicuo_problem_ids=old_homework.gaicuo_problem_ids,
+                                  tiankong_problem_info=old_homework.tiankong_problem_info,
+                                  gaicuo_problem_info=old_homework.gaicuo_problem_info,
                                   allowed_languages=old_homework.allowed_languages,
                                   total_score=old_homework.total_score)  # todo 有更好的方法
             homework.save()
@@ -654,14 +763,12 @@ def assign_homework(request):
     except:
         return HttpResponse(json.dumps({'result': 0, 'message': '出错了'}))
 
-
 # 显示我的待做作业
 @login_required()
 def list_do_homework(request):
     banjis = BanJi.objects.filter(students=request.user).all()
     return render(request, 'do_homework_list.html',
                   context={'banjis': banjis, 'title': '我的作业列表', 'position': 'unfinished'})
-
 
 # 获取待做作业列表
 @login_required()
@@ -712,18 +819,28 @@ def get_my_homework_todo(request):
                       'start_time': homework.start_time.strftime('%Y-%m-%d %H:%M:%S'),
                       'end_time': homework.end_time.strftime('%Y-%m-%d %H:%M:%S'),
                       'status': 1, 'score': score, 'allow_resubmit':allow_resubmit}
+                      #status为1表示已完成
         elif not (homework.start_time < timezone.now() < homework.end_time):
             recode = {'name': homework.name, 'pk': homework.pk,
                       'courser': homework.courser.name, 'id': homework.pk,
                       'start_time': homework.start_time.strftime('%Y-%m-%d %H:%M:%S'),
                       'end_time': homework.end_time.strftime('%Y-%m-%d %H:%M:%S'),
                       'status': -1}
+                      #status为-1表示时间不允许
+        elif TempHomeworkAnswer.objects.filter(homework_id=homework.pk, creator=request.user).exists(): 
+            recode = {'name': homework.name, 'pk': homework.pk,
+                      'courser': homework.courser.name, 'id': homework.pk,
+                      'start_time': homework.start_time.strftime('%Y-%m-%d %H:%M:%S'),
+                      'end_time': homework.end_time.strftime('%Y-%m-%d %H:%M:%S'),
+                      'status': 2}
+                      #status为2表示开始做但是未提交
         else:
             recode = {'name': homework.name, 'pk': homework.pk,
                       'courser': homework.courser.name, 'id': homework.pk,
                       'start_time': homework.start_time.strftime('%Y-%m-%d %H:%M:%S'),
                       'end_time': homework.end_time.strftime('%Y-%m-%d %H:%M:%S'),
                       'status': 0}
+                      #status为0表示未做
 
         recodes.append(recode)
         count += 1
@@ -762,6 +879,47 @@ def get_problem_score(homework_answer, judged_score=0):
             #    homework.pk, e, e.args.__str__()))
     return score
 
+def get_tiankong_score(homework_answer, judged_score=0):
+    score = judged_score
+    homework = homework_answer.homework
+    solutions = homework_answer.solution_set
+    tiankong_problem_info = []
+    for info in json.loads(homework.tiankong_problem_info):
+        try:
+            solution = solutions.get(problem_id=info['id'])
+            for case in info['testcases']:
+                if solution.result == 11:
+                    break
+                if solution.oi_info is None:
+                    break
+                if json.loads(solution.oi_info)[str(case['desc'])+'.in']['result'] == 4:
+                    score += int(case['score'])
+        except Exception as e:
+            logger.exception("Exception Logged")
+            user = homework_answer.creator;
+            logger.error("获取程序填空题得分失败{{homework_id:{},answer_id:{},user:{}({},{})}}".format(homework.pk,homework_answer.pk,user.username,user.id_num,user.email))
+    return score
+
+def get_gaicuo_score(homework_answer, judged_score=0):
+    score = judged_score
+    homework = homework_answer.homework
+    solutions = homework_answer.solution_set
+    gaicuo_problem_info = []
+    for info in json.loads(homework.gaicuo_problem_info):
+        try:
+            solution = solutions.get(problem_id=info['id'])
+            for case in info['testcases']:
+                if solution.result == 11:
+                    break
+                if solution.oi_info is None:
+                    break
+                if json.loads(solution.oi_info)[str(case['desc'])+'.in']['result'] == 4:
+                    score += int(case['score'])
+        except Exception as e:
+            logger.exception("Exception Logged")
+            user = homework_answer.creator;
+            logger.error("获取程序改错题得分失败{{homework_id:{},answer_id:{},user:{}({},{})}}".format(homework.pk,homework_answer.pk,user.username,user.id_num,user.email))
+    return score
 
 @login_required()
 def list_finished_homework(request):
@@ -1009,13 +1167,26 @@ def judge_homework(homework_answer):
             else:
                 continue
         else:  # 如果全部solution都已判断结束
+            choice_problem_score = 0
+            biancheng_score = 0
+            tiankong_score = 0
+            gaicuo_score = 0
             choice_problem_score = get_choice_score(homework_answer)  # 获取选择题分数
             homework_answer.choice_problem_score = choice_problem_score
-            problem_score = get_problem_score(homework_answer)  # 获取编程题分数
-            homework_answer.problem_score = problem_score
-            homework_answer.score = choice_problem_score + problem_score  # 计算总分
+            biancheng_score = get_problem_score(homework_answer)  # 获取编程题分数
+            homework_answer.problem_score = biancheng_score
+            #2017年9月16日增加新题型
+            tiankong_score = get_tiankong_score(homework_answer)
+            homework_answer.tiankong_score = tiankong_score
+            gaicuo_score = get_gaicuo_score(homework_answer)
+            homework_answer.gaicuo_score = gaicuo_score
+
+            zongfen = choice_problem_score + biancheng_score + tiankong_score + gaicuo_score  # 计算总分
+            homework_answer.score = zongfen
             homework_answer.judged = True  # 修改判题标记为已经判过
             homework_answer.save()  # 保存
+            logger.info("执行动作：计算成绩，用户信息：{}({}:{})，总分：{}(选择题：{}，编程题：{}，程序填空题：{}，程序改错题：{})，执行结果：成功".format( \
+                homework_answer.creator.username,homework_answer.creator.pk,homework_answer.creator.id_num,zongfen,choice_problem_score,biancheng_score,tiankong_score,gaicuo_score))
             break  # 跳出循环
 
 
@@ -1033,7 +1204,7 @@ def add_myhomework(request):
                               problem_ids=request.POST['problem-ids'],
                               problem_info=request.POST['problem-info'],
                               choice_problem_info=request.POST['choice-problem-info'],
-                              courser=ClassName.objects.get(pk=request.POST['classname']),
+                              courser=ClassName.objects.get(pk=request.POST['course']),
                               start_time=request.POST['start_time'],
                               end_time=request.POST['end_time'],
                               allowed_languages=','.join(request.POST.getlist('languages')),
@@ -1091,7 +1262,8 @@ def test_run(request):
             #cases = get_testCases(problem)
             cases = []
             score = 0
-            for info in json.loads(homework.problem_info):
+            infos = json.loads(homework.problem_info)+json.loads(homework.gaicuo_problem_info)+json.loads(homework.tiankong_problem_info)
+            for info in infos:
                 if info['pk'] == solution.problem_id:
                     for case in info['testcases']:  # 获取题目的测试分数
                         try:
@@ -1106,7 +1278,7 @@ def test_run(request):
                                 result = 1
                             cases.append(case)
                         except:
-                            pass
+                            logger.exception("Exception Logged")
             #2017年3月22日，注释以下两句，保留学生做作业的过程
             #SourceCode.objects.get(solution_id=solution.solution_id).delete()
             #solution.delete()
@@ -1172,7 +1344,7 @@ def save_homework_temp(request):
         logger.exception("Exception Logged")
         logger.error(log + "，执行结果：失败")
         return render(request, 'warning.html', context={
-            'info': '对不起，暂存作业失败了，请及时联系管理员老师' + settings.CONTACT_INFO})
+            'info': '对不起，暂存作业失败了，请及时联系管理员：' + settings.CONTACT_INFO})
     return redirect(reverse('list_do_homework'))
 
 

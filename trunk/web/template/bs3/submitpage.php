@@ -85,6 +85,11 @@ echo"<option value=$i ".( $lastlang==$i?"selected":"").">
 }
 ?>
 </select>
+<?php if($OJ_VCODE){?>
+<?php echo $MSG_VCODE?>:
+<input name="vcode" size=4 type=text><img id="vcode" alt="click to change" src="vcode.php" onclick="this.src='vcode.php?'+Math.random()">
+<?php }?>
+
 <br>
 </span>
 <textarea style="width:80%" cols=180 rows=20 id="source" name="source"><?php echo htmlentities($view_src,ENT_QUOTES,"UTF-8")?></textarea><br>
@@ -95,7 +100,15 @@ echo"<option value=$i ".( $lastlang==$i?"selected":"").">
 </textarea>
 <br>
 <input id="Submit" class="btn btn-info" type=button value="<?php echo $MSG_SUBMIT?>" onclick="do_submit();" >
-<input id="TestRun" class="btn btn-info" type=button value="<?php echo $MSG_TR?>" onclick=do_test_run();><span class="btn" id=result>状态</span>
+<?php if (isset($OJ_ENCODE_SUBMIT)&&$OJ_ENCODE_SUBMIT){?>
+<input class="btn btn-success" title="WAF gives you reset ? try this." type=button value="Encoded <?php echo $MSG_SUBMIT?>"  onclick="encoded_submit();">
+<input type=hidden id="encoded_submit_mark" name="reverse2" value="reverse"/>
+<?php }?>
+
+<?php if (isset($OJ_TEST_RUN)&&$OJ_TEST_RUN){?>
+<input id="TestRun" class="btn btn-info" type=button value="<?php echo $MSG_TR?>" onclick=do_test_run();>
+<?php }?>
+<span class="btn" id=result>状态</span>
 <?php if (isset($OJ_BLOCKLY)&&$OJ_BLOCKLY){?>
 	<input id="blockly_loader" type=button class="btn" onclick="openBlockly()" value="<?php echo $MSG_BLOCKLY_OPEN?>" style="color:white;background-color:rgb(169,91,128)">
 	<input id="transrun" type=button  class="btn" onclick="loadFromBlockly() " value="<?php echo $MSG_BLOCKLY_TEST?>" style="display:none;color:white;background-color:rgb(90,164,139)">
@@ -128,49 +141,54 @@ $("#out").load("status-ajax.php?tr=1&solution_id="+solution_id);
 }
 function fresh_result(solution_id)
 {
-sid=solution_id;
-var xmlhttp;
-if (window.XMLHttpRequest)
-{// code for IE7+, Firefox, Chrome, Opera, Safari
-xmlhttp=new XMLHttpRequest();
-}
-else
-{// code for IE6, IE5
-xmlhttp=new ActiveXObject("Microsoft.XMLHTTP");
-}
-xmlhttp.onreadystatechange=function()
-{
-if (xmlhttp.readyState==4 && xmlhttp.status==200)
-{
-var tb=window.document.getElementById('result');
-var r=xmlhttp.responseText;
-var ra=r.split(",");
-// alert(r);
-// alert(judge_result[r]);
-var loader="<img width=18 src=image/loader.gif>";
-var tag="span";
-if(ra[0]<4) tag="span disabled=true";
-else tag="a";
-{
-	if(ra[0]==11)
-	
-	tb.innerHTML="<"+tag+" href='ceinfo.php?sid="+solution_id+"' class='badge badge-info' target=_blank>"+judge_result[ra[0]]+"</"+tag+">";
+	var tb=window.document.getElementById('result');
+	if(solution_id==undefined){
+		tb.innerHTML="Vcode Error!";		
+		if($("#vcode")!=null) $("#vcode").click();
+		return ;
+	}
+	sid=solution_id;
+	var xmlhttp;
+	if (window.XMLHttpRequest)
+	{// code for IE7+, Firefox, Chrome, Opera, Safari
+	xmlhttp=new XMLHttpRequest();
+	}
 	else
-	tb.innerHTML="<"+tag+" href='reinfo.php?sid="+solution_id+"' class='badge badge-info' target=_blank>"+judge_result[ra[0]]+"</"+tag+">";
-}
-if(ra[0]<4)tb.innerHTML+=loader;
-tb.innerHTML+="Memory:"+ra[1]+"kb&nbsp;&nbsp;";
-tb.innerHTML+="Time:"+ra[2]+"ms";
-if(ra[0]<4)
-window.setTimeout("fresh_result("+solution_id+")",2000);
-else{
-	window.setTimeout("print_result("+solution_id+")",2000);
-	count=1;
-}
-}
-}
-xmlhttp.open("GET","status-ajax.php?solution_id="+solution_id,true);
-xmlhttp.send();
+	{// code for IE6, IE5
+	xmlhttp=new ActiveXObject("Microsoft.XMLHTTP");
+	}
+	xmlhttp.onreadystatechange=function()
+	{
+	if (xmlhttp.readyState==4 && xmlhttp.status==200)
+	{
+	var r=xmlhttp.responseText;
+	var ra=r.split(",");
+	// alert(r);
+	// alert(judge_result[r]);
+	var loader="<img width=18 src=image/loader.gif>";
+	var tag="span";
+	if(ra[0]<4) tag="span disabled=true";
+	else tag="a";
+	{
+		if(ra[0]==11)
+		
+		tb.innerHTML="<"+tag+" href='ceinfo.php?sid="+solution_id+"' class='badge badge-info' target=_blank>"+judge_result[ra[0]]+"</"+tag+">";
+		else
+		tb.innerHTML="<"+tag+" href='reinfo.php?sid="+solution_id+"' class='badge badge-info' target=_blank>"+judge_result[ra[0]]+"</"+tag+">";
+	}
+	if(ra[0]<4)tb.innerHTML+=loader;
+	tb.innerHTML+="Memory:"+ra[1]+"kb&nbsp;&nbsp;";
+	tb.innerHTML+="Time:"+ra[2]+"ms";
+	if(ra[0]<4)
+	window.setTimeout("fresh_result("+solution_id+")",2000);
+	else{
+		window.setTimeout("print_result("+solution_id+")",2000);
+		count=1;
+	}
+	}
+	}
+	xmlhttp.open("GET","status-ajax.php?solution_id="+solution_id,true);
+	xmlhttp.send();
 }
 function getSID(){
 var ofrm1 = document.getElementById("testRun").document;
@@ -189,56 +207,78 @@ ret=ie.innerText;
 return ret+"";
 }
 var count=0;
+	 
+function encoded_submit(){
+if(typeof(eAL) != "undefined"){   eAL.toggle("source");eAL.toggle("source");}
+
+      var mark="<?php echo isset($id)?'problem_id':'cid';?>";
+        var problem_id=document.getElementById(mark);
+
+        if(mark=='problem_id')
+                problem_id.value='<?php echo $id?>';
+        else
+                problem_id.value='<?php echo $cid?>';
+
+        document.getElementById("frmSolution").target="_self";
+        document.getElementById("encoded_submit_mark").name="encoded_submit";
+        var source=document.getElementById("source");
+        source.value=encode64(utf16to8(source.value));
+//      source.value=source.value.split("").reverse().join("");
+//      alert(source.value);
+        document.getElementById("frmSolution").submit();
+}
+
 function do_submit(){
-if(using_blockly) 
- translate();
-if(typeof(eAL) != "undefined"){ eAL.toggle("source");eAL.toggle("source");}
-var mark="<?php echo isset($id)?'problem_id':'cid';?>";
-var problem_id=document.getElementById(mark);
-if(mark=='problem_id')
-problem_id.value='<?php if (isset($id))echo $id?>';
-else
-problem_id.value='<?php if (isset($cid))echo $cid?>';
-document.getElementById("frmSolution").target="_self";
-<?php if($OJ_LANG=="cn") echo "if(checksource(document.getElementById('source').value))";?>
-document.getElementById("frmSolution").submit();
+	if(using_blockly) 
+		 translate();
+	if(typeof(eAL) != "undefined"){ eAL.toggle("source");eAL.toggle("source");}
+	var mark="<?php echo isset($id)?'problem_id':'cid';?>";
+	var problem_id=document.getElementById(mark);
+	if(mark=='problem_id')
+	problem_id.value='<?php if (isset($id))echo $id?>';
+	else
+	problem_id.value='<?php if (isset($cid))echo $cid?>';
+	document.getElementById("frmSolution").target="_self";
+	<?php if($OJ_LANG=="cn") echo "if(checksource(document.getElementById('source').value))";?>
+	document.getElementById("frmSolution").submit();
 }
 var handler_interval;
 function do_test_run(){
-if( handler_interval) window.clearInterval( handler_interval);
-var loader="<img width=18 src=image/loader.gif>";
-var tb=window.document.getElementById('result');
-if(typeof(eAL) != "undefined"){ eAL.toggle("source");eAL.toggle("source");}
-if($("#source").val().length<10) return alert("too short!");
-tb.innerHTML=loader;
+	if( handler_interval) window.clearInterval( handler_interval);
+	var loader="<img width=18 src=image/loader.gif>";
+	var tb=window.document.getElementById('result');
+	if(typeof(eAL) != "undefined"){ eAL.toggle("source");eAL.toggle("source");}
+	if($("#source").val().length<10) return alert("too short!");
+	if(tb!=null)tb.innerHTML=loader;
 
-var mark="<?php echo isset($id)?'problem_id':'cid';?>";
-var problem_id=document.getElementById(mark);
-problem_id.value=-problem_id.value;
-document.getElementById("frmSolution").target="testRun";
-//document.getElementById("frmSolution").submit();
-$.post("submit.php?ajax",$("#frmSolution").serialize(),function(data){fresh_result(data);});
-document.getElementById("TestRun").disabled=true;
-document.getElementById("Submit").disabled=true;
-problem_id.value=-problem_id.value;
-count=20;
-handler_interval= window.setTimeout("resume();",1000);
+	var mark="<?php echo isset($id)?'problem_id':'cid';?>";
+	var problem_id=document.getElementById(mark);
+	problem_id.value=-problem_id.value;
+	document.getElementById("frmSolution").target="testRun";
+	//document.getElementById("frmSolution").submit();
+	$.post("submit.php?ajax",$("#frmSolution").serialize(),function(data){fresh_result(data);});
+  	$("#Submit").prop('disabled', true);
+  	$("#TestRub").prop('disabled', true);
+	problem_id.value=-problem_id.value;
+	count=20;
+	handler_interval= window.setTimeout("resume();",1000);
 }
 function resume(){
-count--;
-var s=document.getElementById('Submit');
-var t=document.getElementById('TestRun');
-if(count<0){
-s.disabled=false;
-t.disabled=false;
-s.value="<?php echo $MSG_SUBMIT?>";
-t.value="<?php echo $MSG_TR?>";
-if( handler_interval) window.clearInterval( handler_interval);
-}else{
-s.value="<?php echo $MSG_SUBMIT?>("+count+")";
-t.value="<?php echo $MSG_TR?>("+count+")";
-window.setTimeout("resume();",1000);
-}
+	count--;
+	var s=$("#Submit")[0];
+	var t=$("#TestRub")[0];
+	if(count<0){
+		s.disabled=false;
+		if(t!=null)t.disabled=false;
+		s.value="<?php echo $MSG_SUBMIT?>";
+		if(t!=null)t.value="<?php echo $MSG_TR?>";
+		if( handler_interval) window.clearInterval( handler_interval);
+		if($("#vcode")!=null) $("#vcode").click();
+	}else{
+		s.value="<?php echo $MSG_SUBMIT?>("+count+")";
+		if(t!=null)t.value="<?php echo $MSG_TR?>("+count+")";
+		window.setTimeout("resume();",1000);
+	}
 }
 function reloadtemplate(lang){
    document.cookie="lastlang="+lang.value;
@@ -284,6 +324,7 @@ function loadFromBlockly(){
 //  $("#Submit").prop('disabled', false);
 }
 </script>
+<script language="Javascript" type="text/javascript" src="include/base64.js"></script>
 
   </body>
 </html>

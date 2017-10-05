@@ -26,7 +26,7 @@
       <!-- Main component for a primary marketing message or call to action -->
       <div class="jumbotron">
         <p>
-<center>
+<center> Last minute average judge speed: <?php echo $speed?> sps.
 <div id=submission style="width:80%;height:300px" ></div>
 </center>
         </p>
@@ -52,9 +52,9 @@ grid: {
 backgroundColor: { colors: ["#fff", "#eee"] }
 },
 xaxis: {
-mode: "time",
-max:(new Date()).getTime(),
-min:(new Date()).getTime()-100*24*3600*1000
+mode: "time"//,
+//max:(new Date()).getTime(),
+//min:(new Date()).getTime()-100*24*3600*1000
 }
 });
 });

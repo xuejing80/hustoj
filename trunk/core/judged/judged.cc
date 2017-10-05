@@ -76,16 +76,19 @@ static char oj_redisserver[BUFFER_SIZE];
 static int  oj_redisport;
 static char oj_redisauth[BUFFER_SIZE];
 static char oj_redisqname[BUFFER_SIZE];
+static int turbo_mode = 0;
 
 
 static bool STOP = false;
 static int DEBUG = 0;
 static int ONCE = 0;
+#ifdef _mysql_h
 static MYSQL *conn;
 static MYSQL_RES *res;
 static MYSQL_ROW row;
 //static FILE *fp_log;
 static char query[BUFFER_SIZE];
+#endif
 
 void call_for_exit(int s) {
 	STOP = true;
@@ -187,12 +190,15 @@ void init_mysql_conf() {
                         read_int(buf, "OJ_REDISPORT", &oj_redisport);
                         read_buf(buf, "OJ_REDISAUTH", oj_redisauth);
                         read_buf(buf, "OJ_REDISQNAME", oj_redisqname);
+                        read_int(buf, "OJ_TURBO_MODE", &turbo_mode);
 
 
 		}
+#ifdef _mysql_h
 		sprintf(query,
 				"SELECT solution_id FROM solution WHERE language in (%s) and result<2 and MOD(solution_id,%d)=%d ORDER BY result ASC,solution_id ASC limit %d",
 				oj_lang_set, oj_tot, oj_mod, max_running * 2);
+#endif
 		sleep_tmp = sleep_time;
 		//	fclose(fp);
 	}
@@ -233,6 +239,7 @@ void run_client(int runid, int clientid) {
 
 	//exit(0);
 }
+#ifdef _mysql_h
 int executesql(const char * sql) {
 
 	if (mysql_real_query(conn, sql, strlen(sql))) {
@@ -244,7 +251,9 @@ int executesql(const char * sql) {
 	} else
 		return 0;
 }
+#endif
 
+#ifdef _mysql_h
 int init_mysql() {
 	if (conn == NULL) {
 		conn = mysql_init(NULL);		// init the database connection
@@ -265,6 +274,7 @@ int init_mysql() {
 		return executesql("set names utf8");
 	}
 }
+#endif
 FILE * read_cmd_output(const char * fmt, ...) {
 	char cmd[BUFFER_SIZE];
 
@@ -326,6 +336,7 @@ int _get_jobs_http(int * jobs) {
 		jobs[i++] = 0;
 	return ret;
 }
+#ifdef _mysql_h
 int _get_jobs_mysql(int * jobs) {
 	if (mysql_real_query(conn, query, strlen(query))) {
 		if (DEBUG)
@@ -336,15 +347,21 @@ int _get_jobs_mysql(int * jobs) {
 	res = mysql_store_result(conn);
 	int i = 0;
 	int ret = 0;
-	while ((row = mysql_fetch_row(res)) != NULL) {
+	while (res!=NULL && (row = mysql_fetch_row(res)) != NULL) {
 		jobs[i++] = atoi(row[0]);
 	}
+
+	if(res!=NULL&&!executesql("commit")){
+		mysql_free_result(res);                         // free the memory
+		res=NULL;
+	}                        
+	else i=0;
 	ret = i;
 	while (i <= max_running * 2)
 		jobs[i++] = 0;
 	return ret;
 }
-
+#endif
 int _get_jobs_redis(int * jobs){
         int ret=0;
         const char * cmd="redis-cli -h %s -p %d -a %s --raw rpop %s";
@@ -373,11 +390,16 @@ int get_jobs(int * jobs) {
 		if(oj_redis){
                         return _get_jobs_redis(jobs);
                 }else{
+#ifdef _mysql_h
                         return _get_jobs_mysql(jobs);
+#else
+			return 0;
+#endif
                 }
 	}
 }
 
+#ifdef _mysql_h
 bool _check_out_mysql(int solution_id, int result) {
 	char sql[BUFFER_SIZE];
 	sprintf(sql,
@@ -387,13 +409,14 @@ bool _check_out_mysql(int solution_id, int result) {
 		syslog(LOG_ERR | LOG_DAEMON, "%s", mysql_error(conn));
 		return false;
 	} else {
-		if (mysql_affected_rows(conn) > 0ul)
+		if (conn!=NULL&&mysql_affected_rows(conn) > 0ul)
 			return true;
 		else
 			return false;
 	}
 
 }
+#endif
 
 bool _check_out_http(int solution_id, int result) {
 	login();
@@ -407,11 +430,16 @@ bool _check_out_http(int solution_id, int result) {
 	return ret;
 }
 bool check_out(int solution_id, int result) {
-        if(oj_redis) return true;
+        if(oj_redis||oj_tot>1) return true;
 	if (http_judge) {
 		return _check_out_http(solution_id, result);
-	} else
+	} else{
+#ifdef _mysql_h
 		return _check_out_mysql(solution_id, result);
+#else
+		return 0;
+#endif
+	}
 
 }
 int work() {
@@ -430,8 +458,9 @@ int work() {
 
 	//sleep_time=sleep_tmp;
 	/* get the database info */
-	if (!get_jobs(jobs))
-		retcnt = 0;
+	if (!get_jobs(jobs)){
+		return 0;
+	}
 	/* exec the submit */
 	for (int j = 0; jobs[j] > 0; j++) {
 		runid = jobs[j];
@@ -471,7 +500,7 @@ int work() {
 			}
 		}
 	}
-	while ((tmp_pid = waitpid(-1, NULL, WNOHANG)) > 0) {
+	while ((tmp_pid = waitpid(-1, NULL, 0)) > 0) {
 		for (i = 0; i < max_running; i++){     // get the client id
 			if (ID[i] == tmp_pid){
 			
@@ -484,8 +513,13 @@ int work() {
 		printf("tmp_pid = %d\n", tmp_pid);
 	}
 	if (!http_judge) {
-		mysql_free_result(res);                         // free the memory
+#ifdef _mysql_h
+		if(res!=NULL) {
+			mysql_free_result(res);                         // free the memory
+			res=NULL;
+		}
 		executesql("commit");
+#endif
 	}
 	if (DEBUG && retcnt)
 		write_log("<<%ddone!>>", retcnt);
@@ -560,7 +594,14 @@ int daemon_init(void)
 
 	return (0);
 }
+void turbo_mode2(){
+#ifdef _mysql_h
+			char sql[BUFFER_SIZE];
+			sprintf(sql," CALL `sync_result`();");
+			if (mysql_real_query(conn, sql, strlen(sql)));
+#endif
 
+}
 int main(int argc, char** argv) {
 	DEBUG = (argc > 2);
 	ONCE = (argc > 3);
@@ -584,18 +625,32 @@ int main(int argc, char** argv) {
 //	struct timespec final_sleep;
 //	final_sleep.tv_sec=0;
 //	final_sleep.tv_nsec=500000000;
+#ifdef _mysql_h
 	init_mysql_conf();	// set the database info
+#endif
 	signal(SIGQUIT, call_for_exit);
 	signal(SIGKILL, call_for_exit);
 	signal(SIGTERM, call_for_exit);
 	int j = 1;
+	int n = 0;
 	while (1) {			// start to run
-		while (j && (http_judge || !init_mysql())) {
+		while (j && (http_judge
+#ifdef _mysql_h
+			 || !init_mysql()
+#endif
+		)) {
 
 			j = work();
+			n+=j;
+			if(turbo_mode==2&&(n>max_running*10||j<max_running)){
+				turbo_mode2();
+				n=0;
+			}
+	
 
 			if(ONCE) break;
 		}
+		turbo_mode2();
 		if(ONCE) break;
 		sleep(sleep_time);
 		j = 1;

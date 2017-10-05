@@ -95,12 +95,12 @@ $output->Create() ;
 <p align=left>contest:
 	<select  name=contest_id>
 <?php $sql="SELECT `contest_id`,`title` FROM `contest` WHERE `start_time`>NOW() order by `contest_id`";
-$result=mysqli_query($mysqli,$sql);
+$result=pdo_query($sql);
 echo "<option value=''>none</option>";
-if (mysqli_num_rows($result)==0){
+if (count($result)==0){
 }else{
-	for (;$row=mysqli_fetch_object($result);)
-		echo "<option value='$row->contest_id'>$row->contest_id $row->title</option>";
+	foreach($result as $row)
+		echo "<option value='$row['contest_id']'>$row['contest_id'] $row['title']</option>";
 }
 ?>
 	</select>
@@ -110,5 +110,5 @@ if (mysqli_num_rows($result)==0){
 <input type=submit value=Submit name=submit>
 </div></form>
 <p>
-<?php require_once("../oj-footer.php");?>
+
 </body></html>

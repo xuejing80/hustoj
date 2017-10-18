@@ -331,55 +331,61 @@ def show_homework_result(request, id):
                 {'detail': ChoiceProblem.objects.get(pk=info['id']), 'right': True})
     #获得编程题
     try:
-        problem_ids = list(map(int,homework.problem_ids.split()))
+        problem_ids = list(map(int,homework.problem_ids.split(",")))
     except:
         problem_ids = []
     for pid in problem_ids:
+        result = 0
         try:
             solution = Solution.objects.get(problem_id=pid,homework_answer=homework_answer)
+            result = solution.result
             try:
                 sourceCode = SourceCode.objects.get(solution_id=solution.solution_id).source
             except ObjectDoesNotExist:
                 sourceCode = "代码未找到"
         except:
-            sourceCode = "未提交"
+            sourceCode = "未回答"
         problem = Problem.objects.get(pk=pid)
         problems.append({'code': sourceCode, 'desc': problem.description,
-                         'title': problem.title, 'result': solution.result})
+                         'title': problem.title, 'result': result})
     #获得程序填空题
     try:
-        tiankong_ids = list(map(int,homework.tiankong_problem_ids.split()))
+        tiankong_ids = list(map(int,homework.tiankong_problem_ids.split(",")))
     except:
         tiankong_ids = []
     for pid in tiankong_ids:
+        result = 0
         try:
             solution = Solution.objects.get(problem_id=pid,homework_answer=homework_answer)
+            result = solution.result
             try:
                 sourceCode = SourceCode.objects.get(solution_id=solution.solution_id).source
             except ObjectDoesNotExist:
                 sourceCode = "代码未找到"
         except:
-            sourceCode = "未提交"
+            sourceCode = "未回答"
         problem = Problem.objects.get(pk=pid)
         tiankong_problems.append({'code': sourceCode, 'desc': problem.description,
-                         'title': problem.title, 'result': solution.result})
+                         'title': problem.title, 'result': result})
     #获得程序改错题
     try:
-        gaicuo_ids = list(map(int,homework.gaicuo_problem_ids.split()))
+        gaicuo_ids = list(map(int,homework.gaicuo_problem_ids.split(",")))
     except:
         gaicuo_ids = []
     for pid in gaicuo_ids:
+        result = 0
         try:
             solution = Solution.objects.get(problem_id=pid,homework_answer=homework_answer)
+            result = solution.result
             try:
                 sourceCode = SourceCode.objects.get(solution_id=solution.solution_id).source
             except ObjectDoesNotExist:
                 sourceCode = "代码未找到"
         except:
-            sourceCode = "未提交"
+            sourceCode = "未回答"
         problem = Problem.objects.get(pk=solution.problem_id)
         gaicuo_problems.append({'code': sourceCode, 'desc': problem.description,
-                         'title': problem.title, 'result': solution.result})
+                         'title': problem.title, 'result': result})
 
     context={'choice_problems': choice_problems, 'problem_score': homework_answer.problem_score,
                        'choice_problem_score': homework_answer.choice_problem_score,
@@ -390,7 +396,7 @@ def show_homework_result(request, id):
                        'work_kind': homework.work_kind, 'summary': homework_answer.summary,
                        'teacher_comment': homework_answer.teacher_comment,
                        'title': ' {}的"{}"详细'.format(homework_answer.creator.username, homework.name)}
-    logger.info(str(context))
+    #logger.info(str(context))
     return render(request, 'homework_result.html',context)
 
 def get_choice_score(homework_answer):
@@ -437,13 +443,13 @@ def do_homework(request, homework_id):
                     pass
             homeworkAnswer = HomeworkAnswer(creator=request.user, homework=homework)
         else:
-            try:
-                homeworkAnswer = HomeworkAnswer.objects.get(creator=request.user, homework=homework)
+            homeworkAnswers = HomeworkAnswer.objects.filter(creator=request.user, homework=homework)
+            for homeworkAnswer in homeworkAnswers:
                 for solution in homeworkAnswer.solution_set.all():
                     SourceCode.objects.get(solution_id=solution.solution_id).delete()
                     solution.delete()
                 homeworkAnswer.judged = False
-            except ObjectDoesNotExist:
+            else:
                 homework.finished_students.add(request.user)
                 homeworkAnswer = HomeworkAnswer(creator=request.user, homework=homework)
         homeworkAnswer.save()
@@ -884,16 +890,17 @@ def get_tiankong_score(homework_answer, judged_score=0):
     homework = homework_answer.homework
     solutions = homework_answer.solution_set
     tiankong_problem_info = []
-    for info in json.loads(homework.tiankong_problem_info):
+    if homework.tiankong_problem_info:
         try:
-            solution = solutions.get(problem_id=info['id'])
-            for case in info['testcases']:
-                if solution.result == 11:
-                    break
-                if solution.oi_info is None:
-                    break
-                if json.loads(solution.oi_info)[str(case['desc'])+'.in']['result'] == 4:
-                    score += int(case['score'])
+            for info in json.loads(homework.tiankong_problem_info):
+                solution = solutions.get(problem_id=info['id'])
+                for case in info['testcases']:
+                    if solution.result == 11:
+                        break
+                    if solution.oi_info is None:
+                        break
+                    if json.loads(solution.oi_info)[str(case['desc'])+'.in']['result'] == 4:
+                        score += int(case['score'])
         except Exception as e:
             logger.exception("Exception Logged")
             user = homework_answer.creator;
@@ -905,16 +912,17 @@ def get_gaicuo_score(homework_answer, judged_score=0):
     homework = homework_answer.homework
     solutions = homework_answer.solution_set
     gaicuo_problem_info = []
-    for info in json.loads(homework.gaicuo_problem_info):
+    if homework.gaicuo_problem_info:
         try:
-            solution = solutions.get(problem_id=info['id'])
-            for case in info['testcases']:
-                if solution.result == 11:
-                    break
-                if solution.oi_info is None:
-                    break
-                if json.loads(solution.oi_info)[str(case['desc'])+'.in']['result'] == 4:
-                    score += int(case['score'])
+            for info in json.loads(homework.gaicuo_problem_info):
+                solution = solutions.get(problem_id=info['id'])
+                for case in info['testcases']:
+                    if solution.result == 11:
+                        break
+                    if solution.oi_info is None:
+                        break
+                    if json.loads(solution.oi_info)[str(case['desc'])+'.in']['result'] == 4:
+                        score += int(case['score'])
         except Exception as e:
             logger.exception("Exception Logged")
             user = homework_answer.creator;
@@ -952,8 +960,9 @@ def get_finished_homework(request):
                           'name': student.username}
                 for index, homework in enumerate(homeworks):
                     answers = homework.homeworkanswer_set.all()
-                    answer = answers.get(creator=student) if student in homework.finished_students.all() else None
+                    answer = answers.filter(creator=student) if student in homework.finished_students.all() else None
                     if answer :
+                        answer = answer[0]
                         record['score' + str(count)] = {
                                 'pk': answer.pk,
                                 'score': answer.score,
@@ -1262,7 +1271,13 @@ def test_run(request):
             #cases = get_testCases(problem)
             cases = []
             score = 0
-            infos = json.loads(homework.problem_info)+json.loads(homework.gaicuo_problem_info)+json.loads(homework.tiankong_problem_info)
+            infos = []
+            if homework.problem_info:
+                infos = infos + json.loads(homework.problem_info)
+            if homework.gaicuo_problem_info:
+                infos = infos + json.loads(homework.gaicuo_problem_info)
+            if homework.tiankong_problem_info:
+                infos = infos + json.loads(homework.tiankong_problem_info)
             for info in infos:
                 if info['pk'] == solution.problem_id:
                     for case in info['testcases']:  # 获取题目的测试分数

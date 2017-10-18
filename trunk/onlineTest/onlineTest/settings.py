@@ -44,7 +44,8 @@ INSTALLED_APPS = [
     'auth_system',
     'judge',
     'work',
-    'faq'
+    'faq',
+    'weixin'
 ]
 
 MIDDLEWARE_CLASSES = [

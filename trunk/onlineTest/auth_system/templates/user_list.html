@@ -1,10 +1,11 @@
 {% extends 'base.html' %}
 {% block extrahead %}
-    <script src="//cdn.bootcss.com/bootstrap-table/1.11.0/bootstrap-table.min.js"></script>
-    <link href="//cdn.bootcss.com/bootstrap-table/1.11.0/bootstrap-table.min.css" rel="stylesheet">
-    <script src="//cdn.bootcss.com/bootstrap-table/1.11.0/locale/bootstrap-table-zh-CN.min.js"></script>
-    <script src="//cdn.bootcss.com/bootstrap-table/1.11.0/extensions/export/bootstrap-table-export.min.js"></script>
-    <script src="//rawgit.com/hhurz/tableExport.jquery.plugin/master/tableExport.js"></script>
+    {% load static %}
+    <link href="{% static 'assets/css/bootstrap-table.min.css' %}" rel="stylesheet">
+    <script src="{% static 'assets/js/bootstrap-table.min.js' %}"></script>
+    <script src="{% static 'assets/js/bootstrap-table-zh-CN.min.js' %}"></script>
+    <script src="{% static 'assets/js/bootstrap-table-export.min.js' %}"></script>
+    <script src="{% static 'assets/js/tableExport.js' %}"></script>
 {% endblock %}
 {% block content %}
     <table id="table"

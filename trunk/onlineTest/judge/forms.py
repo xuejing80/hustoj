@@ -291,7 +291,6 @@ class TiankongProblemAddForm(forms.Form):
                 memory_limit=memory_limit,
                 input=input,
                 output=output,
-                program=program,
                 sample_input=sample_input1,
                 sample_output=sample_output1,
                 sample_input2=sample_input2,

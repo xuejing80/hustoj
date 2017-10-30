@@ -2,7 +2,7 @@ sudo apt-get install make  g++ clang libmysql++-dev apache2 mysql-server mono-gm
 
 sudo cp -r onlineTest.conf /etc/apache2/sites-available
 
-sudo pip3 install django==1.9.9
+sudo pip3 install django==1.9.13
 sudo pip3 install pymysql
 
 cd /var/www/html/onlineTest
@@ -14,5 +14,7 @@ sudo python3 manage.py createsuperuser
 sudo a2ensite onlineTest
 sudo a2dissite 000-default.conf
 sudo service apache2 restart
+
+sudo rm /home/judge/log/*
 sudo pkill -9 judged
 sudo judged

@@ -444,11 +444,12 @@ def do_homework(request, homework_id):
             homeworkAnswer = HomeworkAnswer(creator=request.user, homework=homework)
         else:
             homeworkAnswers = HomeworkAnswer.objects.filter(creator=request.user, homework=homework)
-            for homeworkAnswer in homeworkAnswers:
-                for solution in homeworkAnswer.solution_set.all():
-                    SourceCode.objects.get(solution_id=solution.solution_id).delete()
-                    solution.delete()
-                homeworkAnswer.judged = False
+            if homeworkAnswers:
+                for homeworkAnswer in homeworkAnswers:
+                    for solution in homeworkAnswer.solution_set.all():
+                        SourceCode.objects.get(solution_id=solution.solution_id).delete()
+                        solution.delete()
+                    homeworkAnswer.judged = False
             else:
                 homework.finished_students.add(request.user)
                 homeworkAnswer = HomeworkAnswer(creator=request.user, homework=homework)
@@ -575,7 +576,7 @@ def add_banji(request):
     return render(request, 'banji_add.html', context={'classnames': ClassName.objects.all(), 'title': "新建班级"})
 
 
-@permission_required('work.add_classname')
+@permission_required('judge.add_classname')
 def add_courser(request):
     """
     新建课程
@@ -960,7 +961,7 @@ def get_finished_homework(request):
                           'name': student.username}
                 for index, homework in enumerate(homeworks):
                     answers = homework.homeworkanswer_set.all()
-                    answer = answers.filter(creator=student) if student in homework.finished_students.all() else None
+                    answer = answers.filter(creator=student).order_by('-create_time') if student in homework.finished_students.all() else None
                     if answer :
                         answer = answer[0]
                         record['score' + str(count)] = {
@@ -1093,7 +1094,7 @@ def get_finished_students(request):
     return JsonResponse(json_data)
 
 
-@permission_required('work.add_classname')
+@permission_required('judge.add_classname')
 def list_coursers(request):
     """
     列出课程
@@ -1102,21 +1103,21 @@ def list_coursers(request):
     return render(request, 'courser_list.html', {'coursers': coursers, 'title': '课程列表', 'position': 'courser_manage'})
 
 
-@permission_required('work.add_knowledgepoint1')
+@permission_required('judge.add_knowledgepoint1')
 def list_kp1s(request, id):
     courser = ClassName.objects.get(id=id)
     kp1s = KnowledgePoint1.objects.filter(classname=courser)
     return render(request, 'kp1_list.html', {'kp1s': kp1s, 'title': '查看课程“%s”的一级知识点' % courser.name, 'id': id})
 
 
-@permission_required('work.add_knowledgepoint2')
+@permission_required('judge.add_knowledgepoint2')
 def list_kp2s(request, id):
     kp1 = KnowledgePoint1.objects.get(id=id)
     kp2s = KnowledgePoint2.objects.filter(upperPoint=kp1)
     return render(request, 'kp2s_list.html', context={'kp2s': kp2s, 'id': id, 'title': '查看一级知识点"%s”下的二级知识点' % kp1.name})
 
 
-@permission_required('work.delete_classname')
+@permission_required('judge.delete_classname')
 def delete_courser(request):
     try:
         ClassName.objects.get(id=request.POST['id']).delete()
@@ -1125,7 +1126,7 @@ def delete_courser(request):
         return HttpResponse(0)
 
 
-@permission_required('work.delete_knowledgepoint1')
+@permission_required('judge.delete_knowledgepoint1')
 def delete_kp1(request):
     try:
         KnowledgePoint1.objects.get(id=request.POST['id']).delete()
@@ -1133,7 +1134,7 @@ def delete_kp1(request):
     except:
         return HttpResponse(0)
 
-@permission_required('work.delete_knowledgepoint2')
+@permission_required('judge.delete_knowledgepoint2')
 def delete_kp2(request):
     try:
         KnowledgePoint2.objects.get(id=request.POST['id']).delete()
@@ -1142,14 +1143,14 @@ def delete_kp2(request):
         return HttpResponse(0)
 
 
-@permission_required('work.add_knowledgepoint1')
+@permission_required('judge.add_knowledgepoint1')
 def add_kp1(request):
     kp1 = KnowledgePoint1(name=request.POST['name'], classname_id=request.POST['id'])
     kp1.save()
     return HttpResponse(1)
 
 
-@permission_required('work.add_knowledgepoint2')
+@permission_required('judge.add_knowledgepoint2')
 def add_kp2(request):
     kp2 = KnowledgePoint2(name=request.POST['name'], upperPoint_id=request.POST['id'])
     kp2.save()

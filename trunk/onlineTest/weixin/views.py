@@ -24,7 +24,7 @@ def index(request):
             nonce = request.GET.get("nonce", None)
             echostr = request.GET.get("echostr", None)
             logger.error("signature:{},timestamp:{},nonce:{},echostr:{}".format(signature,timestamp,nonce,echostr))
-            token = settings.SECRET_KEY.lower()
+            token = settings.SECRET_KEY
 
             list = [token, timestamp, nonce]
             list.sort()

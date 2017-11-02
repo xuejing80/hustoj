@@ -1,6 +1,6 @@
 # encoding: utf-8
 import json
-import time
+import datetime,time
 import _thread
 from django.contrib.auth.models import Group
 from django.core.exceptions import ObjectDoesNotExist
@@ -64,7 +64,8 @@ def add_homework(request):
                             allowed_languages=','.join(request.POST.getlist('languages')),
                             total_score=request.POST['total_score'],
                             creater=request.user,
-                            work_kind=request.POST['work_kind'])
+                            work_kind=request.POST['work_kind'],
+                            allow_resubmit = True if request.POST['allow_resubmit'] == '1' else False,)
         homework.save()
         return redirect(reverse("homework_detail", args=[homework.pk]))
     classnames = ClassName.objects.all()
@@ -247,16 +248,16 @@ def update_public_homework(request, pk):
         homework.total_score=request.POST['total_score']
         homework.creater=request.user
         homework.work_kind=request.POST['work_kind']
+        homework.allow_resubmit = True if request.POST['allow_resubmit'] == '1' else False
         homework.save()
         return redirect(reverse("homework_detail", args=[homework.pk]))
     else:
         context = {'languages': homework.allowed_languages, 'classnames': ClassName.objects.all(),
                    'name': homework.name,  'courser_id': homework.courser.id,
-                  
                    'start_time': homework.start_time,
-                  
                    'end_time': homework.end_time, 'title': '修改公共作业" ' + homework.name + '"',
-                   'work_kind': homework.work_kind}
+                   'work_kind': homework.work_kind,
+                   'allow_resubmit': '1' if homework.allow_resubmit else '0',}
     return render(request, 'homework_add.html', context=context)
 
 def update_my_homework(request, pk):
@@ -305,14 +306,18 @@ def show_homework_result(request, id):
     :param id: 作业答案逐渐值
     :return: 作业结果详细页面
     """
-    homework_answer = HomeworkAnswer.objects.get(pk=id)
+    try:
+        homework_answer = HomeworkAnswer.objects.get(pk=id)
+    except ObjectDoesNotExist:
+        logger.exception("Exception Logged")
+        logger.error("获取作业结果失败{{homework_id:{}}}".format(id))
+        return render(request, 'warning.html', context={'info': '获取作业结果失败，指定的作业id不存在！'})
+
     if request.user != homework_answer.creator and homework_answer.homework.creater != request.user and (
             not request.user.is_superuser):  # 检测用户是否有权查看
-        return render(request, 'warning.html', context={
-            'info': '您无权查看其他同学的作业结果'})
+        return render(request, 'warning.html', context={'info': '您无权查看其他同学的作业结果'})
     if not homework_answer.judged:  # 如果作业还未批改完成
-        return render(request, 'information.html', context={
-            'info': '作业正在批改,请稍后刷新查看或到已完成作业列表中查看'})
+        return render(request, 'information.html', context={'info': '作业正在批改,请稍后刷新查看或到已完成作业列表中查看'})
     # 作业批改完成而且用户有权查看时
     wrong_id = homework_answer.wrong_choice_problems.split(',')  # todo 应该该讲两个字段合并
     wrong_info = homework_answer.wrong_choice_problems_info.split(',')
@@ -678,7 +683,8 @@ def copy_to_my_homework(request):
         for pk in ids:
             old_homework = HomeWork.objects.get(pk=pk)
             homework = MyHomework(name=old_homework.name, courser=old_homework.courser, creater=request.user,
-                                  start_time=old_homework.start_time, end_time=old_homework.end_time,
+                                  start_time=time.strftime("%Y-%m-%d %H:%M"), 
+                                  end_time=(datetime.datetime.now()+datetime.timedelta(days=14)).strftime("%Y-%m-%d %H:%M"),
                                   problem_ids=old_homework.problem_ids,
                                   choice_problem_ids=old_homework.choice_problem_ids,
                                   problem_info=old_homework.problem_info,
@@ -689,6 +695,7 @@ def copy_to_my_homework(request):
                                   tiankong_problem_info=old_homework.tiankong_problem_info,
                                   gaicuo_problem_info=old_homework.gaicuo_problem_info,
                                   allowed_languages=old_homework.allowed_languages,
+                                  allow_resubmit=old_homework.allow_resubmit,
                                   total_score=old_homework.total_score)  # todo 有更好的方法
             homework.save()
     except:
@@ -1041,6 +1048,8 @@ def get_finished_homework_workInformation(request):
             record.append(no_answer)
             record.append(homework.name)
             record.append(homework.total_score)
+            record.append(homework.start_time.strftime('%Y-%m-%d %H:%M:%S'))
+            record.append(homework.end_time.strftime('%Y-%m-%d %H:%M:%S')) 
             if homework.work_kind == '实验':
                 json_data['实验'][str(i)] = record
                 i = i + 1

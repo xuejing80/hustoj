@@ -40,6 +40,7 @@ class HomeWork(models.Model):
     allowed_languages = models.CharField(max_length=50)
     work_kind = models.CharField(max_length=20,verbose_name="作业类型",default='作业')
     total_score = models.IntegerField()
+    allow_resubmit = models.BooleanField(default=True, verbose_name='是否允许重复提交作业>？')
 
     def __str__(self):
         return str(self.id)
@@ -67,7 +68,7 @@ class MyHomework(models.Model):
     allowed_languages = models.CharField(max_length=50)
     banji = models.ManyToManyField(BanJi)
     finished_students = models.ManyToManyField(MyUser, related_name='finished_students', blank=True)
-    allow_resubmit = models.BooleanField(default=False, verbose_name='是否允许重复提交作业？')
+    allow_resubmit = models.BooleanField(default=True, verbose_name='是否允许重复提交作业？')
     work_kind = models.CharField(max_length=20,verbose_name="作业类型",default='作业')
     total_score = models.IntegerField()
 

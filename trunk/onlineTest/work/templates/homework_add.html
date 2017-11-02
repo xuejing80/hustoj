@@ -548,6 +548,7 @@
                 todayBtn: true,
                 minuteStep: 30,
             });
+            $('#start_time').val(moment().format('YYYY-MM-DD HH:mm'));
             $('#datetimepicker2').datetimepicker({
                 format: 'yyyy-mm-dd hh:ii',
                 viewSelect: 'hour',
@@ -555,6 +556,7 @@
                 todayBtn: true,
                 minuteStep: 30,
             });
+            $('#end_time').val(moment().add(28, 'days').format('YYYY-MM-DD HH:mm'));
         });
         function actionFormatter(value, row, index) {
             return [
@@ -897,7 +899,6 @@
                             }
                         }, 0
                 );
-
             }
         });
 

@@ -130,7 +130,7 @@
       <label for="teacher_comment"><h3>教师评语</h3></label>
       <textarea name="teacher_comment" rows="6" class="form-control">{% if teacher_comment %}{{teacher_comment}}{% endif %}</textarea>
       <label for="teacher_comment"><h3>重新评分</h3></label><br>
-      <input type="text" id="change" name="change" placeholder="当前分数：{{ score }}" onkeyup="this.value=this.value.replace(/\D/g,'')" onafterpaste="this.value=this.value.replace(/\D/g,'')"><hr>
+      <input type="text" id="change" name="change" class="form-control" placeholder="当前分数：{{ score }}" onkeyup="this.value=this.value.replace(/\D/g,'')" onafterpaste="this.value=this.value.replace(/\D/g,'')"><br>
       <button type="button" id="comment" class="btn btn-info">提交教师意见</button>
     </div>
     {% else %}

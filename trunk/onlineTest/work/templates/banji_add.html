@@ -70,6 +70,7 @@
                     }
             );
         });
+        $('#start_time').val(moment().format('YYYY-MM-DD HH:mm'));
         $(function () {
             $('#datetimepicker2').datetimepicker(
                     {
@@ -79,9 +80,9 @@
                         todayBtn: true,
                         minuteStep: 30,
                     }
-            )
-            ;
+            );
         });
+        $('#end_time').val(moment().add(140, 'days').format('YYYY-MM-DD HH:mm'));
     </script>
     <script>
         if (window.location.pathname.indexOf('add_banji') == -1) {

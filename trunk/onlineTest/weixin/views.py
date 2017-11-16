@@ -23,14 +23,12 @@ def index(request):
             timestamp = request.GET.get("timestamp", None)
             nonce = request.GET.get("nonce", None)
             echostr = request.GET.get("echostr", None)
-            logger.error("signature:{},timestamp:{},nonce:{},echostr:{}".format(signature,timestamp,nonce,echostr))
             token = settings.SECRET_KEY
 
             list = [token, timestamp, nonce]
             list.sort()
             tmp_str = "%s%s%s" % tuple(list)
             hashcode = hashlib.sha1(tmp_str.encode('utf-8')).hexdigest()
-            logger.error("hashcode:{}".format(hashcode))
 
             if hashcode == signature:
                 return HttpResponse(echostr)

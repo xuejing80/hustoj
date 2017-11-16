@@ -6,6 +6,7 @@ def myFilter(value):
     tempstr = value
     tempstr = tempstr.replace("<","&lt;")
     tempstr = tempstr.replace(">","&gt;")
+    tempstr = tempstr.replace(" ","&nbsp;")
     tempstr = tempstr.replace("&lt;sup&gt;","<sup>")
     tempstr = tempstr.replace("&lt;/sup&gt;","</sup>")
     tempstr = tempstr.replace("&lt;sub&gt;","<sub>")

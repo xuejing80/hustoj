@@ -22,6 +22,9 @@ from django.views.generic.detail import DetailView
 from judge.forms import ProblemAddForm, ChoiceAddForm,TiankongProblemAddForm,GaicuoProblemAddForm
 from .models import KnowledgePoint1, ClassName, ChoiceProblem, Problem
 
+import logging
+logger = logging.getLogger('django.request')
+
 BUFSIZE = 4096
 BOMLEN = len(codecs.BOM_UTF8)
 
@@ -439,11 +442,11 @@ def get_json(request, model_name):
     elif pro_type == "选择" :
    	 problems = model.objects.all()
     
-    if knowledgePoint2 != '0':
+    if knowledgePoint2 != '0' and knowledgePoint2 != '':
         problems = problems.filter(knowledgePoint2__id=knowledgePoint2)
-    elif knowledgePoint1 != '0':
+    elif knowledgePoint1 != '0' and knowledgePoint1 != '':
         problems = problems.filter(knowledgePoint1__id=knowledgePoint1)
-    elif classname != '0':
+    elif classname != '0' and classname != '':
         problems = problems.filter(classname__id=classname)
 
     try:
@@ -546,16 +549,21 @@ def verify_file(request):
     :param request: 上传文件请求
     :return: 以json格式返回文件验证信息
     """
-    file = request.FILES['file_upload']
-    count = in_count = out_count = 0
-    random_name = ''.join(random.sample(string.digits + string.ascii_letters * 10, 8))  # 生成随机字符串作为文件名保存文件，防止相同文件名冲突
-    tempdir = os.path.join('/tmp', random_name)
-    os.mkdir(tempdir)
-    filename = os.path.join(tempdir, file.name)
-    with open(filename, 'wb+') as destination:
-        for chunk in file.chunks():
-            destination.write(chunk)
-    un_zip(filename)
+    try:
+        file = request.FILES['file_upload']
+        count = in_count = out_count = 0
+        random_name = ''.join(random.sample(string.digits + string.ascii_letters * 10, 8))  # 生成随机字符串作为文件名保存文件，防止相同文件名冲突
+        tempdir = os.path.join('/tmp', random_name)
+        os.mkdir(tempdir)
+        filename = os.path.join(tempdir, file.name)
+        with open(filename, 'wb+') as destination:
+            for chunk in file.chunks():
+                destination.write(chunk)
+        un_zip(filename)
+    except Exception as e:
+        logger.exception("保存测试用例失败：用户信息：{}({}:{})，POST数据：{}".format(request.user.username,request.user.pk,request.user.id_num,request.POST.dict()))
+        return HttpResponse(
+            json.dumps({'result': 0, 'info': '上传测试用例文件时遇到错误，请稍后再试，或联系管理员老师'}))
 
     r3 = re.compile('\d+ \d+ #.*#')
     r2 = re.compile('^\d+ \d+$')

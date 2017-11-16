@@ -170,7 +170,7 @@
                     </ul>
                 </li>
                 {% if user.is_superuser %}
-                    <li><a href="/test/admin"><i class="fa fa-key" aria-hidden="true"></i>
+                    <li><a href="{% url 'admin:index' %}" target="_blank"><i class="fa fa-key" aria-hidden="true"></i>
                     <span>系统管理</span></a></li>
                 {% endif %}
 
@@ -200,7 +200,7 @@
             </div>
 
         </section>
-        <! --/wrapper -->
+        <!--/wrapper -->
     </section><!-- /MAIN CONTENT -->
 
     <!--main content end-->

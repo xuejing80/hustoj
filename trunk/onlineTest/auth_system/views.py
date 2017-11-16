@@ -2,6 +2,7 @@
 from django.contrib.auth.models import Group, AbstractUser
 from django.shortcuts import render, redirect
 from django.core.urlresolvers import reverse
+from django.views.decorators.csrf import csrf_exempt
 from django.utils.datastructures import MultiValueDictKeyError
 from django.views.generic import View
 from django.core.mail import send_mail
@@ -52,6 +53,7 @@ class UserControl(View):
         errors = []
         email = request.POST.get("email", "")
         password = request.POST.get("password", "")
+        next = request.POST.get("next", "")
         if re.match("^.+\\@(\\[?)[a-zA-Z0-9\\-\\.]+\\.([a-zA-Z]{2,3}|[0-9]{1,3})(\\]?)$", email) is not None:
             user = auth.authenticate(username=email, password=password)
         elif email:
@@ -275,4 +277,7 @@ def reset_user(request, pk):
     user.set_password(user.id_num)
     user.save()
     return redirect(reverse('user_list'))
-    
+
+@csrf_exempt
+def page_not_found(request):
+    return render(request, 'warning.html', context={'info': '您访问的页面地址不存在！'})

@@ -18,11 +18,12 @@ from django.contrib import admin
 from django.views.generic import TemplateView
 from judge.views import get_json
 from django.views.generic.base import RedirectView
+from auth_system.views import page_not_found
 
 favicon_view = RedirectView.as_view(url='/static/favicon.ico', permanent=True)
 
 urlpatterns = [
-    url(r'^admin/', admin.site.urls, name='adminView'),
+    url(r'^adm/', admin.site.urls, name='adminView'),
     url(r'^index/', TemplateView.as_view(template_name='index.html'), name='index'),
     url(r'^accounts/', include('auth_system.urls')),
     url(r'^judge/', include('judge.urls')),
@@ -33,3 +34,5 @@ urlpatterns = [
     url(r'^favicon\.ico$',favicon_view),
     url(r'^$', TemplateView.as_view(template_name="index.html")),
 ]
+
+handler404 = page_not_found

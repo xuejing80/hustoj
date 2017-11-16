@@ -22,6 +22,7 @@ from django.contrib.auth.decorators import permission_required, login_required
 from django.conf import settings
 import logging
 logger = logging.getLogger('django')
+logger_request = logging.getLogger('django.request')
 
 """
 有关hustoj的一些记录
@@ -217,8 +218,7 @@ def ajax_for_homework_info(request):
                   'tiankong_problem_info': json.loads(tiankong_info),
                   'gaicuo_problem_info': json.loads(gaicuo_info)}
     except:
-        logger.exception("Exception Logged")
-        logger.info("执行动作：请求作业信息，用户信息：{}({}:{})，POST数据：{}".format(request.user.username,request.user.pk,request.user.id_num,request.POST.dict()))
+        logger_request.exception("执行动作：请求作业信息，用户信息：{}({}:{})，POST数据：{}".format(request.user.username,request.user.pk,request.user.id_num,request.POST.dict()))
     return JsonResponse(result)
 
 
@@ -246,7 +246,6 @@ def update_public_homework(request, pk):
         homework.end_time=request.POST['end_time']
         homework.allowed_languages=','.join(request.POST.getlist('languages'))
         homework.total_score=request.POST['total_score']
-        homework.creater=request.user
         homework.work_kind=request.POST['work_kind']
         homework.allow_resubmit = True if request.POST['allow_resubmit'] == '1' else False
         homework.save()
@@ -299,19 +298,14 @@ def update_my_homework(request, pk):
     return render(request, 'homework_add.html', context=context)  # 查看作业结果
 
 @login_required()
-def show_homework_result(request, id):
+def show_homework_result(request, id=0):
     """
     显示作业结果
     :param request: 请求
     :param id: 作业答案逐渐值
     :return: 作业结果详细页面
     """
-    try:
-        homework_answer = HomeworkAnswer.objects.get(pk=id)
-    except ObjectDoesNotExist:
-        logger.exception("Exception Logged")
-        logger.error("获取作业结果失败{{homework_id:{}}}".format(id))
-        return render(request, 'warning.html', context={'info': '获取作业结果失败，指定的作业id不存在！'})
+    homework_answer = get_object_or_404(HomeworkAnswer, pk=id)
 
     if request.user != homework_answer.creator and homework_answer.homework.creater != request.user and (
             not request.user.is_superuser):  # 检测用户是否有权查看
@@ -420,7 +414,7 @@ def get_choice_score(homework_answer):
 
 # 显示作业并处理作业答案
 @login_required()
-def do_homework(request, homework_id):
+def do_homework(request, homework_id=0):
     """
     做题
     :param request: 请求
@@ -885,10 +879,9 @@ def get_problem_score(homework_answer, judged_score=0):
                     break
                 if json.loads(solution.oi_info)[str(case['desc']) + '.in']['result'] == 4:  # 参照测试点，依次加测试点分数
                     score += int(case['score'])
-        except Exception as e:
-            logger.exception("Exception Logged")
+        except ObjectDoesNotExist:
             user = homework_answer.creator;
-            logger.error("获取编程题得分失败{{homework_id:{},answer_id:{},user:{}({},{})}}".format(homework.pk,homework_answer.pk,user.username,user.id_num,user.email))
+            logger_request.exception("获取编程题得分失败{{homework_id:{},answer_id:{},problem_id:{},user:{}({},{})}}".format(homework.pk,homework_answer.pk,info['id'],user.username,user.id_num,user.email))
             #print("error on get problem score！homework_id: %d ,error : %s args: %s" % (
             #    homework.pk, e, e.args.__str__()))
     return score
@@ -899,8 +892,8 @@ def get_tiankong_score(homework_answer, judged_score=0):
     solutions = homework_answer.solution_set
     tiankong_problem_info = []
     if homework.tiankong_problem_info:
-        try:
-            for info in json.loads(homework.tiankong_problem_info):
+        for info in json.loads(homework.tiankong_problem_info):
+            try:
                 solution = solutions.get(problem_id=info['id'])
                 for case in info['testcases']:
                     if solution.result == 11:
@@ -909,10 +902,9 @@ def get_tiankong_score(homework_answer, judged_score=0):
                         break
                     if json.loads(solution.oi_info)[str(case['desc'])+'.in']['result'] == 4:
                         score += int(case['score'])
-        except Exception as e:
-            logger.exception("Exception Logged")
-            user = homework_answer.creator;
-            logger.error("获取程序填空题得分失败{{homework_id:{},answer_id:{},user:{}({},{})}}".format(homework.pk,homework_answer.pk,user.username,user.id_num,user.email))
+            except ObjectDoesNotExist:
+                user = homework_answer.creator;
+                logger_request.exception("获取程序填空题得分失败{{homework_id:{},answer_id:{},problem_id:{},user:{}({},{})}}".format(homework.pk,homework_answer.pk,info['id'],user.username,user.id_num,user.email))
     return score
 
 def get_gaicuo_score(homework_answer, judged_score=0):
@@ -931,10 +923,9 @@ def get_gaicuo_score(homework_answer, judged_score=0):
                         break
                     if json.loads(solution.oi_info)[str(case['desc'])+'.in']['result'] == 4:
                         score += int(case['score'])
-        except Exception as e:
-            logger.exception("Exception Logged")
+        except ObjectDoesNotExist:
             user = homework_answer.creator;
-            logger.error("获取程序改错题得分失败{{homework_id:{},answer_id:{},user:{}({},{})}}".format(homework.pk,homework_answer.pk,user.username,user.id_num,user.email))
+            logger_request.exception("获取程序改错题得分失败{{homework_id:{},answer_id:{},problem_id:{},user:{}({},{})}}".format(homework.pk,homework_answer.pk,info['id'],user.username,user.id_num,user.email))
     return score
 
 @login_required()
@@ -1098,7 +1089,8 @@ def get_finished_students(request):
                   'teacher': 'dd',
                   'score': score
                   }
-        recodes.append(recode)
+        if recode not in recodes:
+            recodes.append(recode)
     json_data['rows'] = recodes
     return JsonResponse(json_data)
 
@@ -1204,8 +1196,9 @@ def judge_homework(homework_answer):
             homework_answer.score = zongfen
             homework_answer.judged = True  # 修改判题标记为已经判过
             homework_answer.save()  # 保存
-            logger.info("执行动作：计算成绩，用户信息：{}({}:{})，总分：{}(选择题：{}，编程题：{}，程序填空题：{}，程序改错题：{})，执行结果：成功".format( \
-                homework_answer.creator.username,homework_answer.creator.pk,homework_answer.creator.id_num,zongfen,choice_problem_score,biancheng_score,tiankong_score,gaicuo_score))
+            logger.info("执行动作：计算成绩，用户信息：{}({}:{})，作业ID：{}，总分：{}(选择题：{}，编程题：{}，程序填空题：{}，程序改错题：{})，执行结果：成功".format( \
+                homework_answer.creator.username,homework_answer.creator.pk,homework_answer.creator.id_num,\
+                homework.homework_id,zongfen,choice_problem_score,biancheng_score,tiankong_score,gaicuo_score))
             break  # 跳出循环
 
 
@@ -1303,7 +1296,7 @@ def test_run(request):
                                 result = 1
                             cases.append(case)
                         except:
-                            logger.exception("Exception Logged")
+                            logger_request.exception("Exception Logged")
             #2017年3月22日，注释以下两句，保留学生做作业的过程
             #SourceCode.objects.get(solution_id=solution.solution_id).delete()
             #solution.delete()
@@ -1358,18 +1351,18 @@ def save_homework_temp(request):
     """
     log = "执行动作：暂存作业，用户信息：{}({}:{})，POST数据：{}".format(request.user.username,request.user.pk,request.user.id_num,request.POST.dict())
     data = request.POST.dict()
-    try:
-        homework = MyHomework.objects.get(id=data['homework_id'])
-        del data['csrfmiddlewaretoken']  # 去除表单中的scrf项
-        del data['homework_id']  # 去除表单中的homework_id项
-        TempHomeworkAnswer.objects.update_or_create(homework=homework, creator=request.user,
+    if data:
+        try:
+            homework = MyHomework.objects.get(id=data['homework_id'])
+            del data['csrfmiddlewaretoken']  # 去除表单中的scrf项
+            del data['homework_id']  # 去除表单中的homework_id项
+            TempHomeworkAnswer.objects.update_or_create(homework=homework, creator=request.user,
                                                 defaults={'data': json.dumps(data)})
-        logger.info(log + "，执行结果：成功")
-    except:
-        logger.exception("Exception Logged")
-        logger.error(log + "，执行结果：失败")
-        return render(request, 'warning.html', context={
-            'info': '对不起，暂存作业失败了，请及时联系管理员：' + settings.CONTACT_INFO})
+            logger.info(log + "，执行结果：成功")
+        except:
+            logger_request.exception(log + "，执行结果：失败")
+            return render(request, 'warning.html', context={
+                'info': '对不起，暂存作业失败了，请及时联系管理员：' + settings.CONTACT_INFO})
     return redirect(reverse('list_do_homework'))
 
 

@@ -46,11 +46,11 @@ urlpatterns = [
     url(r'^get_homework_info', ajax_for_homework_info, name='get_homework_info'),
 
     url(r'^do-homework-list$', list_do_homework, name='list_do_homework'),
-    url(r'^do_homework$', do_homework, name='_do_homework'),
     url(r'^get-do-homework-data', get_my_homework_todo, name='get_my_homework_todo'),
     url(r'^homework-result-$', show_homework_result, name='_show_homework_result'),
-    url(r'^homework-result-$', show_homework_result, name='prefix_homework_result'),
+    #url(r'^homework-result-$', show_homework_result, name='prefix_homework_result'),
     url(r'^homework-result-(?P<id>\d+)', show_homework_result, name='show_homework_result'),
+    url(r'^do_homework$', do_homework, name='_do_homework'),
     url(r'^do_homework(?P<homework_id>\d+)', do_homework, name='do_homework'),
     url(r'^get-init-homework-data',init_homework_data,name='get_init_homework_data'),
     url(r'^test_run', test_run, name='test_run'),

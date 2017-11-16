@@ -187,7 +187,7 @@
             if(value['score']=='无')
                 return '无';
             else
-                return '<a target="_blank" href="{% url 'prefix_homework_result' %}' + value['pk'] + '/" title="查看详情">' + value['score'] + '</a>';
+                return '<a target="_blank" href="{% url '_show_homework_result' %}' + value['pk'] + '/" title="查看详情">' + value['score'] + '</a>';
         }
 
         function get_workImformation(){

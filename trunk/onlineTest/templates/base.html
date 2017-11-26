@@ -62,12 +62,14 @@
                             </li>
                         </ul>
                     </li>
+                    {% if user.is_superuser %}
                     <li class="dropdown">
                         <a data-toggle="dropdown" class="dropdown-toggle" href="index.html#" title="">
                             <i class="fa fa-inbox" aria-hidden="true" ></i>
                         信息 {% comment %} 这里可以通过数字来显示有新消息{%  endcomment %}
                         </a>
                     </li>
+                    {% endif %}
                 {% else %}
                     <li><a href="{% url 'register' %}">注册</a></li>
                     <li><a href="{% url 'login' %}">登录</a></li>
@@ -198,7 +200,7 @@
                     </ul>
                 </li>
                 {% if user.is_superuser %}
-                    <li><a href="/admin"><i class="fa fa-key" aria-hidden="true"></i>
+                    <li><a href="{% url 'admin:index' %}" target="_blank"><i class="fa fa-key" aria-hidden="true"></i>
                     <span>系统管理</span></a></li>
                 {% endif %}
 
@@ -272,11 +274,6 @@
     $(function () {
         var position = "{{ position }}"
         switch (position) {
-            // case 'sheji_list':
-            //     $("#sheji_list").addClass("active");
-            //     $("#code_week_list").addClass("active");
-            //     $("#extend_code_week_list").css('display','block');
-            //     break;
         {% if 'code_week.add_codeweekclass' in perms %}
             case 'code_week_teacher_course_list':
                 $("#code_week_teacher_course_list").addClass("active");
@@ -313,11 +310,6 @@
                 $("#problem_list").addClass('active');
                 $("#extend_problem_list").css('display', 'block')
                 break;
-//            case 'sheji_list':
-//                $("#sheji_list").addClass("active");
-//                $("#problem_list").addClass('active');
-//                $("#extend_problem_list").css('display', 'block')
-//                break;
             case 'index':
                 $("#index").addClass("active");
                 break;

@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+{% comment %}用于老师查看课程详细{% endcomment %}
+{% block content %}
+{% if course %}
+    <p>课程名称: {{ course.name }}</p>
+    <p>开始时间: {{ course.begin_time }}</p>
+    <p>结束时间: {{ course.end_time }}</p>
+    <p>每组最多人数： {{ course.numberEachGroup }}</p>
+    {% if problems %}
+        <p>题目列表：</p>
+        {% for problem in problems %}
+            <p>{{ problem.title }}</p>
+        {% endfor %}
+    {% endif %}
+    {% if students %}
+        <p>学生列表：</p>
+        {% for student in students %}
+            <p>{{ student.id_num }}</p>
+        {% endfor %}
+    {% endif %}
+{% endif %}
+{% endblock %}

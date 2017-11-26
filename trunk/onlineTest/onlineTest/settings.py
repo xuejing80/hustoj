@@ -45,7 +45,8 @@ INSTALLED_APPS = [
     'judge',
     'work',
     'faq',
-    'weixin'
+    'weixin',
+    'code_week'
 ]
 
 MIDDLEWARE_CLASSES = [

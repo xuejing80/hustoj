@@ -1,0 +1,88 @@
+{% extends 'base.html' %}
+{% block extrahead %}
+    {% load static %}
+    <script src="{% static 'assets/js/bootstrap-tagsinput.min.js' %}"></script>
+    <link href="{% static 'assets/css/bootstrap-tagsinput-typeahead.css' %}" rel="stylesheet">
+    <link href="{% static 'assets/css/bootstrap-tagsinput.css' %}" rel="stylesheet">
+    <script src="{% static 'assets/js/jquery.form-validator.min.js' %}"></script>
+    <script src="{% static 'assets/js/kindeditor/kindeditor-all.js' %}"></script>
+    <script src="{% static 'assets/js/kindeditor/lang/zh-CN.js' %}"></script>
+    <link href="{% static 'assets/css/fileinput.min.css' %}" rel="stylesheet">
+    <script src="{% static 'assets/js/file_input/fileinput.min.js' %}"></script>
+    <script src="{% static 'assets/js/file_input/zh.js' %}"></script>
+
+{% endblock %}
+{% block content %}
+    <ol class="breadcrumb">
+        <li><a href="{% url 'index' %}">主页</a></li>
+        <li class="active"><a href="{% url 'sheji_problem_list' %}"></a>程序设计题题库管理</li>
+        <li class="active">{{ title }}</li>
+    </ol>
+    <div class="panel panel-default">
+        <div class="panel-body">
+            <form action="" method="post" enctype="multipart/form-data" onsubmit="return submitTest();"
+                  id="problem-form">{% csrf_token %}
+                <div class="form-group {% if form.title.errors %} has-error {% endif %}">
+                    <label class="control-label"
+                           for="{% if form.title.errors %} inputError1 {% endif %}">{{ form.title.label }}</label>
+                    {% if form.title.errors %}
+                        <span class="text-danger pull-right">{{ form.title.errors }}</span>
+                    {% endif %}
+                    {{ form.title }}
+                    <p class="text-muted">{{ form.title.help_text }}</p>
+                </div>
+                <div class="form-group row">
+                    <div class="form-group {% if form.category.errors %} has-error {% endif %}  col-xs-3 col-md-3">
+                        <label class="control-label"
+                               for="{% if form.category.errors %} inputError1 {% endif %}">{{ form.category.label }}</label>
+                        {% if form.category.errors %}
+                            <span class="text-danger pull-right">{{ form.category.errors }}</span>
+                        {% endif %}
+                        {{ form.category }}
+                        <p class="text-muted">{{ form.category.help_text }}</p>
+                    </div>
+                </div>
+                 <div class="form-group {% if form.editorText.errors %} has-error {% endif %}">
+                    <label class="control-label"
+                           for="{% if form.editorText.errors %} inputError1 {% endif %}">{{ form.editorText.label }}</label>
+                    {% if form.editorText.errors %}
+                        <span class="text-danger pull-right">{{ form.editorText.errors }}</span>
+                    {% endif %}
+                    {{ form.editorText }}
+                </div>
+                <div class="form-group {% if form.headImg.errors %} has-error {% endif %}">
+                <label class="control-label"
+                           for="{% if form.headImg.errors %} inputError1 {% endif %}">{{ form.headImg.label }}</label>
+                {% if form.headImg.errors %}
+                        <span class="text-danger pull-right">{{ form.headImg.errors }}</span>
+                    {% endif %}
+                <br>
+                已经上传的文件：<a href="/code_week/download-{{ problem.problem_id }}">{{ problem.filename }}</a>
+                <br>
+                <style>
+  .fileinput-button {
+      position: relative;
+      display: inline-block;
+      overflow: hidden;
+  }
+  .fileinput-button input {
+      position: absolute;
+      right: 0;
+      top: 0;
+      opacity: 0;
+      -ms-filter: 'alpha(opacity=0)';
+      font-size: 200px;
+      cursor: pointer;
+  }
+  </style>
+                    <span class="btn btn-success fileinput-button">
+                    <span class="glyphicon glyphicon-plus"></span>
+                    <span>选择文件重新上传</span>
+                    <input type="file" name="headImg">
+                </span>
+                    </div>
+                <button type="submit" class="btn btn-success btn-lg">保存题目</button>
+            </form>
+        </div>
+    </div>
+{% endblock %}

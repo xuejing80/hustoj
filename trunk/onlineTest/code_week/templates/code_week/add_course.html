@@ -1,0 +1,146 @@
+{% extends 'base.html' %}
+{% comment %}用于老师添加课程{% endcomment %}
+{% block extrahead %}
+    {% load static %}
+    <script src="{% static 'assets/js/moment/moment.min.js' %}"></script>
+    <script src="{% static 'assets/js/moment/zh-cn.js' %}"></script>
+    <link href="{% static 'assets/css/bootstrap-editable.css' %}" rel="stylesheet">
+    <link href="{% static 'assets/css/bootstrap-datetimepicker.min.css' %}"
+          rel="stylesheet">
+    <script src="{% static 'assets/js/bootstrap-datetimepicker.min.js' %}"></script>
+    <script src="{% static 'assets/js/bootstrap-table.min.js' %}"></script>
+    <link href="{% static 'assets/css/bootstrap-table.min.css' %}" rel="stylesheet">
+    <script src="{% static 'assets/js/bootstrap-table-zh-CN.min.js' %}"></script>
+{% endblock %}
+{% block content %}
+<form id="homework-add-form" method="post" onsubmit="return checkForm()">
+    {% csrf_token %}
+    <div class="form-group">
+        <label for="course_name">班级名称</label>
+        <input type="text" class="form-control" id="course_name" placeholder="请输入班级名称" required="required" name="course_name">
+    </div>
+
+    <div class="row">
+        <div class='col-sm-6'>
+            <div class="form-group">
+                <label for="begin_time">课程开始时间</label>
+                <div class='input-group date' id='datetimepicker1'>
+                    <input type='text' class="form-control" name="begin_time" required="required" id="begin_time"/>
+                    <span class="input-group-addon">
+                    <span class="glyphicon glyphicon-calendar"></span>
+                </span>
+                </div>
+            </div>
+        </div>
+        <div class='col-sm-6'>
+            <div class="form-group">
+                <label for="end_time">课程结束时间</label>
+                <div class='input-group date' id='datetimepicker2'>
+                    <input type='text' class="form-control" name="end_time" required="required" id="end_time"/>
+                    <span class="input-group-addon">
+                    <span class="glyphicon glyphicon-calendar"></span>
+                </span>
+                </div>
+            </div>
+        </div>
+    </div>
+    <p>请选择课程题目</p>
+    <div id="toolbar">
+        <div class="form-inline" role="form">
+            <div class="form-group">
+                <select class="form-control" id="category" name="category">
+                    <option value="0" selected="selected">题目分类</option>
+                    {% for category in categorys %}
+                        <option value="{{ category.pk }}">{{ category.category}}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <button id="ok" type="submit" class="btn btn-default">筛选</button>
+        </div>
+    </div>
+    <table id="table"
+           data-toggle="table"
+           data-url="{% url 'get_json_sheji' %}"
+           data-side-pagination="server"
+           data-pagination="true"
+           data-page-list="[10]"
+           data-classes="table table-hover table-condensed"
+           data-toolbar="#toolbar"
+           data-striped="true"
+           data-query-params="queryParams"
+           data-search="true"
+    >
+        <thead>
+        <tr>
+            <th data-field="state" data-checkbox="true"></th>
+            <th data-field="pk" data-sortable="true">ID</th>
+            <th class="nobr" data-field="title" data-sortable="true">标题</th>
+            <th class="nobr" data-field="category"> 题目分类</th>
+            <th data-field="update_date" data-sortable="true">最后修改日期</th>
+            <th data-field="creator">创建者</th>
+        </tr>
+        </thead>
+    </table>
+    <input type="hidden" name="problems" id="select-problems"/>
+    <p>每组最多人数</p>
+    {{ form.maxnumber }}
+    <h3>批量添加学生账号</h3>
+    <input type="hidden" name="banji_id" id="banji_id" value="{{ id }}">
+    <p><textarea name="students" id="students_info" class="form-control" rows="10"
+                 placeholder="学生账号信息格式为：一行一个学生，每行的前两个字段是学号和真实姓名，初始密码同用户名，初始邮箱为南邮邮箱，字段之间用空格分隔"></textarea>
+    <button class="btn btn-success btn-lg">保存</button>
+</form>
+<script type="text/javascript">
+    $(function () {
+        $('#datetimepicker1').datetimepicker(
+                {
+                    format: 'yyyy-mm-dd hh:ii',
+                    sideBySide: true,
+                    defaultDate: moment()
+                }
+        );
+    });
+    $(function () {
+        $('#datetimepicker2').datetimepicker(
+                {
+                    format: 'yyyy-mm-dd hh:ii', sideBySide: true,
+                    defaultDate: moment()
+                }
+        )
+        ;
+    });
+    function checkForm() {
+        var ids = $.map($table.bootstrapTable('getSelections'), function (row) {
+            return row.id;
+        });
+        $('#select-problems').val(ids);
+        console.log(ids);
+        var begin_time = $('#datetimepicker1').find("input").val();
+        var end_time = $('#datetimepicker2').find("input").val();
+        if (begin_time >= end_time) {
+            alert("课程结束时间在开始时间之前");
+            console.log(begin_time);
+            console.log(end_time);
+            return false;
+        }
+        return true;
+    }
+    $.ajaxSetup({
+            data: {csrfmiddlewaretoken: '{{ csrf_token }}'}
+        });
+        var $table = $('#table');
+        $ok = $('#ok');
+        $(function () {
+            $ok.click(function () {
+                $table.bootstrapTable('refresh');
+            });
+        });
+        function queryParams(params) {
+            $('#toolbar').find('select[name]').each(function () {
+                params[$(this).attr('name')] = $(this).val();
+            });
+            return params;
+        }
+
+</script>
+{% endblock %}

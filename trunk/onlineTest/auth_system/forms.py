@@ -181,10 +181,11 @@ class PasswordChangeForm(forms.Form):
         return self.user
 
     error_messages = {
-        'all_number': "密码不能全部是数字",
-        'unsuitable_length': "密码长度应该在8到16位",
-        'password_mismatch': u"两次密码不相同.",
-        'password_incorrect': '原密码不正确'
+        'the_same': u"新密码不能与原密码相同",
+        'all_number': u"密码不能全部是数字",
+        'unsuitable_length': u"密码长度应该在8到16位",
+        'password_mismatch': u"两次密码不相同",
+        'password_incorrect': u"原密码不正确"
     }
     old_password = forms.CharField(
         strip=False,
@@ -230,4 +231,29 @@ class PasswordChangeForm(forms.Form):
             raise forms.ValidationError(
                 self.error_messages["password_mismatch"]
             )
+        old_password = self.cleaned_data["old_password"]
+        if password1 == old_password:
+            raise forms.ValidationError(
+                self.error_messages["the_same"]
+            )
         return password2
+
+class EmailChangeForm(forms.ModelForm):
+    error_messages = {  'duplicate_email': u'已经存在.'}
+    email=forms.EmailField(error_messages={
+        'invalid': "格式错误",
+        'required': '未填'})
+    class Meta:
+        model = MyUser
+        fields=('email',)
+
+    def clean_email(self):
+        email = self.cleaned_data["email"]
+        # 判断是这个email 用户是否存在
+        try:
+            MyUser._default_manager.get(email=email)
+        except MyUser.DoesNotExist:
+            return email
+        raise forms.ValidationError(self.error_messages["duplicate_email"])
+
+

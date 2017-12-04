@@ -1,13 +1,11 @@
 # encoding: utf-8
-import json
-import datetime,time
+import os, shutil, zipfile, string, json, datetime, time
 import _thread
 from django.contrib.auth.models import Group
 from django.core.exceptions import ObjectDoesNotExist
 
 from django.core.urlresolvers import reverse
-from django.http import HttpResponse
-from django.http import JsonResponse
+from django.http import HttpResponse, StreamingHttpResponse, JsonResponse
 from django.shortcuts import render, get_object_or_404, redirect
 from django.utils.datastructures import MultiValueDictKeyError
 from django.views.decorators.csrf import csrf_exempt
@@ -18,7 +16,6 @@ from judge.models import ClassName, Problem, ChoiceProblem, Solution, SourceCode
 from judge.views import get_testCases
 from work.models import HomeWork, HomeworkAnswer, BanJi, MyHomework, TempHomeworkAnswer
 from django.contrib.auth.decorators import permission_required, login_required
-
 from django.conf import settings
 import logging
 logger = logging.getLogger('django')
@@ -693,6 +690,7 @@ def copy_to_my_homework(request):
                                   total_score=old_homework.total_score)  # todo 有更好的方法
             homework.save()
     except:
+        logger_request.exception("Exception Logged")
         return HttpResponse(0)
     return HttpResponse(1)
 
@@ -710,7 +708,7 @@ def show_banji(request, pk):
     """
     :return:a list like [{"name":"mike","grades":[100,200,300,400]},{...},...],score is sorted by homework's start time
     """
-    banji = BanJi.objects.get(pk=pk)
+    banji = get_object_or_404(BanJi, pk=pk)
     students_scores = []
     students = banji.students.all()
     homeworks = banji.myhomework_set.all().order_by('start_time')
@@ -789,9 +787,14 @@ def get_my_homework_todo(request):
     limit = int(request.GET['limit'])
     banji = request.GET['banji']
     count = 0
-    homeworks = MyHomework.objects.filter(banji__students=user)
-    if banji != '0':
-        homeworks = homeworks.filter(banji__id=banji)
+    #homeworks = MyHomework.objects.filter(banji__students=user)
+
+    if banji != '0' and banji != '':
+        homeworks = MyHomework.objects.filter(banji__id=banji)
+    else:
+        banji = BanJi.objects.filter(students=user,end_time__gte=datetime.datetime.now())
+        homeworks = MyHomework.objects.filter(banji__id__in=banji)
+
     try:
         homeworks = homeworks.filter(name__icontains=request.GET['search'])
     except:
@@ -1106,14 +1109,14 @@ def list_coursers(request):
 
 @permission_required('judge.add_knowledgepoint1')
 def list_kp1s(request, id):
-    courser = ClassName.objects.get(id=id)
+    courser = get_object_or_404(ClassName, id=id)
     kp1s = KnowledgePoint1.objects.filter(classname=courser)
     return render(request, 'kp1_list.html', {'kp1s': kp1s, 'title': '查看课程“%s”的一级知识点' % courser.name, 'id': id})
 
 
 @permission_required('judge.add_knowledgepoint2')
 def list_kp2s(request, id):
-    kp1 = KnowledgePoint1.objects.get(id=id)
+    kp1 = get_object_or_404(KnowledgePoint1, id=id)
     kp2s = KnowledgePoint2.objects.filter(upperPoint=kp1)
     return render(request, 'kp2s_list.html', context={'kp2s': kp2s, 'id': id, 'title': '查看一级知识点"%s”下的二级知识点' % kp1.name})
 
@@ -1198,7 +1201,7 @@ def judge_homework(homework_answer):
             homework_answer.save()  # 保存
             logger.info("执行动作：计算成绩，用户信息：{}({}:{})，作业ID：{}，总分：{}(选择题：{}，编程题：{}，程序填空题：{}，程序改错题：{})，执行结果：成功".format( \
                 homework_answer.creator.username,homework_answer.creator.pk,homework_answer.creator.id_num,\
-                homework.homework_id,zongfen,choice_problem_score,biancheng_score,tiankong_score,gaicuo_score))
+                homework_answer.homework,zongfen,choice_problem_score,biancheng_score,tiankong_score,gaicuo_score))
             break  # 跳出循环
 
 
@@ -1393,6 +1396,40 @@ def comment_change(request):
             pass
         return HttpResponse(1)
 
+@login_required()
+def send_zipfile(request,id):
+    def file_iterator(file_name, chunk_size=512):
+        with open(file_name,'rb') as f:
+            while True:
+                c = f.read(chunk_size)
+                if c:
+                    yield c
+                else:
+                    break
+
+    def zip_dir(dirname,zipfilename):
+        filelist=[]
+        if os.path.isfile(dirname):
+            filelist.append(dirname)
+        else:
+            for root,dirs,files in os.walk(dirname):
+                for name in files:
+                    filelist.append(os.path.join(root,name))
+        zf=zipfile.ZipFile(zipfilename,"w",zipfile.zlib.DEFLATED)
+        for tar in filelist:
+            arcname=tar[len(dirname):]
+            zf.write(tar,arcname)
+        zf.close()
+
+    dirname='/home/judge/data/'+str(id)
+    zipfilename='/tmp/'+str(id)+'.zip'
+    zip_dir(dirname,zipfilename)
+
+    the_file_name = zipfilename
+    response = StreamingHttpResponse(file_iterator(the_file_name))
+    response['Content-Type'] = 'application/octet-stream'
+    response['Content-Disposition'] = 'attachment; filename=%s' %zipfilename
+    return response
 
 # def list_depl_homeworks(request):
 #     return render(request,'depl_homework_list.html')

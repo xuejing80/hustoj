@@ -122,6 +122,7 @@
                             data: {'ids': ids, 'my': false},
                             success: function (data) {
                                 if (data == 1) {
+                                    alert('成功将指定公共作业复制到我的作业列表');
                                     $table.bootstrapTable('refresh');
                                     return false
                                 } else {

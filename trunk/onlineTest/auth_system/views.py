@@ -12,6 +12,7 @@ from django.contrib.auth.forms import SetPasswordForm
 from django.contrib.auth.tokens import default_token_generator
 from django.contrib.sites.shortcuts import get_current_site
 from django.utils.http import urlsafe_base64_decode
+from django.contrib.auth.decorators import login_required
 from .forms import VmaigUserCreationForm, VmaigPasswordRestForm, PasswordChangeForm
 from .models import MyUser
 import json
@@ -51,6 +52,7 @@ class UserControl(View):
 
     def login(self, request):
         errors = []
+        error_code = 0
         email = request.POST.get("email", "")
         password = request.POST.get("password", "")
         next = request.POST.get("next", "")
@@ -66,11 +68,17 @@ class UserControl(View):
             user = None
 
         if user is not None:
-            auth.login(request, user)
+            if user.id_num==password:
+                errors.append("您的账号为初始账号，请完善账号信息！")
+                error_code = 2
+                auth.login(request, user)
+            else:
+                auth.login(request, user)
         else:
             errors.append("密码或者用户名不正确")
+            error_code = 1
 
-        mydict = {"errors": errors}
+        mydict = {"errors": errors,"code": error_code}
         return HttpResponse(json.dumps(mydict), content_type="application/json")
 
     def logout(self, request):
@@ -125,6 +133,7 @@ class UserControl(View):
 
         return HttpResponse(json.dumps(mydict), content_type="application/json")
 
+    #@login_required()
     def changepassword(self, request):
         if not request.user.is_authenticated():
             logger.error(u'[UserControl]用户未登录')
@@ -205,6 +214,9 @@ class UserControl(View):
             logger.error(u'[UserControl]用户重置密码连接错误:[%s]/[%s]' % (uidb64, token))
             return HttpResponse("密码重设失败!\n密码重置链接无效，可能是因为它已使用。可以请求一次新的密码重置.", status=403)
 
+@login_required()
+def change_password(request):
+    return render(request, 'demo/changepassword.html')
 
 def list_users(request):
     return render(request, 'user_list.html')

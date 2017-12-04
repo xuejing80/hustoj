@@ -560,23 +560,26 @@
         });
         function actionFormatter(value, row, index) {
             return [
-                '<a class="like" href="javascript:updateTC(' + row.id + ',\'#table2\')" title="修改分值信息">',
-                '<i class="glyphicon glyphicon-wrench"></i>',
-                '</a>']
+                '<a class="btn btn-primary btn-xs" href="javascript:updateTC(' + row.id + ',\'#table2\')" title="修改分值信息">'+
+                '<i class="glyphicon glyphicon-wrench"></i></a> '+
+                '<a class="btn btn-success btn-xs" href="../send_zipfile_'+row.id+'" title="下载测试用例">'+
+                '<i class="glyphicon glyphicon-download-alt"></i></a>']
         }
         function actionFormatter3(value, row, index) {
             $tc_table=$table6;
             return [
-                '<a class="like" href="javascript:updateTC(' + row.id + ',\'#table6\')" title="修改分值信息">',
-                '<i class="glyphicon glyphicon-wrench"></i>',
-                '</a>']
+                '<a class="btn btn-primary btn-xs" href="javascript:updateTC(' + row.id + ',\'#table6\')" title="修改分值信息">'+
+                '<i class="glyphicon glyphicon-wrench"></i></a> '+
+                '<a class="btn btn-success btn-xs" href="../send_zipfile_'+row.id+'" title="下载测试用例">'+
+                '<i class="glyphicon glyphicon-download-alt"></i></a>']
         }
         function actionFormatter4(value, row, index) {
             $tc_table=$table8;
             return [
-                '<a class="like" href="javascript:updateTC(' + row.id + ',\'#table8\')" title="修改分值信息">',
-                '<i class="glyphicon glyphicon-wrench"></i>',
-                '</a>']
+                '<a class="btn btn-primary btn-xs" href="javascript:updateTC(' + row.id + ',\'#table8\')" title="修改分值信息">'+
+                '<i class="glyphicon glyphicon-wrench"></i></a> '+
+                '<a class="btn btn-success btn-xs" href="../send_zipfile_'+row.id+'" title="下载测试用例">'+
+                '<i class="glyphicon glyphicon-download-alt"></i></a>']
         }
         function updateTC(id,tableName){
                 $tc_table = $(tableName);

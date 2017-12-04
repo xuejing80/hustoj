@@ -67,4 +67,5 @@ urlpatterns = [
     url(r'^homework-result-comment_change$',comment_change,name='comment_change'),
 
     url(r'^download',file_download,name='download'),
+    url(r'send_zipfile_(\d+)/$',send_zipfile,name='send_zipfile'),
 ]

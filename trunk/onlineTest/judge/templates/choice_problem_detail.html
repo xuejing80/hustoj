@@ -6,7 +6,7 @@
     <p>
     <div class="btn-group">
         <a class="btn btn-primary btn-l" href="{% url 'choice_problem_list' %}" role="button">返回列表</a>
-        <button type="button" class="btn btn-danger" id="delete" onclick="delete_item(self)">删除此题</button>
+        <button type="button" class="btn btn-danger" id="delete">删除此题</button>
         <a class="btn btn-success btn-l" href="{% url 'update_choice_problem' problem.id %}"
            role="button">重新编辑</a>
     </div>
@@ -18,7 +18,7 @@
             <td>{{ problem.id }}</td>
         </tr>
         <tr>
-            <th>提干</th>
+            <th>题干</th>
             <td>{{ problem.title }}</td>
         </tr>
         <tr>
@@ -59,4 +59,37 @@
         </tr>
         </tbody>
     </table>
+<script>
+        $(function () {
+            $delete=$("#delete");
+            $delete.click(function () {
+                alert(1);return false;
+                var ids = $.map($table.bootstrapTable('getSelections'), function (row) {
+                    return row.id;
+                });
+                if (ids.length > 0) {
+                    if (confirm("确定要删除吗？")) {
+                        $.ajax({
+                            type: 'POST',
+                            url: "/judge/del-choice-problem",
+                            data: {'ids': ids},
+                            success: function (data) {
+                                if (data == 1) {
+                                    $table.bootstrapTable('refresh');
+                                    return false
+                                } else {
+                                    alert('删除失败');
+                                }
+                            },
+                            error: function () {
+                                alert("删除失败")
+                            }
+                        });
+                    }
+                } else {
+                    alert('您尚未选择题目')
+                }
+            });
+        });
+</script>
 {% endblock %}

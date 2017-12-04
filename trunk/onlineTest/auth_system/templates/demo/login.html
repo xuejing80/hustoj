@@ -54,16 +54,20 @@
 
                 success: function (data, textStatus) {
                     var errors = data["errors"];
-                    if (errors.length == 0) {
-						location.href = "{% url 'index' %}";
+                    var code = eval(data["code"]);
+                    if (code==0) {
+			location.href = "{% url 'index' %}";
                     }
                     else {
-                        //alert(errors);
-                        var str = "";
-                        for (var key in errors) {
-                            str += errors[key] + "\n";
+                        if(code==1){
+                            alert(errors);
                         }
-                        alert(str);
+                        if(code==2){
+                            if(confirm("为保证您的账号安全，请修改您的邮箱和密码！")==true)
+                                location.href = "{% url 'change_password' %}";
+                            else
+                                location.href = "{% url 'index' %}";;
+                        }
                     }
 
                 },

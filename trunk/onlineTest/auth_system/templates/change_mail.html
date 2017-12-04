@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}修改邮箱{% endblock %}
+{% block content %}
+    <div class="row">
+        <div class="col-md-6 col-md-offset-3">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title">修改邮箱</h3>
+                </div>
+                <div class="panel-body">
+                    {% if success %}
+                        <div class="uk-alert">邮箱修改成功！请查收邮件</div>
+                        <meta http-equiv="refresh" content="1;url= https://c.njupt.edu.cn/test/index/">
+                    {% endif%}
+                    <form  class="uk-form uk-form-horizontal uk-margin-top"  action=""  method="post">
+                        {% csrf_token %}
+                         <label for="new_email"  class="control-label">新邮箱</label>
+                         <div class="uk-form-control">
+                         {{ form.email }}
+                         {{ form.errors }}
+                         </div>
+                        <button id="change-email-button" type="submit" class="btn btn-primary pull-right">
+                            确定
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+

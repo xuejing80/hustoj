@@ -218,11 +218,18 @@ class UserControl(View):
 def change_password(request):
     return render(request, 'demo/changepassword.html')
 
+@login_required()
 def list_users(request):
-    return render(request, 'user_list.html')
+    if request.user.is_superuser:
+        return render(request, 'user_list.html')
+    else:
+        raise PermissionDenied
 
-
+@login_required()
 def get_users(request):
+    if not request.user.is_superuser:
+        raise PermissionDenied
+
     json_data = {}
     recodes = []
     offset = int(request.GET['offset'])
@@ -248,7 +255,7 @@ def get_users(request):
     json_data['rows'] = recodes
     return HttpResponse(json.dumps(json_data))
 
-
+@login_required()
 def create_users(request):
     stu_detail = request.POST['stu_detail']
     try:
@@ -268,8 +275,11 @@ def create_users(request):
         except:
             return HttpResponse(json.dumps({'result': 0, 'message': '注册时出现问题'}))
 
-
+@login_required()
 def update_user(request, pk):
+    if not request.user.is_superuser:
+        raise PermissionDenied
+
     user = MyUser.objects.get(pk=pk)
     if request.method == 'POST':
         group = Group.objects.get(pk=request.POST['group_id'])
@@ -284,7 +294,11 @@ def update_user(request, pk):
     return render(request, 'update_user.html',
                   context={'user': user, 'groups': groups, 'current_group_id': current_group_id})
 
+@login_required()
 def reset_user(request, pk):
+    if not request.user.is_superuser:
+        raise PermissionDenied
+
     user = MyUser.objects.get(pk=pk)
     user.set_password(user.id_num)
     user.save()
@@ -293,3 +307,13 @@ def reset_user(request, pk):
 @csrf_exempt
 def page_not_found(request):
     return render(request, 'warning.html', context={'info': '您访问的页面地址不存在！'})
+
+@csrf_exempt
+def page_error(request):
+    return render(request, 'warning.html', context={'info': '服务器出错了，请联系管理员老师！(联系信息：'
+             + settings.CONTACT_INFO + ')'})
+
+@csrf_exempt
+def permission_denied(request):
+    return render(request, 'warning.html', context={'info': '您无权访问该页面！'})
+

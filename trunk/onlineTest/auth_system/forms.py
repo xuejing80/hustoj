@@ -231,7 +231,7 @@ class PasswordChangeForm(forms.Form):
             raise forms.ValidationError(
                 self.error_messages["password_mismatch"]
             )
-        old_password = self.cleaned_data["old_password"]
+        old_password = self.cleaned_data.get("old_password")
         if password1 == old_password:
             raise forms.ValidationError(
                 self.error_messages["the_same"]

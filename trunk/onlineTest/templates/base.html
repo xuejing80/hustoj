@@ -55,7 +55,7 @@
                             </li>
 
                             <li class="external">
-                                <a href="{% url 'change_password' %}"><i class="fa fa-key" aria-hidden="true"></i>
+                                <a href="{% url 'change_email' %}"><i class="fa fa-key" aria-hidden="true"></i>
                                     修改密码</a>
                                 <a href="javascript:;" class="logout-button"><i class="fa fa-sign-out"
                                                                                 aria-hidden="true"></i> 退出</a>
@@ -155,7 +155,7 @@
                     </a>
                     <ul class="sub">
                         {% if user.is_authenticated %}
-                            <li><a href="{% url 'change_password' %}">修改密码</a></li>
+                            <li><a href="{% url 'change_email' %}">修改密码</a></li>
                             <li><a href="javascript:;" class="logout-button">注销</a></li>
                             {% if user.is_superuser %}
                                 <li><a href="{% url 'user_list' %}">账号管理</a>

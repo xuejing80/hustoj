@@ -1,8 +1,9 @@
 {% extends 'base.html' %}
 {% block title %}注册{% endblock %}
+{% load static %}
 {% block extrahead %}
-    <script src="//cdn.bootcss.com/jquery-confirm/2.5.1/jquery-confirm.min.js"></script>
-    <link href="//cdn.bootcss.com/jquery-confirm/2.5.1/jquery-confirm.min.css" rel="stylesheet">
+    <script src="{% static "assets/js/jquery-confirm.min.js" %}"></script>
+    <link href="{% static "assets/css/jquery-confirm.min.css" %}" rel="stylesheet">
 {% endblock %}
 {% block content %}
     <div class="row">
@@ -15,19 +16,19 @@
                     <form id="vmaig-auth-register-form" method="post">
                         {% csrf_token %}
                         <div class="form-group">
-                            <label for="vmaig-auth-register-email" class="control-label">邮箱，可用于登录</label>
+                            <label for="vmaig-auth-register-email" class="control-label">邮箱（可用于登录和重置密码）</label>
                             <input type="email" class="form-control" id="vmaig-auth-register-email"
-                                   placeholder="请输入email">
+                                   placeholder="请输入Email">
                         </div>
                         <div class="form-group">
-                            <label for="vmaig-auth-register-username" class="control-label">昵称（若为本校学生请输入真实姓名）</label>
+                            <label for="vmaig-auth-register-username" class="control-label">昵称（为了方便老师辨识，请输入真实姓名）</label>
                             <input type="text" class="form-control" id="vmaig-auth-register-username"
                                    placeholder="请输入昵称">
                         </div>
                         <div class="form-group">
-                            <label for="vmaig-auth-register-id" class="control-label">用户名/学号/工号（可用于登录）</label>
+                            <label for="vmaig-auth-register-id" class="control-label">学号/工号（可用于登录）</label>
                             <input type="text" class="form-control" id="vmaig-auth-register-id"
-                                   placeholder="请输入用户名/学号/工号">
+                                   placeholder="请输入学号/工号">
                         </div>
                         <div class="form-group">
                             <label for="vmaig-auth-register-password1" class="control-label">密码</label>
@@ -40,8 +41,6 @@
                             <input type="password" class="form-control" id="vmaig-auth-register-password2"
                                    placeholder="请再次输入密码">
                         </div>
-                        <br/>
-
                         <button id="vmaig-auth-register-button" type="submit" class="btn btn-vmaig-auth pull-right">提交
                         </button>
                     </form>

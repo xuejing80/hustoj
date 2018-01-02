@@ -64,7 +64,7 @@
                         }
                         if(code==2){
                             if(confirm("为保证您的账号安全，请修改您的邮箱和密码！")==true)
-                                location.href = "{% url 'change_password' %}";
+                                location.href = "{% url 'change_email' %}";
                             else
                                 location.href = "{% url 'index' %}";;
                         }

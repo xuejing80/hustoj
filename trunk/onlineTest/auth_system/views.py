@@ -8,16 +8,19 @@ from django.views.generic import View
 from django.core.mail import send_mail
 from django.core.exceptions import PermissionDenied
 from django.contrib import auth
-from django.contrib.auth.forms import SetPasswordForm
 from django.contrib.auth.tokens import default_token_generator
 from django.contrib.sites.shortcuts import get_current_site
 from django.utils.http import urlsafe_base64_decode
+from django.utils.encoding import force_bytes
 from django.contrib.auth.decorators import login_required
-from .forms import VmaigUserCreationForm, VmaigPasswordRestForm, PasswordChangeForm
+from django.forms import ValidationError
+from .forms import VmaigUserCreationForm, VmaigPasswordRestForm, PasswordChangeForm, EmailChangeForm, SetPasswordForm
 from .models import MyUser
-import json
+import json, base64
 from django.http import HttpResponse, Http404
 import logging
+logger = logging.getLogger('django')
+logger_request = logging.getLogger('django.request')
 import re
 from django.db.models import Q
 from django.conf import settings
@@ -43,6 +46,8 @@ class UserControl(View):
             return self.forgetpassword(request)
         elif slug == "resetpassword":
             return self.resetpassword(request)
+        elif slug == "resetpassword_mail":
+            return self.resetpassword_mail(request)
 
         raise PermissionDenied
 
@@ -213,6 +218,88 @@ class UserControl(View):
         else:
             logger.error(u'[UserControl]用户重置密码连接错误:[%s]/[%s]' % (uidb64, token))
             return HttpResponse("密码重设失败!\n密码重置链接无效，可能是因为它已使用。可以请求一次新的密码重置.", status=403)
+
+    def resetpassword_mail(self, request):
+        uidb64 = self.request.POST.get("uidb64", "")
+        umailb64 = self.request.POST.get("umailb64", "")
+        token = self.request.POST.get("token", "")
+        password1 = self.request.POST.get("password1", "")
+        password2 = self.request.POST.get("password2", "")
+
+        try:
+            uid = urlsafe_base64_decode(uidb64)
+            user = MyUser._default_manager.get(pk=uid)
+        except (TypeError, ValueError, OverflowError, MyUser.DoesNotExist):
+            user = None
+
+        token_generator = default_token_generator
+
+        if user is not None and token_generator.check_token(user, token):
+            errors = []
+            umail = urlsafe_base64_decode(umailb64)
+            if user.email != umail:
+                user.email = umail
+            form = SetPasswordForm(user, request.POST)
+            if form.is_valid():
+                user = form.save()
+            else:
+                # 如果表单不正确,保存错误到errors列表中
+                for k, v in form.errors.items():
+                    # v.as_text() 详见django.forms.util.ErrorList 中
+                    errors.append(v.as_text())
+
+            mydict = {"errors": errors}
+            return HttpResponse(json.dumps(mydict), content_type="application/json")
+        else:
+            logger.error(u'[UserControl]用户重置密码连接错误:[%s]/[%s]' % (uidb64, token))
+            return HttpResponse("密码重置链接无效，可能是因为它已使用，您可以重新请求一次新的密码重置。", status=403)
+
+@login_required()
+def change_email(request):
+    if request.method == 'POST':
+        useOldEmail = request.POST["use_old_email"]
+        form = EmailChangeForm(request.POST,instance=request.user)
+        errors = []
+        email = None
+        if useOldEmail=="True":
+            email = request.user.email
+        elif form.is_valid():
+            email = form.cleaned_data['email']
+        if email!=None:
+            user = request.user
+            token_generator = default_token_generator
+            from_email = settings.EMAIL_HOST_USER
+            current_site = get_current_site(request)
+            site_name = current_site.name
+            domain = current_site.domain
+            uid = base64.urlsafe_b64encode(force_bytes(user.pk)).rstrip(b'\n=')
+            umail = base64.urlsafe_b64encode(force_bytes(email)).rstrip(b'\n=')
+            token = token_generator.make_token(user)
+            protocol = 'http'
+            uid = uid.decode("utf-8")
+            umail = umail.decode("utf-8")
+            title = "完善您的Email和密码信息"
+            message = "你收到这封信是因为你请求完善在 %s 上的个人信息\n\n" % settings.SITE_NAME + \
+                   "请访问下方的链接确认你的邮件地址并在页面中设置新的密码:\n\n" + \
+                   protocol + '://' + domain + reverse('_resetpassword_mail') + '/' + uid + '/'  + umail + '/'+ token + '/' + '  \n\n' + \
+                   "感谢使用！\n\n"
+            try:
+                send_mail(title, message, from_email, [email])
+            except Exception as e:
+                logger.error(u'[UserControl]用户完善密码信息的邮件发送失败:[%s]' % (email))
+                errors.append("很抱歉，邮件发送失败，请稍后重试！")
+            return HttpResponse(json.dumps({"errors": errors}), content_type="application/json")
+
+        else:
+            # 如果表单不正确,保存错误到errors列表中
+            for k, v in form.errors.items():
+                # v.as_text() 详见django.forms.util.ErrorList 中
+                errors.append(v.as_text())
+        mydict = {"errors": errors}
+        return HttpResponse(json.dumps(mydict), content_type="application/json")
+    else:
+        form = EmailChangeForm()
+        return render(request,'change_mail.html',{'form':form,'old_email':request.user.email})
 
 @login_required()
 def change_password(request):

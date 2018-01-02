@@ -1,31 +1,93 @@
 {% extends "base.html" %}
-{% block title %}修改邮箱{% endblock %}
+{% block title %}设置邮箱{% endblock %}
+{% load static %}
+{% block extrahead %}
+    <script src="{% static "assets/js/jquery-confirm.min.js" %}"></script>
+    <link href="{% static "assets/css/jquery-confirm.min.css" %}" rel="stylesheet">
+{% endblock %}
 {% block content %}
     <div class="row">
         <div class="col-md-6 col-md-offset-3">
             <div class="panel panel-default">
                 <div class="panel-heading">
-                    <h3 class="panel-title">修改邮箱</h3>
+                    <h3 class="panel-title">设置接收改密链接的邮箱地址</h3>
                 </div>
                 <div class="panel-body">
-                    {% if success %}
-                        <div class="uk-alert">邮箱修改成功！请查收邮件</div>
-                        <meta http-equiv="refresh" content="1;url= https://c.njupt.edu.cn/test/index/">
-                    {% endif%}
-                    <form  class="uk-form uk-form-horizontal uk-margin-top"  action=""  method="post">
-                        {% csrf_token %}
+                    <div class="alert alert-success">您当前使用的邮箱地址为：{{ old_email }}</div>
+                    <form  id="change-email-form"  class="uk-form uk-form-horizontal uk-margin-top"  action=""  method="post">
+                      {% csrf_token %}
+                      <input type="hidden" id="use_old_email" name="use_old_email" value="False"/>
+                      <div class="form-group">
                          <label for="new_email"  class="control-label">新邮箱</label>
-                         <div class="uk-form-control">
                          {{ form.email }}
                          {{ form.errors }}
-                         </div>
-                        <button id="change-email-button" type="submit" class="btn btn-primary pull-right">
-                            确定
-                        </button>
+                      </div>
+                      <div class="pull-right">
+                      <button id="change-email-button" type="submit" class="btn btn-primary">
+                            向新地址发送链接
+                        </button>&nbsp;
+                      <button id="use-oldemail-button" type="submit" class="btn btn-success">
+                            使用现在的邮箱接收链接
+                        </button></div>
                     </form>
                 </div>
             </div>
         </div>
     </div>
+    <script language="javascript" type="text/javascript">
+        $.ajaxSetup({
+            data: {csrfmiddlewaretoken: '{{ csrf_token }}'},
+        });
+        $('#change-email-form').submit(function (event) {
+            event.preventDefault();
+            $.ajax({
+                type: "POST",
+                url: "{% url 'change_email' %}",
+                data: {
+                    "email": $("#id_email").val(),
+                    "use_old_email": $("#use_old_email").val(),
+                },
+                dataType: 'json',
+
+                success: function (data, textStatus) {
+                    var errors = data["errors"];
+                    if (errors.length == 0) {
+                        $.alert({
+                            title: '成功！',
+                            content:  "我们将会把修改密码的链接发到你指定的邮箱中，你很快将会收到。\n" +
+                              "如果你没有收到邮件, 请确保您所输入的邮箱地址是正确的, 并检查您的垃圾邮件文件夹。\n",
+                            confirm: function () {
+                                location.replace("{% url 'index' %}");// shorthand.
+                            }
+                        });
+                    }
+                    else {
+                        var html = "<div class=\"alert alert-danger\">"
+                        for (var key in errors) {
+                            html += errors[key] + "<br/>";
+                        }
+                        html += "</div>";
+                        $("#change-email-form").before(html);
+                    }
+                },
+                error: function (XMLHttpRequest, textStatus, errorThrown) {
+                    alert(XMLHttpRequest.responseText);
+                }
+            });
+            return false;
+        });
+
+        $("#change-email-button").click(function () {
+            $("#use_old_email").val("False")
+            $(".alert-danger").remove();
+        });
+
+        $("#use-oldemail-button").click(function () {
+            $("#use_old_email").val("True")
+            $(".alert-danger").remove();
+        });
+
+
+    </script>
 {% endblock %}
 

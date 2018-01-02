@@ -187,8 +187,8 @@ LOGGING = {
             'level':'INFO',
             'class':'logging.handlers.RotatingFileHandler',
             'filename': os.path.join('/home/judge/log/','django.log'),
-            'maxBytes': 1024*1024*50, # 5 MB
-            'backupCount': 0, # 保留日志的数量，0代表不自动删除
+            'maxBytes': 1024*1024*50, # 50 MB
+            'backupCount': 100, # 保留日志的数量，0代表不自动删除
             'formatter':'verbose',
             'encoding':'UTF-8',
         },
@@ -199,6 +199,13 @@ LOGGING = {
             'formatter':'verbose',
             'encoding':'UTF-8',
         },
+        'request':{
+            'level':'INFO',
+            'class':'logging.FileHandler',
+            'filename': os.path.join('/home/judge/log/','request.log'),
+            'formatter':'verbose',
+            'encoding':'UTF-8',
+        },
     },
     'loggers': {
         'django': {
@@ -206,10 +213,10 @@ LOGGING = {
             'level': 'INFO',
             'propagate': False
         },
-        #'django.request':{
-        #    'handlers':['mail_admins'],
-        #    'level':'WARNING',
-        #    'propagate':True,
-        #},
+        'django.request':{
+            'handlers':['request'],
+            'level':'WARNING',
+            'propagate':True,
+        },
     }
 }

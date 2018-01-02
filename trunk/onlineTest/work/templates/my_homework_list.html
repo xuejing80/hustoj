@@ -85,7 +85,7 @@
                     </div>
                     <table id="table2"
                            data-toggle="table"
-                           data-url="{% url 'get_banji_list' %}"
+                           data-url="{% url 'get_assign_status' %}"
                            data-side-pagination="server"
                            data-pagination="true"
                            data-page-list="[10, 20, 50, 100, 200]"
@@ -103,13 +103,14 @@
                             <th data-field="courser" data-valign="middle">所属课程</th>
                             <th data-field="start_time" data-sortable="true">开始时间</th>
                             <th data-field="end_time" data-sortable="true">结束时间</th>
-                            <th data-field="teacher">教师</th>
+                            <th data-field="status" data-formatter="getStatus">状态</th>
                         </tr>
                         </thead>
                     </table>
                 </div>
                 <div class="modal-footer">
                     <button id="assign" class="btn btn-success">布置到班级</button>
+                    <button id="unassign" class="btn btn-warning">取消布置</button>
                     <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
                 </div>
             </div><!-- /.modal-content -->
@@ -121,10 +122,10 @@
             <div class="modal-content">
                 <div class="modal-header">
                     <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-                    <h4 class="modal-title">布置作业</h4>
+                    <h4 class="modal-title">布置/取消布置作业</h4>
                 </div>
                 <div class="modal-body">
-                    正在布置作业，请耐心等待……<br/><br/>
+                    正在操作作业数据，请耐心等待……<br/><br/>
                     <div id="result" name="result"></div>
                 </div>
                 <div class="modal-footer">
@@ -153,6 +154,7 @@
                 params[$(this).attr('name')] = $(this).val();
             });
             params['my'] = true;
+            params['homework_id'] = $('#homework_id').val()
             return params;
         }
 
@@ -173,11 +175,61 @@
             $('#homework_id').val(id);
             $table2.bootstrapTable('refresh');
             $("#homework_title").html(row.name)
-
         }
 
-
         $(function () {
+            $('#unassign').click(function () {
+                var ids = $.map($table2.bootstrapTable('getSelections'), function (row) {return row.pk;});
+                count = 0;
+                homework_id = $("#homework_id").val();
+                $("#homework_title").html($table.bootstrapTable('getRowByUniqueId', homework_id.name));
+                $('#result').html("");
+                $('#modal_result').modal('show');
+                count = 0;
+                setTimeout(unassign_homework, 0);
+
+                function unassign_homework() {
+                    if (ids.length > 0) {
+                        id = $.trim(ids.shift());
+                        if (id.length > 0) {
+                            $.ajax({
+                                type: "post",
+                                url: "{% url 'unassign_homework' %}",
+                                dataType: "json",
+                                data: {homework_id: $("#homework_id").val(), id: id},
+                                success: function (data) {
+                                    if (data.result == 0) {
+                                        if (data.count > 0) {
+                                            $("#result").append("取消布置作业成功 <font color=green>成功</font><br/>");
+                                            count++;
+                                        } else {
+                                            $("#result").append("取消布置作业失败 <font color=red>失败 </font><br/>");
+                                        }
+                                        setTimeout(unassign_homework, 0);
+                                    } else {
+                                        alert({
+                                            text: '信息提交过程中遇到错误：' + data.message + '！',
+                                            type: 'danger',
+                                            position: 'top-center'
+                                        });
+                                    }
+                                    //alert(data);
+                                },
+                                error: function (XMLHttpRequest, textStatus, errorThrown) {
+                                    alert({text: '保存数据时发生错误！', type: 'danger', position: 'top-center'});
+                                    //alert(errorThrown);
+                                }
+                            });
+                        } else {
+                            setTimeout(adduser, 0);
+                        }
+                    } else {
+                        $("#result").append("<br/>批量取消布置作业完毕，共取消布置" + count + "份作业。");
+                        $table2.bootstrapTable('refresh');
+                    }
+                };
+            });
+            //-->
             $('#assign').click(function () {
                 var ids = $.map($table2.bootstrapTable('getSelections'), function (row) {
                     return row.pk;
@@ -227,6 +279,7 @@
                         }
                     } else {
                         $("#result").append("<br/>批量布置作业完毕，共布置" + count + "份作业。");
+                        $table2.bootstrapTable('refresh');
                     }
                 };
             });
@@ -259,8 +312,13 @@
                     alert('您尚未选择作业')
                 }
             });
-        })
-        ;
+        });
+        function getStatus(value, row, index) {
+            if(value)
+                return '已布置';
+            else
+                return '未布置'
+        }
         function editFormatter(value) {
             return '<a class="btn btn-primary btn-xs" href="{% url '_update_my_homework'  %}' + value + '/" title="编辑" aria-label="编辑" data-pjax="0"><span class="glyphicon glyphicon glyphicon-edit"></span></a>'
                     + ' <a class="btn btn-success btn-xs" href="{% url '_my_homework_detail'  %}' + value + '/" title="查看" aria-label="查看" data-pjax="0"><span class="glyphicon glyphicon-eye-open"></span></a>' +

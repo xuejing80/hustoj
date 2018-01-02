@@ -2,7 +2,7 @@
 import os, shutil, zipfile, string, json, datetime, time
 import _thread
 from django.contrib.auth.models import Group
-from django.core.exceptions import ObjectDoesNotExist
+from django.core.exceptions import ObjectDoesNotExist, PermissionDenied
 
 from django.core.urlresolvers import reverse
 from django.http import HttpResponse, StreamingHttpResponse, JsonResponse
@@ -104,7 +104,8 @@ def get_json_work(request):
                   'courser': homework.courser.name, 'id': homework.pk,
                   'start_time': homework.start_time.strftime('%Y-%m-%d %H:%M:%S'),
                   'end_time': homework.end_time.strftime('%Y-%m-%d %H:%M:%S'),
-                  'creator': homework.creater.username}
+                  'creator': homework.creater.username,
+                  'isMine': request.user.is_admin or request.user==homework.creater,}
         recodes.append(recode)
     json_data['rows'] = recodes
     return HttpResponse(json.dumps(json_data))
@@ -228,6 +229,8 @@ def update_public_homework(request, pk):
     :return: 被修改作业的详细页面
     """
     homework = get_object_or_404(HomeWork, pk=pk)
+    if request.user != homework.creater and request.user.is_admin!=True:
+        raise PermissionDenied
     if request.method == 'POST':
         homework.name=request.POST['name']
         homework.choice_problem_ids=request.POST['choice-problem-ids']
@@ -632,6 +635,47 @@ def get_banji_list(request):
     json_data['rows'] = recodes
     return JsonResponse(json_data)
 
+@permission_required('work.add_banji')
+def get_assign_status(request):
+    """
+    处理获取班级列表信息的ajax请求，包含作业的布置状态
+    :param request: 请求
+    :return: 含有班级列表信息的json
+    """
+    json_data = {}
+    records = []
+    kwargs = {}
+    offset = int(request.GET['offset'])
+    limit = int(request.GET['limit'])
+    homework_id = int(request.GET.get('homework_id','0'))
+    if homework_id==0:
+        return JsonResponse(json_data)
+    classname = request.GET['classname']
+    if request.GET['my'] == 'true' and not request.user.is_superuser:
+        kwargs['teacher'] = request.user
+    if classname != '0':
+        kwargs['courser__id'] = classname
+    if 'search' in request.GET:
+        kwargs['name__icontains'] = request.GET['search']
+    banjis = BanJi.objects.filter(**kwargs)  # 合并多次筛选以提高数据库效率
+    try:  # 对数据按照指定方式排序
+        sort = request.GET['sort']
+    except MultiValueDictKeyError:
+        sort = 'pk'
+    json_data['total'] = banjis.count()
+    if request.GET['order'] == 'desc':
+        sort = '-' + sort
+    for banji in banjis.all().order_by(sort)[offset:offset + limit]:
+        homework = MyHomework.objects.get(pk=homework_id)
+        record = {'name': banji.name, 'pk': banji.pk,
+                  'courser': banji.courser.name, 'id': banji.pk, 'teacher': banji.teacher.username,
+                  'start_time': banji.start_time.strftime('%Y-%m-%d %H:%M:%S'),
+                  'end_time': banji.end_time.strftime('%Y-%m-%d %H:%M:%S'),
+                  'status': homework in banji.myhomework_set.all()}
+        logger.info(record)
+        records.append(record)
+    json_data['rows'] = records
+    return JsonResponse(json_data)
 
 # 删除班级
 @permission_required('work.delete_banji')
@@ -765,6 +809,18 @@ def assign_homework(request):
         homework = MyHomework.objects.get(pk=homework_id)
         banji = BanJi.objects.get(pk=banji_id)
         banji.myhomework_set.add(homework)
+        return HttpResponse(json.dumps({'result': 0, 'count': 1}))
+    except:
+        return HttpResponse(json.dumps({'result': 0, 'message': '出错了'}))
+
+@permission_required('work.add_homework')
+def unassign_homework(request):
+    homework_id = request.POST['homework_id']
+    banji_id = request.POST['id']
+    try:
+        homework = MyHomework.objects.get(pk=homework_id)
+        banji = BanJi.objects.get(pk=banji_id)
+        banji.myhomework_set.remove(homework)
         return HttpResponse(json.dumps({'result': 0, 'count': 1}))
     except:
         return HttpResponse(json.dumps({'result': 0, 'message': '出错了'}))

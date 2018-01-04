@@ -45,7 +45,8 @@ INSTALLED_APPS = [
     'judge',
     'work',
     'faq',
-    'weixin'
+    'weixin',
+    'process'
 ]
 
 MIDDLEWARE_CLASSES = [

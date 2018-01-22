@@ -82,15 +82,17 @@
         </thead>
     </table>
     <input type="hidden" name="problems" id="select-problems"/>
+    <button type="button" class="btn btn-success btn-lg" id="save_problems" onclick="saveProblem()">保存选择的题目</button>
     <p>每组最多人数</p>
     {{ form.maxnumber }}
     <h3>批量添加学生账号</h3>
     <input type="hidden" name="banji_id" id="banji_id" value="{{ id }}">
     <p><textarea name="students" id="students_info" class="form-control" rows="10"
                  placeholder="学生账号信息格式为：一行一个学生，每行的前两个字段是学号和真实姓名，初始密码同用户名，初始邮箱为南邮邮箱，字段之间用空格分隔"></textarea>
-    <button class="btn btn-success btn-lg">保存</button>
+    <button type="submit" class="btn btn-success btn-lg">保存</button>
 </form>
 <script type="text/javascript">
+
     $(function () {
         $('#datetimepicker1').datetimepicker(
                 {
@@ -109,12 +111,39 @@
         )
         ;
     });
-    function checkForm() {
-        var ids = $.map($table.bootstrapTable('getSelections'), function (row) {
+    $.ajaxSetup({
+            data: {csrfmiddlewaretoken: '{{ csrf_token }}'}
+        });
+    var $table = $('#table');
+    $ok = $('#ok');
+    $(function () {
+        $ok.click(function () {
+            $table.bootstrapTable('refresh');
+        });
+    });
+    function queryParams(params) {
+        $('#toolbar').find('select[name]').each(function () {
+            params[$(this).attr('name')] = $(this).val();
+        });
+        return params;
+    }
+    var selectSet = new Set();
+    function saveProblem() {
+         var ids = $.map($table.bootstrapTable('getSelections'), function (row) {
             return row.id;
         });
-        $('#select-problems').val(ids);
-        console.log(ids);
+        for (var i = 0; i < ids.length; ++i) {
+            selectSet.add(ids[i]);
+        }
+    }
+{#    $('#select-problems').click(saveProblem());#}
+    function checkForm() {
+{#        var ids = $.map($table.bootstrapTable('getSelections'), function (row) {#}
+{#            return row.id;#}
+{#        });#}
+        saveProblem();
+        $('#select-problems').val(Array.from(selectSet));
+       // console.log(ids);
         var begin_time = $('#datetimepicker1').find("input").val();
         var end_time = $('#datetimepicker2').find("input").val();
         if (begin_time >= end_time) {
@@ -125,22 +154,5 @@
         }
         return true;
     }
-    $.ajaxSetup({
-            data: {csrfmiddlewaretoken: '{{ csrf_token }}'}
-        });
-        var $table = $('#table');
-        $ok = $('#ok');
-        $(function () {
-            $ok.click(function () {
-                $table.bootstrapTable('refresh');
-            });
-        });
-        function queryParams(params) {
-            $('#toolbar').find('select[name]').each(function () {
-                params[$(this).attr('name')] = $(this).val();
-            });
-            return params;
-        }
-
 </script>
 {% endblock %}

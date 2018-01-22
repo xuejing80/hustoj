@@ -10,6 +10,7 @@
     <p>课程名称: {{ course.name }}</p>
     <p>开始时间: {{ course.begin_time }}</p>
     <p>结束时间: {{ course.end_time }}</p>
+    <p>课程人数限制： {{ course.numberEachGroup }}</p>
     <p>课程题目</p>
     <table id="table"
            data-toggle="table"
@@ -31,10 +32,34 @@
         </tr>
         </thead>
     </table>
+    <button class="btn btn-success" id="leader">成为组长</button>
     <script type="text/javascript">
+        var ws_scheme = window.location.protocol == "https:" ? "wss" : "ws";
+        var chatsock = new WebSocket(ws_scheme + '://' + window.location.host  + window.location.pathname);
         $.ajaxSetup({
             data: {csrfmiddlewaretoken: '{{ csrf_token }}'}
         });
+         $.ajax({
+                    type:"GET",
+                    url:"{% url 'student_info' course.id %}",
+                    dataType:"json",
+                    success:function(data){
+                        alert(str(data));
+                    },
+                    error:function(jqXHR){
+                        alert("error" + jqXHR.status);
+                    }
+                });
+        $('#leader').click(function () {
+            var message = {
+                action: "c",
+            }
+            chatsock.send(JSON.stringify(message));
+        });
+        chatsock.onmessage = function(message) {
+        var data = JSON.parse(message.data);
+            console.log(message.data);
+        };
         var $table = $('#table');
         $ok = $('#ok');
         $(function () {

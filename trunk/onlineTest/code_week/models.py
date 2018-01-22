@@ -46,6 +46,7 @@ class CodeWeekClass(models.Model):
         through_fields=('codeWeekClass', 'student'),
     )
     numberEachGroup = models.IntegerField(choices=MAXNUMBER_CHOICES, default=1)
+    counter = models.IntegerField(default=0)
 
     def __str__(self):
         return str(self.name)
@@ -58,6 +59,16 @@ STUDENT_STATE = (
     (5, ("可以提交"))
 )
 
+class CodeWeekClassGroup(models.Model):
+    """
+    用来描述课程中的分组关系
+    """
+    id = models.AutoField(primary_key=True)
+    create_date = models.DateTimeField(auto_now_add=True)
+    cwclass = models.ForeignKey(CodeWeekClass, related_name='CodeWeekClass_group')
+    selectedProblem = models.ForeignKey(ShejiProblem, related_name='GroupSelectProblem', on_delete=models.PROTECT, null=True)
+    counter = models.IntegerField(default=0)
+
 class CodeWeekClassStudent(models.Model):
     """
     用来描述课程和学生之间的多对多关系
@@ -65,12 +76,18 @@ class CodeWeekClassStudent(models.Model):
     codeWeekClass = models.ForeignKey(CodeWeekClass)
     student = models.ForeignKey(MyUser)
     state = models.IntegerField(choices=STUDENT_STATE, default=1)
+    group = models.ForeignKey(CodeWeekClassGroup, related_name='Group_member', null=True, on_delete=models.SET_NULL)
+    isLeader = models.BooleanField(default=False)
 
-class CodeWeekClassGroup(models.Model):
+    def get_full_name(self):
+        return self.student.id_num + " " + self.student.username
+
+class ClassOperation(models.Model):
     """
-    用来描述课程中的分组关系
+    记录下每次学生提交成功的操作，对应于每个课有个编号用来标识操作的先后
     """
     id = models.AutoField(primary_key=True)
-    create_date = models.DateTimeField(auto_now_add=True)
-    leader = models.ForeignKey(CodeWeekClassStudent)
-    members = models.ManyToManyField(CodeWeekClassStudent, related_name='Group_members')
+    cwclass = models.ForeignKey(CodeWeekClass, related_name='Class_operations', null=True, on_delete=models.SET_NULL)
+    operation_id = models.IntegerField()
+    operation = models.CharField(max_length=1000)
+    time = models.DateTimeField(auto_now_add=True)

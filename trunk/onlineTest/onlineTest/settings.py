@@ -23,7 +23,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = 'CPP'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 SITE_NAME = "程序设计类课程作业平台"
 CONTACT_INFO = "薛景老师（QQ群：230689474）"
@@ -46,7 +46,9 @@ INSTALLED_APPS = [
     'work',
     'faq',
     'weixin',
-    'code_week'
+    'channels',
+    'code_week',
+    'dict'
 ]
 
 MIDDLEWARE_CLASSES = [
@@ -90,8 +92,8 @@ DATABASES = {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'jol',
         'USER': 'root',
-        'PASSWORD': 'root',
-        'HOST': '',
+        'PASSWORD': '123456',
+        'HOST': '192.168.1.177',
         'PORT': '',
     }
 }
@@ -142,75 +144,86 @@ DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 # https://docs.djangoproject.com/en/1.9/howto/static-files/
 
 STATIC_URL = '/static/'
-STATICFILES_DIRS = [os.path.join(BASE_DIR, "static"), ]
+STATICFILES_DIRS = ["../static"]
 
 # 需要与site.cnf 设置的静态文件路径相同
 STATIC_ROOT = '/var/www/html/static'
 
-LOGIN_URL = '/test/accounts/login/'
+LOGIN_URL = '/accounts/login/'
 
-LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'formatters': {#格式器
-        'verbose': {#详细
-            'format': '>>[%(asctime)s][%(name)s:%(lineno)d][%(levelname)s]-%(message)s'
+# Channel settings
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "asgi_redis.RedisChannelLayer",
+        "CONFIG": {
+            "hosts": [os.environ.get('REDIS_URL', 'redis://192.168.1.177:6379')],
         },
-        'simple': {#简单
-            'format': '$[%(threadName)s:%(thread)d] [%(levelname)s]- %(message)s'
-        },
+        "ROUTING": "code_week.routing.code_week_routing",
     },
-    'filters': {
-        'require_debug_false': {
-            '()': 'django.utils.log.RequireDebugFalse',
-            },
-    },
-    'handlers': {
-        'mail_admins': {
-            'level': 'INFO',
-            'class': 'django.utils.log.AdminEmailHandler',
-            'include_html': True,
-        },
-        #'default': {
-        #    'level':'DEBUG',
-        #    'class':'logging.handlers.RotatingFileHandler',
-        #    'filename': os.path.join('/home/judge/log/','django_all.log'), #日志所在路径
-        #    'maxBytes': 1024*1024*50, # 5 MB
-        #    'backupCount': 5,
-        #    'formatter':'verbose',
-        #},
-        'console':{
-            'level': 'DEBUG',
-            'class': 'logging.StreamHandler',
-            'formatter': 'simple'
-        },
-        'file':{
-            'level':'INFO',
-            'class':'logging.handlers.RotatingFileHandler',
-            'filename': os.path.join('/home/judge/log/','django.log'),
-            'maxBytes': 1024*1024*50, # 5 MB
-            'backupCount': 0, # 保留日志的数量，0代表不自动删除
-            'formatter':'verbose',
-            'encoding':'UTF-8',
-        },
-        'all':{
-            'level':'INFO',
-            'class':'logging.FileHandler',
-            'filename': os.path.join('/home/judge/log/','all.log'),
-            'formatter':'verbose',
-            'encoding':'UTF-8',
-        },
-    },
-    'loggers': {
-        'django': {
-            'handlers': ['file','all'],
-            'level': 'INFO',
-            'propagate': False
-        },
-        #'django.request':{
-        #    'handlers':['mail_admins'],
-        #    'level':'WARNING',
-        #    'propagate':True,
-        #},
-    }
 }
+
+# LOGGING = {
+#     'version': 1,
+#     'disable_existing_loggers': False,
+#     'formatters': {#格式器
+#         'verbose': {#详细
+#             'format': '>>[%(asctime)s][%(name)s:%(lineno)d][%(levelname)s]-%(message)s'
+#         },
+#         'simple': {#简单
+#             'format': '$[%(threadName)s:%(thread)d] [%(levelname)s]- %(message)s'
+#         },
+#     },
+#     'filters': {
+#         'require_debug_false': {
+#             '()': 'django.utils.log.RequireDebugFalse',
+#             },
+#     },
+#     'handlers': {
+#         'mail_admins': {
+#             'level': 'INFO',
+#             'class': 'django.utils.log.AdminEmailHandler',
+#             'include_html': True,
+#         },
+#         #'default': {
+#         #    'level':'DEBUG',
+#         #    'class':'logging.handlers.RotatingFileHandler',
+#         #    'filename': os.path.join('/home/judge/log/','django_all.log'), #日志所在路径
+#         #    'maxBytes': 1024*1024*50, # 5 MB
+#         #    'backupCount': 5,
+#         #    'formatter':'verbose',
+#         #},
+#         'console':{
+#             'level': 'DEBUG',
+#             'class': 'logging.StreamHandler',
+#             'formatter': 'simple'
+#         },
+#         'file':{
+#             'level':'INFO',
+#             'class':'logging.handlers.RotatingFileHandler',
+#             'filename': os.path.join('/home/judge/log/','django.log'),
+#             'maxBytes': 1024*1024*50, # 5 MB
+#             'backupCount': 0, # 保留日志的数量，0代表不自动删除
+#             'formatter':'verbose',
+#             'encoding':'UTF-8',
+#         },
+#         'all':{
+#             'level':'INFO',
+#             'class':'logging.FileHandler',
+#             'filename': os.path.join('/home/judge/log/','all.log'),
+#             'formatter':'verbose',
+#             'encoding':'UTF-8',
+#         },
+#     },
+#     'loggers': {
+#         'django': {
+#             'handlers': ['file','all'],
+#             'level': 'INFO',
+#             'propagate': False
+#         },
+#         #'django.request':{
+#         #    'handlers':['mail_admins'],
+#         #    'level':'WARNING',
+#         #    'propagate':True,
+#         #},
+#     }
+# }

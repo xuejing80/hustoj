@@ -1,5 +1,5 @@
 from django.shortcuts import render
-from .models import CodeWeekClass, ProblemCategory, CodeWeekClassStudent
+from .models import *
 from .forms import *
 import datetime
 from django.contrib.auth.decorators import permission_required, login_required
@@ -11,6 +11,9 @@ import os, cgi, json
 from django.views.generic.detail import DetailView
 from django.utils.datastructures import MultiValueDictKeyError
 from django.apps import apps
+from django.core.exceptions import ObjectDoesNotExist
+from django.db import transaction
+import IPython, pdb
 
 @login_required
 def course_list_for_student(request):
@@ -90,8 +93,35 @@ def add_course(request):
                         student.save()
                         student.groups.add(Group.objects.get(name='学生'))
                 #newCourse.students.add(student)
-                newCourseStudent = CodeWeekClassStudent(codeWeekClass=newCourse, student=student)
-                newCourseStudent.save()
+                    # IPython.embed()
+                    if newCourse.students.all().filter(codeweekclassstudent__student=student).count() == 0:
+                        if form.cleaned_data['maxnumber'] == "1":  # 没有分组操作，直接给每个学生加入一个只有自己一个人的组
+                            newgroup = CodeWeekClassGroup(cwclass=newCourse)
+                            newgroup.save()
+                            newCourseStudent = CodeWeekClassStudent(codeWeekClass=newCourse, student=student,
+                                                                    group=newgroup,
+                                                                    isLeader=True)
+                            newCourseStudent.save()
+                        else:
+                            newCourseStudent = CodeWeekClassStudent(codeWeekClass=newCourse, student=student)
+                            newCourseStudent.save()
+                else:
+                    try:
+                        student = MyUser.objects.get(id_num=stu_detail)
+                        if newCourse.students.all().filter(codeweekclassstudent__student=student).count() == 0:
+                            if form.cleaned_data['maxnumber'] == "1":  # 没有分组操作，直接给每个学生加入一个只有自己一个人的组
+                                newgroup = CodeWeekClassGroup(cwclass=newCourse)
+                                newgroup.save()
+                                newCourseStudent = CodeWeekClassStudent(codeWeekClass=newCourse, student=student,
+                                                                        group=newgroup,
+                                                                        isLeader=True)
+                                newCourseStudent.save()
+                            else:
+                                newCourseStudent = CodeWeekClassStudent(codeWeekClass=newCourse, student=student)
+                                newCourseStudent.save()
+
+                    except:
+                        pass
             return HttpResponse(1)
         else:
             print(form.errors)
@@ -296,3 +326,42 @@ def download(request, fileId):
         return response
     else:
         return render(request, 'warning.html' ,{'info' : '没有此文件'})
+
+# 用于学生课程界面有关分组信息的初始化操作
+@login_required()
+def student_info(request, courseId):
+    """
+    :param request:
+    :param courseId: 正则匹配的课程id
+    打包传输现在的学生分组情况用来初始前端显示
+    """
+    student = None
+    course = None
+    data = None
+    try:
+        with transaction.atomic():
+            student = CodeWeekClassStudent.objects.get(codeWeekClass=courseId, student=request.user)
+            course = CodeWeekClass.objects.get(id=courseId)
+            if student and course:
+                data = {'max': course.numberEachGroup, 'id': course.counter}
+                groups = course.CodeWeekClass_group.all()
+                groupsData = []
+                for group in groups:
+                    aGroupMemberData = []
+                    aGroupData = {}
+                    students = group.Group_member.all()
+                    for s in students:
+                        if s.isLeader:
+                            aGroupData['leader'] = s.get_full_name()
+                        else:
+                            aGroupMemberData.append(s.get_full_name())
+                    aGroupData['groupid'] = group.id
+                    aGroupData['members'] = aGroupMemberData
+                    groupsData.append(aGroupData)
+                    # pdb.set_trace()
+                data['groups'] = groupsData
+    except ObjectDoesNotExist:
+        return
+    return HttpResponse(json.dumps(data))
+
+

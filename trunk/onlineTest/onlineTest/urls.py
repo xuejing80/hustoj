@@ -32,6 +32,7 @@ urlpatterns = [
     url(r'^weixin/', include('weixin.urls')),
     url(r'^code_week/', include('code_week.urls')),
     url(r'get-json-(?P<model_name>\w+)/$', get_json,name='get_json'),
+    url(r'^dict/', include('dict.urls')),
     url(r'^favicon\.ico$',favicon_view),
     url(r'^$', TemplateView.as_view(template_name="index.html")),
 ]

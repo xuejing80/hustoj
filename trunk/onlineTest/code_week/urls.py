@@ -17,4 +17,5 @@ urlpatterns = [
     url(r'get-sheji/$', get_json_sheji, name='get_json_sheji'),
     url(r'get-problem-student-(?P<id>\d+)/$', get_problem_student, name='get_problem_student'),
     url(r'download-(?P<fileId>\d+)/$', download, name='download_file'),
+    url(r'student-info-(?P<courseId>\d+)/$', student_info, name='student_info'),
 ]

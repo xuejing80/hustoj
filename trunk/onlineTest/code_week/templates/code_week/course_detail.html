@@ -19,4 +19,8 @@
         {% endfor %}
     {% endif %}
 {% endif %}
+    <script type="text/javascript">
+    var ws_scheme = window.location.protocol == "https:" ? "wss" : "ws";
+    var chatsock = new WebSocket(ws_scheme + '://' + window.location.host  + window.location.pathname);
+            </script>
 {% endblock %}

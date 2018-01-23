@@ -13,6 +13,7 @@ from django.utils.datastructures import MultiValueDictKeyError
 from django.apps import apps
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import transaction
+from onlineTest.settings import BASE_DIR
 import IPython, pdb
 
 @login_required
@@ -156,7 +157,7 @@ def student_view_course(request, courseId):
 
 # 用户提交文件名，把文件名修改为提交的id
 def newFileName(fileId):
-    filename = os.path.join('C:/Users/张柯/code/upload/', str(fileId))
+    filename = os.path.join(BASE_DIR, 'upload/'+str(fileId))
     return filename
 
 #增加程序设计题

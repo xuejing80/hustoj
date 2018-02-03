@@ -43,7 +43,7 @@
 	    <div id="collapse{{ choice_problem.detail.id }}"
 		 class="panel-collapse collapse {% if forloop.first %}in{% endif %}" role="tabpanel"
 		 aria-labelledby="heading{{ choice_problem.detail.id }}">
-		<div class="panel-body">
+		<div class="panel-body" name="nhh">
 		    <!--<div class="row">-->
 			<div class="col-lg-6 col-md-6">
 			    <label class="radio-inline">
@@ -296,20 +296,43 @@
         $.ajaxSetup({
             data: {csrfmiddlewaretoken: '{{ csrf_token }}'}
         });
-        function save() {
-            sync_code();
-            $.confirm({
-                title: false, // hides the title.
-                cancelButton: false,// hides the cancel button.
-                confirmButton: false, // hides the confirm button.
-                closeIcon: false, // hides the close icon.
-                content: '<i class="fa fa-spinner fa-spin fa-3x fa-fw"></i> <span class="sr-only">正在上传你的答案,请稍等</span>正在上传你的答案,请稍等' // hides content block.
-            });
+         function save() {
+            sync_code();  
             //var htmlstr = '<input type="hidden" name="homework_id" size="20" value="{{ homework.id }}"/>';
             //$("form").append(htmlstr);
             $("form").attr("action", "{% url 'save_homework' %}");
-            $("form").submit()
+            var art = [];
+            var item = [];
+            var _form = document.getElementById("form1");
+            var item_list = _form.getElementsByTagName('input');
+            for (let item of item_list)
+            {
+            var nhh = new Object;
+            nhh.name = item.name;
+            nhh.value = item.value;
+            art.push(nhh);
+            }
+            var operatorIDs = JSON.stringify(art); //数组转化成JSON字符串
+            $.ajax({
+                    type: "post",
+                    url: "{% url 'save_homework' %}",
+                   //dataType: "json",
+                    data: {
+                          'type': 'upload',
+                          'homework_id':{{homework.id}},
+                          'data': operatorIDs,
+                          },
+                   success: function(data){
+                               alert('暂存成功！');
+                                if(data){
+                                window.location.href='http://127.0.0.1/test/work/do-homework-list'}
+                          },
+                   error: function(){
+                            alert('error!');
+                          }
+                  })
         }
+
         function test_run(id) {
             var result_div = $("#result-" + id);
             var score_span = $("#score-" + id);
@@ -435,6 +458,28 @@
                 $('#summary').val($('#summary').val().substring(0,500));//长度大于1000时截取钱1000个字符
             }
         })
+
+
+        $(document).ready(function(){　　
+            var arr = new Array(1, 2, 3, 4);
+            var ul = document.getElementsByName("nhh");   
+            var len2 = ul.length;
+            for(var j = 0; j < len2; j++)
+            {   　　
+            var len1 = arr.length;　　
+            var len = len1;
+            var index = parseInt(Math.random() * (len1));　　
+            for (var i = 0; i < len1; i++){　　
+               var _ul = ul[i]
+               _ul.appendChild(_ul.children[index]);　　
+               arr.pop(index);　　
+               len = arr.length;　　
+               index = parseInt(Math.random() * (len));　　
+            }
+            console.log(arr)
+            }
+          })
+   
     </script>
 
 {% endblock %}

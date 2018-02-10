@@ -286,6 +286,7 @@ def update_my_homework(request, pk):
         homework.tiankong_problem_info=request.POST['tiankong-problem-info']
         homework.gaicuo_problem_info=request.POST['gaicuo-problem-info']
         homework.allow_resubmit = True if request.POST['allow_resubmit'] == '1' else False
+        homework.allow_random = True if request.POST['allow_random'] == '1' else False
         homework.allow_similarity = True if request.POST['allow_similarity'] == '1' else False
         homework.work_kind = request.POST['work_kind']
         #2017年9月新增功能
@@ -298,6 +299,8 @@ def update_my_homework(request, pk):
                    'name': homework.name, 'courser_id': homework.courser.id, 'start_time': homework.start_time,
                    'end_time': homework.end_time, 'title': '修改我的作业"' + homework.name + '"',
                    'allow_resubmit': '1' if homework.allow_resubmit else '0',
+                   'allow_random' : '1' if homework.allow_random else '0',
+                   'allow_similarity' : '1' if homework.allow_similarity else '0',
                    'work_kind': homework.work_kind}
     return render(request, 'homework_add.html', context=context)  # 查看作业结果
 

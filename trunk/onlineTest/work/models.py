@@ -69,6 +69,7 @@ class MyHomework(models.Model):
     banji = models.ManyToManyField(BanJi)
     finished_students = models.ManyToManyField(MyUser, related_name='finished_students', blank=True)
     allow_resubmit = models.BooleanField(default=True, verbose_name='是否允许重复提交作业？')
+    allow_random = models.BooleanField(default=True, verbose_name='是否打乱选择题选项顺序？')
     allow_similarity = models.BooleanField(default=False, verbose_name='是否开启相似度判分？')
     work_kind = models.CharField(max_length=20,verbose_name="作业类型",default='作业')
     total_score = models.IntegerField()

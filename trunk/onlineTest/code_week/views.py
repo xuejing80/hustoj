@@ -348,19 +348,21 @@ def student_info(request, courseId):
                 groups = course.CodeWeekClass_group.all()
                 groupsData = []
                 for group in groups:
-                    aGroupMemberData = []
-                    aGroupData = {}
-                    students = group.Group_member.all()
-                    for s in students:
-                        if s.isLeader:
-                            aGroupData['leader'] = s.get_full_name()
-                        else:
-                            aGroupMemberData.append(s.get_full_name())
-                    aGroupData['groupid'] = group.id
-                    aGroupData['members'] = aGroupMemberData
-                    groupsData.append(aGroupData)
+                    if group.using:
+                        aGroupMemberData = []
+                        aGroupData = {}
+                        students = group.Group_member.all()
+                        for s in students:
+                            if s.isLeader:
+                                aGroupData['leader'] = s.get_full_name()
+                            else:
+                                aGroupMemberData.append(s.get_full_name())
+                        aGroupData['groupid'] = group.id
+                        aGroupData['members'] = aGroupMemberData
+                        groupsData.append(aGroupData)
                     # pdb.set_trace()
                 data['groups'] = groupsData
+                data['name'] = student.get_full_name()
     except ObjectDoesNotExist:
         return
     return HttpResponse(json.dumps(data))

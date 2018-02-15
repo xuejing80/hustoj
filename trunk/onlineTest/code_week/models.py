@@ -68,6 +68,7 @@ class CodeWeekClassGroup(models.Model):
     cwclass = models.ForeignKey(CodeWeekClass, related_name='CodeWeekClass_group')
     selectedProblem = models.ForeignKey(ShejiProblem, related_name='GroupSelectProblem', on_delete=models.PROTECT, null=True)
     counter = models.IntegerField(default=0)
+    using = models.BooleanField(default=True)
 
 class CodeWeekClassStudent(models.Model):
     """

@@ -123,7 +123,10 @@ def add_course(request):
 
                     except:
                         pass
-            return HttpResponse(1)
+            return redirect(reverse('view_course_for_teacher', args=[newCourse.id,]))
+           # return view_course(request, newCourse.id)
+        #    return HttpResponse(1)
+
         else:
             print(form.errors)
     else:

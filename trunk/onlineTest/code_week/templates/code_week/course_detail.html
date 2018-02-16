@@ -1,11 +1,58 @@
 {% extends 'base.html' %}
 {% comment %}用于老师查看课程详细{% endcomment %}
+{% block extrahead %}
+    {% load static %}
+{#    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery-confirm/3.3.0/jquery-confirm.min.css">#}
+{#<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-confirm/3.3.0/jquery-confirm.min.js"></script>#}
+    <script src="{% static 'assets/js/jquery-confirm.min.js' %}"></script>
+    <link href="{% static 'assets/css/jquery-confirm.min.css' %}" rel="stylesheet">
+    <link href="{% static 'assets/css/code_week_teacher_course_detail.css' %}" rel="stylesheet">
+    <script src="{% static 'assets/js/moment/moment.min.js' %}"></script>
+    <script src="{% static 'assets/js/moment/zh-cn.js' %}"></script>
+    <link href="{% static 'assets/css/bootstrap-editable.css' %}" rel="stylesheet">
+    <link href="{% static 'assets/css/bootstrap-datetimepicker.min.css' %}" rel="stylesheet">
+    <script src="{% static 'assets/js/bootstrap-datetimepicker.min.js' %}"></script>
+{% endblock %}
 {% block content %}
 {% if course %}
-    <p>课程名称: {{ course.name }}</p>
-    <p>开始时间: {{ course.begin_time }}</p>
-    <p>结束时间: {{ course.end_time }}</p>
-    <p>每组最多人数： {{ course.numberEachGroup }}</p>
+    <div class="settings-section container-fluid">
+        <div class="settings-item clearfix">
+            <label class="settings-item-title">课程名称:</label>
+            <div class="settings-item-content">
+                <div>
+                    <span>{{ course.name }}</span>
+                    <a href="#" onclick="update_info()">修改</a>
+                </div>
+            </div>
+        </div>
+        <div class="settings-item clearfix">
+            <label class="settings-item-title">开始时间:</label>
+            <div class="settings-item-content">
+                <div>
+                    <span>{{ course.begin_time }}</span>
+                    <a href="#" onclick="update_begin_time()">修改</a>
+                </div>
+            </div>
+        </div>
+        <div class="settings-item clearfix">
+            <label class="settings-item-title">结束时间:</label>
+            <div class="settings-item-content">
+                <div>
+                    <span>{{ course.end_time }}</span>
+                    <a href="#" onclick="update_end_time()">修改</a>
+                </div>
+            </div>
+        </div>
+        <div class="settings-item clearfix">
+            <label class="settings-item-title">每组最多人数:</label>
+            <div class="settings-item-content">
+                <div>
+                    <span>{{ course.numberEachGroup }}</span>
+                    <a>修改</a>
+                </div>
+            </div>
+        </div>
+    </div>
     {% if problems %}
         <p>题目列表：</p>
         {% for problem in problems %}
@@ -22,5 +69,117 @@
     <script type="text/javascript">
     var ws_scheme = window.location.protocol == "https:" ? "wss" : "ws";
     var chatsock = new WebSocket(ws_scheme + '://' + window.location.host  + window.location.pathname);
-            </script>
+    function update_info() {
+        $.confirm({
+            title: '修改课程名称',
+            content: '请输入新的课程名称 <input class="form-control" id="courser_name" type="text" placeholder="输入新的课程名称"/>',
+            confirmButton: '修改',
+            cancelButton: '放弃',
+            confirm: function () {
+                $.ajax({
+                    url: '{% url 'add_courser' %}',
+                    dataType: 'json',
+                    method: 'post',
+                    data: {'name': $('#courser_name').val()}
+                }).done(function (response) {
+                    if (response == 1) {
+                        $.alert('创建成功！');
+                        location.reload();
+                        return true
+                    } else {
+                        self.setContent('创建时出现问题');
+                        return false
+                    }
+                }).fail(function () {
+                    self.setContent('数据传输时出现问题');
+                    return false
+                });
+            }
+            });
+    }
+     function update_begin_time() {
+        $.confirm({
+            title: '修改课程开始时间',
+            content: "请选择新的开始时间 <div class='input-group date' id='datetimepicker1'>\n" +
+            "                    <input type='text' class=\"form-control\" name=\"begin_time\" required=\"required\" id=\"begin_time\"/>\n" +
+            "                    <span class=\"input-group-addon\">\n" +
+            "                    <span class=\"glyphicon glyphicon-calendar\"></span>\n" +
+            "                </span>" +
+            "</div>",
+            confirmButton: '修改',
+            cancelButton: '放弃',
+            onOpen: function () {
+                $('#datetimepicker1').datetimepicker(
+                {
+                    format: 'yyyy-mm-dd hh:ii',
+                    sideBySide: true,
+                    defaultDate: moment()
+                }
+        );
+            },
+            confirm: function () {
+                $.ajax({
+                    url: '{% url 'add_courser' %}',
+                    dataType: 'json',
+                    method: 'post',
+                    data: {'name': $('#courser_name').val()}
+                }).done(function (response) {
+                    if (response == 1) {
+                        $.alert('创建成功！');
+                        location.reload();
+                        return true
+                    } else {
+                        self.setContent('创建时出现问题');
+                        return false
+                    }
+                }).fail(function () {
+                    self.setContent('数据传输时出现问题');
+                    return false
+                });
+            }
+            });
+    }
+    function update_end_time() {
+        $.confirm({
+            title: '修改课程结束时间',
+            content: "请选择新的结束时间 <div class='input-group date' id='datetimepicker2'>\n" +
+            "                    <input type='text' class=\"form-control\" name=\"begin_time\" required=\"required\" id=\"begin_time\"/>\n" +
+            "                    <span class=\"input-group-addon\">\n" +
+            "                    <span class=\"glyphicon glyphicon-calendar\"></span>\n" +
+            "                </span>" +
+            "</div>",
+            confirmButton: '修改',
+            cancelButton: '放弃',
+            onOpen: function () {
+                $('#datetimepicker2').datetimepicker(
+                {
+                    format: 'yyyy-mm-dd hh:ii',
+                    sideBySide: true,
+                    defaultDate: moment()
+                }
+        );
+            },
+            confirm: function () {
+                $.ajax({
+                    url: '{% url 'add_courser' %}',
+                    dataType: 'json',
+                    method: 'post',
+                    data: {'name': $('#courser_name').val()}
+                }).done(function (response) {
+                    if (response == 1) {
+                        $.alert('创建成功！');
+                        location.reload();
+                        return true
+                    } else {
+                        self.setContent('创建时出现问题');
+                        return false
+                    }
+                }).fail(function () {
+                    self.setContent('数据传输时出现问题');
+                    return false
+                });
+            }
+            });
+    }
+    </script>
 {% endblock %}

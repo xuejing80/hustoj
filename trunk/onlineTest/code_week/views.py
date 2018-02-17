@@ -370,7 +370,20 @@ def student_info(request, courseId):
         return
     return HttpResponse(json.dumps(data))
 
-#  用于教师更新课程的信息
+# 用于教师获取课程信息
+@login_required
+def teacher_course_info(request, courseId):
+    course = None
+    try:
+        course = CodeWeekClass.objects.get(id=courseId, teacher=request.user)
+    except:
+        return HttpResponse(0)
+    result = {'name':course.name, 'number':course.numberEachGroup,
+              'begin_time': course.begin_time.strftime('%Y-%m-%d %H:%M'),
+              'end_time': course.end_time.strftime('%Y-%m-%d %H:%M')}
+    return HttpResponse(json.dumps(result))
+
+# 用于教师更新课程的信息
 @login_required
 def teacher_update_info(request):
     if request.method == 'POST':
@@ -388,7 +401,7 @@ def teacher_update_info(request):
             course = CodeWeekClass.objects.get(id=courseId, teacher=request.user)
         except:
             return HttpResponse(0)
-        if action == 'n': # 更新课程的名称
+        if action == 'update_name': # 更新课程的名称
             name = None
             try:
                 name = request.POST['name']
@@ -401,6 +414,39 @@ def teacher_update_info(request):
             except:
                 return HttpResponse(0)
             return HttpResponse(1)
-
+        elif action == 'update_begin_time': # 更新课程开始时间
+            time = None
+            try:
+                timestr = request.POST['time']
+                time = datetime.datetime.strptime(timestr, '%Y-%m-%d %H:%M')
+            except:
+                return HttpResponse(0)
+            try:
+                with transaction.atomic():
+                    if time < course.end_time:
+                        course.begin_time = time
+                        course.save()
+                    else:
+                        raise Exception
+            except:
+                return HttpResponse(0)
+            return HttpResponse(1)
+        elif action == 'update_end_time': # 更新课程结束时间
+            time = None
+            try:
+                timestr = request.POST['time']
+                time = datetime.datetime.strptime(timestr, '%Y-%m-%d %H:%M')
+            except:
+                return HttpResponse(0)
+            try:
+                with transaction.atomic():
+                    if time > course.begin_time:
+                        course.end_time = time
+                        course.save()
+                    else:
+                        raise Exception
+            except:
+                return HttpResponse(0)
+            return HttpResponse(1)
 
 

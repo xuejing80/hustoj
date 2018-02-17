@@ -21,7 +21,7 @@
             <label class="settings-item-title">课程名称:</label>
             <div class="settings-item-content">
                 <div>
-                    <span>{{ course.name }}</span>
+                    <span id="course_name"></span>
                     <a href="#" onclick="update_info()">修改</a>
                 </div>
             </div>
@@ -30,7 +30,7 @@
             <label class="settings-item-title">开始时间:</label>
             <div class="settings-item-content">
                 <div>
-                    <span>{{ course.begin_time }}</span>
+                    <span id="begin_time"></span>
                     <a href="#" onclick="update_begin_time()">修改</a>
                 </div>
             </div>
@@ -39,7 +39,7 @@
             <label class="settings-item-title">结束时间:</label>
             <div class="settings-item-content">
                 <div>
-                    <span>{{ course.end_time }}</span>
+                    <span id="end_time"></span>
                     <a href="#" onclick="update_end_time()">修改</a>
                 </div>
             </div>
@@ -48,7 +48,7 @@
             <label class="settings-item-title">每组最多人数:</label>
             <div class="settings-item-content">
                 <div>
-                    <span>{{ course.numberEachGroup }}</span>
+                    <span id="max_number"></span>
                     <a>修改</a>
                 </div>
             </div>
@@ -70,25 +70,39 @@
     <script type="text/javascript">
     var ws_scheme = window.location.protocol == "https:" ? "wss" : "ws";
     var chatsock = new WebSocket(ws_scheme + '://' + window.location.host  + window.location.pathname);
+    $(document).ready(function(){
+        $.ajax({
+            type:"GET",
+            url:"{% url 'teacher_course_info' course.id %}",
+            dataType:"json",
+            success:function(data){
+                showCourseInfo(data);
+            },
+            error:function(jqXHR){
+                alert("error" + jqXHR.status);
+            }
+        });
+    });
     function update_info() {
         $.confirm({
             title: '修改课程名称',
-            content: '请输入新的课程名称 <input class="form-control" id="courser_name" type="text" placeholder="输入新的课程名称"/>',
+            content: '请输入新的课程名称 <input class="form-control" id="new_course_name" type="text" placeholder="输入新的课程名称"/>',
             confirmButton: '修改',
             cancelButton: '放弃',
             confirm: function () {
+                newName = $('#new_course_name').val();
                 $.ajax({
                     url: '{% url 'teacher_update_course' %}',
                     dataType: 'json',
                     method: 'post',
-                    data: {'name': $('#courser_name').val(), 'id': $('#course_id').text(), 'action':'n'}
+                    data: {'name': $('#new_course_name').val(), 'id': $('#course_id').text(), 'action':'update_name'}
                 }).done(function (response) {
                     if (response == 1) {
-                        $.alert('修改成功！');
-                        location.reload();
+                        $.alert('修改课程名称成功！');
+                        $('#course_name').text(newName);
                         return true
                     } else {
-                        self.setContent('修改时出现问题');
+                        $.alert('修改时出现问题');
                         return false
                     }
                 }).fail(function () {
@@ -98,11 +112,11 @@
             }
             });
     }
-     function update_begin_time() {
+    function update_begin_time() {
         $.confirm({
             title: '修改课程开始时间',
             content: "请选择新的开始时间 <div class='input-group date' id='datetimepicker1'>\n" +
-            "                    <input type='text' class=\"form-control\" name=\"begin_time\" required=\"required\" id=\"begin_time\"/>\n" +
+            "                    <input type='text' class=\"form-control\" name=\"new_begin_time\" required=\"required\" id=\"new_begin_time\"/>\n" +
             "                    <span class=\"input-group-addon\">\n" +
             "                    <span class=\"glyphicon glyphicon-calendar\"></span>\n" +
             "                </span>" +
@@ -116,21 +130,27 @@
                     sideBySide: true,
                     defaultDate: moment()
                 }
-        );
+                );
             },
             confirm: function () {
+                var end_time = timeRemoveChinese($('#end_time').text());
+                if ($('#new_begin_time').val() >= end_time) {
+                    $.alert('课程开始时间不能在结束时间之后!');
+                    return false;
+                }
+                new_time = timeAddChinese($('#new_begin_time').val());
                 $.ajax({
-                    url: '{% url 'add_courser' %}',
+                    url: '{% url 'teacher_update_course' %}',
                     dataType: 'json',
                     method: 'post',
-                    data: {'name': $('#courser_name').val()}
+                    data: {'time': $('#new_begin_time').val(), 'id': $('#course_id').text(), 'action':'update_begin_time'}
                 }).done(function (response) {
                     if (response == 1) {
-                        $.alert('创建成功！');
-                        location.reload();
+                        $.alert('修改开始时间成功！');
+                        $('#begin_time').text(new_time);
                         return true
                     } else {
-                        self.setContent('创建时出现问题');
+                        $.alert('修改时出现问题');
                         return false
                     }
                 }).fail(function () {
@@ -144,7 +164,7 @@
         $.confirm({
             title: '修改课程结束时间',
             content: "请选择新的结束时间 <div class='input-group date' id='datetimepicker2'>\n" +
-            "                    <input type='text' class=\"form-control\" name=\"begin_time\" required=\"required\" id=\"begin_time\"/>\n" +
+            "                    <input type='text' class=\"form-control\" name=\"new_end_time\" required=\"required\" id=\"new_end_time\"/>\n" +
             "                    <span class=\"input-group-addon\">\n" +
             "                    <span class=\"glyphicon glyphicon-calendar\"></span>\n" +
             "                </span>" +
@@ -161,18 +181,24 @@
         );
             },
             confirm: function () {
+                var begin_time = timeRemoveChinese($('#begin_time').text());
+                if ($('#new_end_time').val() <= end_time) {
+                    $.alert('课程结束时间不能在开始时间之前!');
+                    return false;
+                }
+                new_time = timeAddChinese($('#new_end_time').val());
                 $.ajax({
-                    url: '{% url 'add_courser' %}',
+                    url: '{% url 'teacher_update_course' %}',
                     dataType: 'json',
                     method: 'post',
-                    data: {'name': $('#courser_name').val()}
+                    data: {'time': $('#new_end_time').val(), 'id': $('#course_id').text(), 'action':'update_end_time'}
                 }).done(function (response) {
                     if (response == 1) {
-                        $.alert('创建成功！');
-                        location.reload();
+                        $.alert('修改结束时间成功！');
+                        $('#end_time').text(new_time);
                         return true
                     } else {
-                        self.setContent('创建时出现问题');
+                        $.alert('修改时出现问题');
                         return false
                     }
                 }).fail(function () {
@@ -181,6 +207,28 @@
                 });
             }
             });
+    }
+    function timeAddChinese(time) {
+        time = time.replace('-', '年');
+        time = time.replace('-', '月');
+        time = time.replace(' ', '日 ');
+        return time;
+    }
+    function timeRemoveChinese(time) {
+        time = time.replace('年', '-');
+        time = time.replace('月', '-');
+        time = time.replace('日', '');
+        return time;
+    }
+    function showCourseInfo(data) {
+        name = data.name;
+        begin_time = data.begin_time;
+        end_time = data.end_time;
+        max_number = data.number;
+        $('#course_name').text(name);
+        $('#begin_time').text(timeAddChinese(begin_time));
+        $('#end_time').text(timeAddChinese(end_time));
+        $('#max_number').text(max_number);
     }
     </script>
 {% endblock %}

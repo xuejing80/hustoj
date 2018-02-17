@@ -370,4 +370,37 @@ def student_info(request, courseId):
         return
     return HttpResponse(json.dumps(data))
 
+#  用于教师更新课程的信息
+@login_required
+def teacher_update_info(request):
+    if request.method == 'POST':
+        # 获取需要更新信息的课程id和需要更新的内容
+        courseId = None
+        action = None
+        try:
+            courseId = int(request.POST['id'])
+            action = request.POST['action']
+        except:
+            return HttpResponse(0)
+        # 检查这个课程是否是用户的
+        course = None
+        try:
+            course = CodeWeekClass.objects.get(id=courseId, teacher=request.user)
+        except:
+            return HttpResponse(0)
+        if action == 'n': # 更新课程的名称
+            name = None
+            try:
+                name = request.POST['name']
+            except:
+                return HttpResponse(0)
+            try:
+                with transaction.atomic():
+                    course.name = name
+                    course.save()
+            except:
+                return HttpResponse(0)
+            return HttpResponse(1)
+
+
 

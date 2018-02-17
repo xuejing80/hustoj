@@ -18,4 +18,5 @@ urlpatterns = [
     url(r'get-problem-student-(?P<id>\d+)/$', get_problem_student, name='get_problem_student'),
     url(r'download-(?P<fileId>\d+)/$', download, name='download_file'),
     url(r'student-info-(?P<courseId>\d+)/$', student_info, name='student_info'),
+    url(r'^teacher_update/$', teacher_update_info, name='teacher_update_course'),
 ]

@@ -15,6 +15,7 @@
 {% endblock %}
 {% block content %}
 {% if course %}
+    <label id="course_id" hidden="true">{{ course.id }}</label>
     <div class="settings-section container-fluid">
         <div class="settings-item clearfix">
             <label class="settings-item-title">课程名称:</label>
@@ -77,17 +78,17 @@
             cancelButton: '放弃',
             confirm: function () {
                 $.ajax({
-                    url: '{% url 'add_courser' %}',
+                    url: '{% url 'teacher_update_course' %}',
                     dataType: 'json',
                     method: 'post',
-                    data: {'name': $('#courser_name').val()}
+                    data: {'name': $('#courser_name').val(), 'id': $('#course_id').text(), 'action':'n'}
                 }).done(function (response) {
                     if (response == 1) {
-                        $.alert('创建成功！');
+                        $.alert('修改成功！');
                         location.reload();
                         return true
                     } else {
-                        self.setContent('创建时出现问题');
+                        self.setContent('修改时出现问题');
                         return false
                     }
                 }).fail(function () {

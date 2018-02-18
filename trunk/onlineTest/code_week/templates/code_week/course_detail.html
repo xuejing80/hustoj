@@ -12,6 +12,9 @@
     <link href="{% static 'assets/css/bootstrap-editable.css' %}" rel="stylesheet">
     <link href="{% static 'assets/css/bootstrap-datetimepicker.min.css' %}" rel="stylesheet">
     <script src="{% static 'assets/js/bootstrap-datetimepicker.min.js' %}"></script>
+    <script src="{% static 'assets/js/bootstrap-table.min.js' %}"></script>
+    <link href="{% static 'assets/css/bootstrap-table.min.css' %}" rel="stylesheet">
+    <script src="{% static 'assets/js/bootstrap-table-zh-CN.min.js' %}"></script>
 {% endblock %}
 {% block content %}
 {% if course %}
@@ -54,6 +57,45 @@
             </div>
         </div>
     </div>
+    <p>题目列表：</p>
+    <table id="table"
+           data-toggle="table"
+           data-url="{% url 'get_select_problem' course.id%}"
+           data-side-pagination="server"
+           data-classes="table table-hover table-condensed"
+           data-striped="true"
+           data-query-params="queryParams"
+    >
+        <thead>
+        <tr>
+            <th data-field="pk">题库中ID</th>
+            <th class="nobr" data-field="title">标题</th>
+            <th class="nobr" data-field="category"> 题目分类</th>
+            <th data-field="update_date">最后修改日期</th>
+            <th data-field="creator">创建者</th>
+            <th class="nobr" data-field="id" data-formatter="problemFormatter" data-events="actionEvents">操作</th>
+        </tr>
+        </thead>
+    </table>
+    <a id="add_problem_student" href="{% url 'add_problem_student' course.id %}">增加选择的题目或学生</a>
+    <p>学生列表：</p>
+    <table id="student_table"
+           data-toggle="table"
+           data-url="{% url 'get_student_state' course.id%}"
+           data-side-pagination="server"
+           data-classes="table table-hover table-condensed"
+           data-striped="true"
+           data-query-params="querystudentParams"
+    >
+        <thead>
+        <tr>
+            <th data-field="pk">ID</th>
+            <th class="nobr" data-field="name">学生姓名学号</th>
+            <th class="nobr" data-field="state"> 学生状态</th>
+            <th class="nobr" data-field="id" data-formatter="studentFormatter" data-events="studentactionEvents">操作</th>
+        </tr>
+        </thead>
+    </table>
     {% if problems %}
         <p>题目列表：</p>
         {% for problem in problems %}
@@ -70,6 +112,34 @@
     <script type="text/javascript">
     var ws_scheme = window.location.protocol == "https:" ? "wss" : "ws";
     var chatsock = new WebSocket(ws_scheme + '://' + window.location.host  + window.location.pathname);
+    function queryParams(params) {
+        $('#toolbar').find('select[name]').each(function () {
+            params[$(this).attr('name')] = $(this).val();
+        });
+        return params;
+    }
+    function querystudentParams(params) {
+        $('#toolbar').find('select[name]').each(function () {
+            params[$(this).attr('name')] = $(this).val();
+        });
+        return params;
+    }
+    function problemFormatter(value) {
+        return '<a class="btn btn-primary btn-xs remove" href="javascript:void(0)" title="删除" aria-label="删除" data-pjax="0"><span class="glyphicon glyphicon-trash"></span></a>';
+    }
+    function studentFormatter(value) {
+        return '<a class="btn btn-primary btn-xs remove" href="javascript:void(0)" title="移除" aria-label="移除" data-pjax="0"><span class="glyphicon glyphicon-trash"></span></a>';
+    }
+    window.actionEvents = {
+        'click .remove': function (e, value) {
+            removeProblem(value);
+        }
+    }
+    window.studentactionEvents = {
+        'click .remove': function (e, value) {
+            removeProblem(value);
+        }
+    }
     $(document).ready(function(){
         $.ajax({
             type:"GET",
@@ -229,6 +299,32 @@
         $('#begin_time').text(timeAddChinese(begin_time));
         $('#end_time').text(timeAddChinese(end_time));
         $('#max_number').text(max_number);
+    }
+    function removeProblem(value) {
+        $.ajax({
+            url: '{% url 'remove_select_problem' %}',
+            dataType: 'json',
+            method: 'post',
+            data: {'courseId': $('#course_id').text(), 'problemId': value,}
+        }).done(function (response) {
+            if (response == 1) {
+                $.alert('删除选择的题目成功！');
+                $('#table').bootstrapTable('refresh');
+                return true
+            } else if(response == 2) {
+                $.alert('删除的问题有学生已经选了');
+                $('#table').bootstrapTable('refresh');
+                return false
+            } else {
+                $.alert('删除出现问题');
+                $('#table').bootstrapTable('refresh');
+                return false
+            }
+
+        }).fail(function () {
+            self.setContent('数据传输时出现问题');
+            return false
+        });
     }
     </script>
 {% endblock %}

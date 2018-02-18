@@ -7,7 +7,7 @@ from django.shortcuts import redirect, get_object_or_404
 from django.core.urlresolvers import reverse
 from auth_system.models import MyUser, Group
 from django.http import HttpResponse,StreamingHttpResponse
-import os, cgi, json
+import os, cgi, json, html
 from django.views.generic.detail import DetailView
 from django.utils.datastructures import MultiValueDictKeyError
 from django.apps import apps
@@ -83,7 +83,6 @@ def add_course(request):
                     return HttpResponse(0)
             # 添加学生
             for stu_detail in request.POST['students'].splitlines():
-                # print(line)
                 if len(stu_detail.split()) > 1:
                     id_num, username = stu_detail.split()[0], stu_detail.split()[1]
                     try:
@@ -93,9 +92,7 @@ def add_course(request):
                         student.set_password(id_num)
                         student.save()
                         student.groups.add(Group.objects.get(name='学生'))
-                #newCourse.students.add(student)
-                    # IPython.embed()
-                    if newCourse.students.all().filter(codeweekclassstudent__student=student).count() == 0:
+                    if newCourse.students.all().filter(codeweekclassstudent__student=student).count() == 0: # 判断学生是否已经存在
                         if form.cleaned_data['maxnumber'] == "1":  # 没有分组操作，直接给每个学生加入一个只有自己一个人的组
                             newgroup = CodeWeekClassGroup(cwclass=newCourse)
                             newgroup.save()
@@ -449,4 +446,148 @@ def teacher_update_info(request):
                 return HttpResponse(0)
             return HttpResponse(1)
 
+@login_required()
+# 用于教师课程界面获取已经选取的题目
+def get_select_problem(request, courseId):
+    course = None
+    try:
+        course = CodeWeekClass.objects.get(id=courseId, teacher=request.user)
+    except:
+        return HttpResponse(0)
+    json_data = {}
+    recodes = []
 
+    problems = course.problems.all()
+
+    json_data['total'] = problems.count()
+
+    for problem in problems.all():
+        title = html.escape(problem.title)
+        recode = {'pk': problem.pk, 'title': title, 'category': str(problem.category),
+                  'update_date': problem.update_date.strftime('%Y-%m-%d %H:%M:%S'), 'creator': str(problem.creator),
+                  'id': problem.pk}
+        recodes.append(recode)
+    json_data['rows'] = recodes
+    return HttpResponse(json.dumps(json_data))
+
+@login_required
+# 用于教师移除已经选好的题目
+def remove_select_problem(request):
+    if request.method == 'POST':
+        courseId = None
+        problemId = None
+        try:
+            courseId = request.POST['courseId']
+            problemId = request.POST['problemId']
+        except:
+            return HttpResponse(0)
+        course = None
+        problem = None
+        try:
+            course = CodeWeekClass.objects.get(id=courseId, teacher=request.user)
+            problem = ShejiProblem.objects.get(problem_id=problemId)
+        except:
+            return HttpResponse(0)
+        try:
+            with transaction.atomic():
+                # 检查是否有学生已经选了这个题目
+                for group in course.CodeWeekClass_group.all():
+                    if group.selectedProblem == problem:
+                        return HttpResponse(2)
+                course.problems.remove(problem)
+        except:
+            return HttpResponse(0)
+        return HttpResponse(1)
+
+@login_required
+# 用于教师给课程增加题目和学生
+def add_problem_student(request, courseId):
+    if request.method == 'POST':
+        course = None
+        try:
+            course = CodeWeekClass.objects.get(id=courseId, teacher=request.user)
+        except:
+            return HttpResponse(0)
+        form = UpdateClassForm(request.POST)
+        if form.is_valid():
+            # 增加题目
+            if form.cleaned_data['problems']:
+                ids = form.cleaned_data['problems'].split(',')
+                try:
+                    with transaction.atomic():
+                        for pk in ids:
+                            try:
+                                course.problems.add(pk)
+                            except:
+                                continue
+                except:
+                    return HttpResponse(0)
+            # 添加学生
+            for stu_detail in request.POST['students'].splitlines():
+                if len(stu_detail.split()) > 1:
+                    id_num, username = stu_detail.split()[0], stu_detail.split()[1]
+                    try:
+                        student = MyUser.objects.get(id_num=id_num)
+                    except:
+                        student = MyUser(id_num=id_num, email=id_num + '@njupt.edu.cn', username=username)
+                        student.set_password(id_num)
+                        student.save()
+                        student.groups.add(Group.objects.get(name='学生'))
+                    # newCourse.students.add(student)
+                    # IPython.embed()
+                    if course.students.all().filter(codeweekclassstudent__student=student).count() == 0:
+                        if course.numberEachGroup == 1:  # 没有分组操作，直接给每个学生加入一个只有自己一个人的组
+                            newgroup = CodeWeekClassGroup(cwclass=course)
+                            newgroup.save()
+                            newCourseStudent = CodeWeekClassStudent(codeWeekClass=course, student=student,
+                                                                    group=newgroup,
+                                                                    isLeader=True)
+                            newCourseStudent.save()
+                        else:
+                            newCourseStudent = CodeWeekClassStudent(codeWeekClass=course, student=student)
+                            newCourseStudent.save()
+                else:
+                    try:
+                        student = MyUser.objects.get(id_num=stu_detail)
+                        if course.students.all().filter(codeweekclassstudent__student=student).count() == 0:
+                            if course.numberEachGroup == 1:  # 没有分组操作，直接给每个学生加入一个只有自己一个人的组
+                                newgroup = CodeWeekClassGroup(cwclass=course)
+                                newgroup.save()
+                                newCourseStudent = CodeWeekClassStudent(codeWeekClass=course, student=student,
+                                                                        group=newgroup,
+                                                                        isLeader=True)
+                                newCourseStudent.save()
+                            else:
+                                newCourseStudent = CodeWeekClassStudent(codeWeekClass=course, student=student)
+                                newCourseStudent.save()
+
+                    except:
+                        pass
+            return redirect(reverse('view_course_for_teacher', args=[course.id, ]))
+    else:
+        form = UpdateClassForm()
+        categorys = ProblemCategory.objects.all()
+        return render(request, 'code_week/add_problem_student.html', {'form': form, 'categorys': categorys})
+
+@login_required
+# 用于教师获取学生的信息表格
+def get_student_state(request, courseId):
+    course = None
+    try:
+        course = CodeWeekClass.objects.get(id=courseId, teacher=request.user)
+    except:
+        return HttpResponse(0)
+    json_data = {}
+    recodes = []
+    students = course.CodeWeekClass_student.all()
+
+    json_data['total'] = students.count()
+
+    for student in students.all():
+        recode = {'pk': student.pk,
+                  'name': student.get_full_name(),
+                  'state': student.state,
+                  'id': student.pk}
+        recodes.append(recode)
+    json_data['rows'] = recodes
+    return HttpResponse(json.dumps(json_data))

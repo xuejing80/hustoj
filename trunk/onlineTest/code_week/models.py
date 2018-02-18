@@ -74,7 +74,7 @@ class CodeWeekClassStudent(models.Model):
     """
     用来描述课程和学生之间的多对多关系
     """
-    codeWeekClass = models.ForeignKey(CodeWeekClass)
+    codeWeekClass = models.ForeignKey(CodeWeekClass, related_name='CodeWeekClass_student')
     student = models.ForeignKey(MyUser)
     state = models.IntegerField(choices=STUDENT_STATE, default=1)
     group = models.ForeignKey(CodeWeekClassGroup, related_name='Group_member', null=True, on_delete=models.SET_NULL)

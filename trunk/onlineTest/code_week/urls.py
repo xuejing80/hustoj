@@ -20,4 +20,8 @@ urlpatterns = [
     url(r'student-info-(?P<courseId>\d+)/$', student_info, name='student_info'),
     url(r'^teacher_update/$', teacher_update_info, name='teacher_update_course'),
     url(r'teacher-info-(?P<courseId>\d+)/$', teacher_course_info, name='teacher_course_info'),
+    url(r'^get-select-problem-(?P<courseId>\d+)/$', get_select_problem, name='get_select_problem'),
+    url(r'^remove-select-problem/$', remove_select_problem, name='remove_select_problem'),
+    url(r'^add-problem-student-(?P<courseId>\d+)/$', add_problem_student, name='add_problem_student'),
+    url(r'^get-student-state-(?P<courseId>\d+)/$', get_student_state, name='get_student_state'),
 ]

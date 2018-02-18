@@ -59,3 +59,7 @@ class ShejiUpdateForm(forms.Form):
             problem.category = category
         problem.save()
         return problem
+
+class UpdateClassForm(forms.Form):
+    problems = forms.CharField(required=False)
+    students = forms.Textarea()

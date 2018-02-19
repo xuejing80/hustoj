@@ -89,25 +89,13 @@
     >
         <thead>
         <tr>
-            <th data-field="pk">ID</th>
+            <th data-field="pk" data-visible="false">ID</th>
             <th class="nobr" data-field="name">学生姓名学号</th>
             <th class="nobr" data-field="state"> 学生状态</th>
             <th class="nobr" data-field="id" data-formatter="studentFormatter" data-events="studentactionEvents">操作</th>
         </tr>
         </thead>
     </table>
-    {% if problems %}
-        <p>题目列表：</p>
-        {% for problem in problems %}
-            <p>{{ problem.title }}</p>
-        {% endfor %}
-    {% endif %}
-    {% if students %}
-        <p>学生列表：</p>
-        {% for student in students %}
-            <p>{{ student.id_num }}</p>
-        {% endfor %}
-    {% endif %}
 {% endif %}
     <script type="text/javascript">
     var ws_scheme = window.location.protocol == "https:" ? "wss" : "ws";
@@ -137,7 +125,7 @@
     }
     window.studentactionEvents = {
         'click .remove': function (e, value) {
-            removeProblem(value);
+            removeStudent(value);
         }
     }
     $(document).ready(function(){
@@ -318,6 +306,32 @@
             } else {
                 $.alert('删除出现问题');
                 $('#table').bootstrapTable('refresh');
+                return false
+            }
+
+        }).fail(function () {
+            self.setContent('数据传输时出现问题');
+            return false
+        });
+    }
+    function removeStudent(value) {
+        $.ajax({
+            url: '{% url 'remove_student' %}',
+            dataType: 'json',
+            method: 'post',
+            data: {'courseId': $('#course_id').text(), 'studentId': value,}
+        }).done(function (response) {
+            if (response == 1) {
+                $.alert('删除学生成功！');
+                $('#student_table').bootstrapTable('refresh');
+                return true
+            } else if(response == 2) {
+                $.alert('要删除的学生已经加入小组或者创建了小组，删除失败!');
+                $('#student_table').bootstrapTable('refresh');
+                return false
+            } else {
+                $.alert('删除出现问题');
+                $('#student_table').bootstrapTable('refresh');
                 return false
             }
 

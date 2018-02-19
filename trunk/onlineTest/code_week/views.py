@@ -591,3 +591,29 @@ def get_student_state(request, courseId):
         recodes.append(recode)
     json_data['rows'] = recodes
     return HttpResponse(json.dumps(json_data))
+
+@login_required
+# 用于教师移除学生
+def remove_student(request):
+    courseId = None
+    studentId = None
+    try:
+        courseId = request.POST['courseId']
+        studentId = request.POST['studentId']
+    except:
+        return HttpResponse(0)
+    student = None
+    try:
+        course = CodeWeekClass.objects.get(id=courseId, teacher=request.user)
+        student = CodeWeekClassStudent.objects.get(codeWeekClass=course, id=studentId)
+    except:
+        return HttpResponse(0)
+    # 如果学生已经已经加入小组或者成立小组就无法移除
+    if student.group == None:
+        try:
+            with transaction.atomic():
+                student.delete()
+        except:
+            return HttpResponse(0)
+        return HttpResponse(1)
+    return HttpResponse(2)

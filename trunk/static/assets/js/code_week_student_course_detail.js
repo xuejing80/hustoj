@@ -13,7 +13,7 @@ var nowid; // 用来记录消息的id，防止中间消息没有收到
 var max;   // 用来记录每组人数的最多数目
 var groupsVue = new Map();
 
-function addGroup(groupid, leader, members){ // 测试jQuery插入dom  
+function addGroup(groupid, leader, members, problem){ // 测试jQuery插入dom  
     var source = "\
         <div class='container'>\
             <div class='group' id='group-groupid'>\
@@ -31,6 +31,14 @@ function addGroup(groupid, leader, members){ // 测试jQuery插入dom
                                 {{ member }} \
                             </li>\
                         </ol>\
+                    </div>\
+                </div>\
+                <div class='select-problem'>\
+                    <div v-if='problem'>\
+                        <span>选择的题目：{{ problem }}</span>\
+                    </div>\
+                    <div v-else>\
+                        <span>还没有选择题目</span>\
                     </div>\
                 </div>\
                 <div class='option'>\
@@ -57,6 +65,17 @@ function addGroup(groupid, leader, members){ // 测试jQuery插入dom
                         </ol>\
                     </div>\
                 </div>\
+                <div class='select-problem'>\
+                    <div v-if='problem'>\
+                        <span>选择的题目：{{ problem }}</span>\
+                    </div>\
+                    <div v-else>\
+                        <span>还没有选择题目</span>\
+                    </div>\
+                </div>\
+                <div class='option'>\
+                    <button v-on:click='chooseP'>选题</button>\
+                </div>\
                 <div class='option'>\
                     <button v-on:click='dismissG'>解散</button>\
                 </div>\
@@ -79,6 +98,7 @@ function addGroup(groupid, leader, members){ // 测试jQuery插入dom
             data: {
                 leader: leader + "的小组",
                 members: members,
+                problem: problem,
             },
             methods: {
                 dismissG: function() {
@@ -94,6 +114,9 @@ function addGroup(groupid, leader, members){ // 测试jQuery插入dom
                     {
                         alert("No event!");
                     }
+                },
+                chooseP: function() {
+                    chooseProblem();
                 }
             }
         }));
@@ -105,6 +128,7 @@ function addGroup(groupid, leader, members){ // 测试jQuery插入dom
             data: {
                 leader: leader + "的小组",
                 members: members,
+                problem: problem,
             },
             methods: {
                 joinG: function() {
@@ -129,7 +153,13 @@ function handleFirstMsg(data) { // 用于处理以打开页面就获得的数据
     groups = data.groups;
     for (var i = 0; i < groups.length; ++i)
     {
-        addGroup(groups[i]["groupid"], groups[i]["leader"], groups[i]["members"]);
+        var problem = null
+        try {
+            problem = groups[i]["problem"];
+        } catch (error) {
+            
+        }
+        addGroup(groups[i]["groupid"], groups[i]["leader"], groups[i]["members"], problem);
     }
 }
 // var b = document.getElementById("addGroup");
@@ -170,6 +200,31 @@ function removeMember(memberName){
         name: memberName,
     };
     chatsock.send(JSON.stringify(message));
+}
+function chooseProblem() {
+    $.confirm({
+        title: '选择题目',
+        content: '请输入题目的序号，选取题目之后无法进行组员管理 <input class="form-control" id="problem_id" type="text" placeholder="输入题目序号"/>',
+        confirmButton: '确认',
+        cancelButton: '放弃',
+        confirm: function () {
+            id = parseInt($('#problem_id').val());
+            if ($('#table').bootstrapTable("getData")[id-1])
+            {
+                var message = {
+                    action: "choose",
+                    id: id,
+                };
+                chatsock.send(JSON.stringify(message));
+                return true;
+            }
+            else
+            {
+                $.alert('输入的序号无效!');
+                return false;
+            }
+        }
+    });
 }
 function handleMessage(message) { // 用于处理websocket收到的消息
     console.log(message.data);
@@ -220,6 +275,11 @@ function handleMessage(message) { // 用于处理websocket收到的消息
         {
             ms.splice(i, 1);
         }
+    }
+    else if (data['action'] == 'choose') // 收到消息有小组选择了题目
+    {
+        var groupid = data['groupId'];
+        groupsVue.get(groupsVue).problem = data['problem'];
     }
 }
 function retryData(id)  // 获取nowid到id中丢失的

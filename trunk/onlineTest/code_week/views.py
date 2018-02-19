@@ -270,21 +270,21 @@ def get_json_sheji(request):
 def get_problem_student(request, id):
     json_data = {}
     recodes = []
-    offset = int(request.GET['offset'])
-    limit = int(request.GET['limit'])
     course = get_object_or_404(CodeWeekClass, id=id)
     json_data['total'] = course.problems.all().count()
     problems = course.problems.all()
-    for problem in problems.all().order_by('pk')[offset:offset + limit]:
-        title = cgi.escape(problem.title)
+    i = 1
+    for problem in problems.all():
+        title = html.escape(problem.title)
         outline = ""
         for aline in problem.editorText.splitlines():
             outline += aline
             outline += '<br/>'
         recode = {'pk': problem.pk, 'title': title, 'category': str(problem.category),
                  'outline' : outline,
-                  'id': problem.pk}
+                  'id': i}
         recodes.append(recode)
+        ++i
     json_data['rows'] = recodes
     return HttpResponse(json.dumps(json_data))
 
@@ -359,6 +359,8 @@ def student_info(request, courseId):
                                 aGroupMemberData.append(s.get_full_name())
                         aGroupData['groupid'] = group.id
                         aGroupData['members'] = aGroupMemberData
+                        if group.selectedProblem:
+                            aGroupData['problem'] = group.selectedProblem.title
                         groupsData.append(aGroupData)
                     # pdb.set_trace()
                 data['groups'] = groupsData
@@ -617,3 +619,30 @@ def remove_student(request):
             return HttpResponse(0)
         return HttpResponse(1)
     return HttpResponse(2)
+
+@login_required
+# 用于组长选择题目
+def choose_problem(request, courseId):
+    if request.method == 'POST':
+        student = None
+        problem = None
+        # pdb.set_trace()
+        try:
+            student = CodeWeekClassStudent.objects.get(codeWeekClass=courseId, student=request.user)
+            problemId = request.POST['id']
+            problem = ShejiProblem.objects.get(problem_id=problemId)
+        except :
+            return HttpResponse(0)
+        try:
+            with transaction.atomic():
+                if student and student.group and student.isLeader and student.group.selectedProblem == None:
+                    student.group.selectedProblem = problem
+                    student.group.save()
+                else:
+                    raise Exception
+        except:
+            return HttpResponse(0)
+        return HttpResponse(1)
+
+
+

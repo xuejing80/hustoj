@@ -63,3 +63,6 @@ class ShejiUpdateForm(forms.Form):
 class UpdateClassForm(forms.Form):
     problems = forms.CharField(required=False)
     students = forms.Textarea()
+
+class SubmitCodeForm(forms.Form):
+    codeFile = forms.FileField(required=True)

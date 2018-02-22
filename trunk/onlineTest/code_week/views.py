@@ -7,7 +7,7 @@ from django.shortcuts import redirect, get_object_or_404
 from django.core.urlresolvers import reverse
 from auth_system.models import MyUser, Group
 from django.http import HttpResponse,StreamingHttpResponse
-import os, cgi, json, html
+import os, cgi, json, html, zipfile, random, string, chardet, shutil
 from django.views.generic.detail import DetailView
 from django.utils.datastructures import MultiValueDictKeyError
 from django.apps import apps
@@ -644,5 +644,80 @@ def choose_problem(request, courseId):
             return HttpResponse(0)
         return HttpResponse(1)
 
+def un_zip(file_name):
+    """
+    解压zip文件到当前目录，并生成"file_name_files"文件夹保存解压的数据
+    :param file_name: 文件名
+    :return: 无
+    """
+    zip_file = zipfile.ZipFile(file_name)
+    os.mkdir(file_name + "_files")
+    i = 0
+    dirname = None
+    for names in zip_file.namelist():
+        # pdb.set_trace()
+        # print(chardet.detect(names.encode('utf8')))
+        if i == 0:
+            dirname = names
+            i = i + 1
+        filename = names.encode('cp437').decode('gbk')
+        print(filename)
+        zip_file.extract(names, file_name + "_files/")
+        os.chdir(file_name + "_files/")
+        os.rename(names, filename)
+    shutil.rmtree(file_name + "_files/" + dirname) # 有点问题，所以删掉还是有乱码的，不知道为什么
+    zip_file.close()
+
+@login_required
+def submit_code(request, courseId):
+    if request.method == 'POST': # 处理上传的文件
+        form = SubmitCodeForm(request.POST, request.FILES)
+        if form.is_valid():
+            # 处理上传的文件
+            file = request.FILES['codeFile']
+            random_name = ''.join(random.sample(string.digits + string.ascii_letters * 10, 8))
+            tempdir = newFileName(random_name)
+            os.mkdir(tempdir)
+            filename = os.path.join(tempdir, file.name)
+            with open(filename, 'wb+') as destination:
+                for chunk in file.chunks():
+                    destination.write(chunk)
+            # un_zip(filename)
+            un_zip(filename)
+            return HttpResponse("SUCCESS")
+        else:
+            print(form.errors)
+            return HttpResponse("FAIL")
+    else:
+        return render(request, 'code_week/submit_code.html')
+
+# 通过文件夹创建dict
+import os, json
+
+work_dir = "C:\\Users\\张柯\\Desktop\\测试"
+result = {}
+i = 0
+j = 1
+for root, dirs, files in os.walk(work_dir):
+    testroot = root
+    subdirs = []
+    temp = result
+    while len(work_dir) < len(testroot):  # while work_dir != dirs
+        testroot, subdir = os.path.split(testroot)
+        subdirs.append(subdir)
+    while len(subdirs) > 0:
+        temp = temp[subdirs.pop()]
+    for filename in files:
+        temp[filename] = j
+        j = j + 1
+    for dirname in dirs:
+        temp[dirname] = {}
+    # temp = temp[os.path.split(root)[1]]
+    # for filename in files:
+    #     temp[filename] = j
+    #     ++j
+    # for dirname in dirs:
+    #     temp[dirname] = {}
+print(json.dumps(result))
 
 

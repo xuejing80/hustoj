@@ -1,0 +1,94 @@
+{% extends 'base.html' %}
+{% comment %}用于学生提交代码{% endcomment %}
+{% block extrahead %}
+    {% load static %}
+    <script src="{% static 'assets/js/jquery.ztree.core.js' %}"></script>
+    <link href="{% static 'assets/css/zTreeStyle/zTreeStyle.css' %}" rel="stylesheet">
+    <link href="{% static 'assets/css/demo.css' %}" rel="stylesheet">
+{% endblock %}
+{% block content %}
+<form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    <input type="file" name="codeFile" accept="application/zip">
+    <button type="submit">提交</button>
+</form>
+    <div class="content_wrap">
+	<div class="zTreeDemoBackground left">
+		<ul id="treeDemo" class="ztree"></ul>
+	</div>
+    <script type="text/javascript">
+        var setting = {
+            data: {
+				simpleData: {
+					enable: true
+				}
+			}
+	};
+
+        var zNodes = [];
+        $(document).ready(function(){
+            $.ajax({
+                type:"GET",
+                url:"{% url 'get_dir' %}",
+                dataType:"json",
+                success:function (data) {
+                    {#dir = JSON.parse(data);#}
+                    dataToNodes(data);
+                },
+                error:function (jqXHR) {
+                    alert("error" + jqXHR.status);
+                }
+            });
+			$.fn.zTree.init($("#treeDemo"), setting, zNodes);
+		});
+         function addNode2(rootId, i, dirdata, Nodes) {
+            for (var item in dirdata) {
+                if (typeof(dirdata[item]) == 'number') {
+                    Nodes.push({id:dirdata[item].toString(), pId:rootId, name:item});
+                }
+                else { // 目录
+                    if (Object.keys(dirdata[item]).length > 0) {
+                        Nodes.push({id: i++, pId: rootId, name: item, open: true});
+                        i = addNode2(i - 1, i, dirdata[item], Nodes);
+                    }
+                    else {
+                        Nodes.push({id: i++, pId: rootId, name: item, isParent: true});
+                    }
+                }
+            }
+            return i;
+        }
+        function dataToNodes2(dirdata) {
+            var i = 1;
+            zNodes.push({id:i, pId:0, name:'目录', open:true});
+            ++i;
+            addNode2(i-1, i, dirdata, zNodes);
+        }
+        function addNode(rootId, i, dirdata, Nodes) {
+            for (var item in dirdata) {
+                if (typeof(dirdata[item]) == 'number') {
+                    Nodes.push({id:dirdata[item], pId:'dir_'+rootId.toString(), name:item});
+                }
+                else { // 目录
+                    if (Object.keys(dirdata[item]).length > 0)
+                    {
+                        Nodes.push({id:'dir_'+(i++).toString(), pId:'dir_'+rootId.toString(), name:item, open:true});
+                        i = addNode(i-1, i, dirdata[item], Nodes);
+                    }
+                    else {
+                        Nodes.push({id:'dir_'+(i++).toString(), pId:'dir_'+rootId.toString(), name:item, isParent:true});
+                    }
+                }
+            }
+            return i;
+        }
+        function dataToNodes(dirdata) {
+            var i = 0;
+            zNodes.push({id:'dir_' + i.toString(), pId:0, name:'代码目录', open:true});
+            ++i;
+            addNode(0, i, dirdata, zNodes);
+            $.fn.zTree.init($("#treeDemo"), setting, zNodes);
+        }
+
+    </script>
+{% endblock %}

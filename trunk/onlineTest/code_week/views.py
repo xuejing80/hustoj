@@ -720,4 +720,33 @@ for root, dirs, files in os.walk(work_dir):
     #     temp[dirname] = {}
 print(json.dumps(result))
 
+@login_required
+# 用来测试，返回文件夹结构
+def get_dir(request):
+    work_dir = "C:\\Users\\张柯\\Desktop\\测试"
+    result = {}
+    i = 0
+    j = 1
+    for root, dirs, files in os.walk(work_dir):
+        testroot = root
+        subdirs = []
+        temp = result
+        while len(work_dir) < len(testroot):  # while work_dir != dirs
+            testroot, subdir = os.path.split(testroot)
+            subdirs.append(subdir)
+        while len(subdirs) > 0:
+            temp = temp[subdirs.pop()]
+        for filename in files:
+            temp[filename] = j
+            j = j + 1
+        for dirname in dirs:
+            temp[dirname] = {}
+        # temp = temp[os.path.split(root)[1]]
+        # for filename in files:
+        #     temp[filename] = j
+        #     ++j
+        # for dirname in dirs:
+        #     temp[dirname] = {}
+    return HttpResponse(json.dumps(result))
+
 

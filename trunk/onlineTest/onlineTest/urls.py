@@ -18,7 +18,7 @@ from django.contrib import admin
 from django.views.generic import TemplateView
 from judge.views import get_json
 from django.views.generic.base import RedirectView
-from auth_system.views import page_not_found
+from auth_system.views import page_not_found, page_error, permission_denied
 
 favicon_view = RedirectView.as_view(url='/static/favicon.ico', permanent=True)
 
@@ -36,4 +36,6 @@ urlpatterns = [
     url(r'^$', TemplateView.as_view(template_name="index.html")),
 ]
 
+handler403 = permission_denied
 handler404 = page_not_found
+handler500 = page_error

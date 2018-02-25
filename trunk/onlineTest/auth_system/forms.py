@@ -1,5 +1,6 @@
 # coding:utf-8
 from django import forms
+from django.forms import widgets
 from django.contrib import auth
 from django.contrib.auth.models import Group
 
@@ -8,6 +9,7 @@ from django.contrib.auth.tokens import default_token_generator
 from django.contrib.sites.shortcuts import get_current_site
 from django.utils.encoding import force_bytes
 from django.core.mail import send_mail
+from django.core.urlresolvers import reverse
 import base64
 import logging
 
@@ -117,15 +119,15 @@ class VmaigUserCreationForm(forms.ModelForm):
 
 
 class VmaigPasswordRestForm(forms.Form):
-    # 错误信息
     error_messages = {
-        'email_error': "此Email尚未注册",
+            'email_error': "此Email尚未注册",
+            'send_error': "邮件发送失败，请稍后再试",
     }
 
     email = forms.EmailField(
         error_messages={
-            'invalid': "email格式错误",
-            'required': 'email未填'})
+            'invalid': "Email格式错误",
+            'required': "Email未填写"})
 
     def clean(self):
         email = self.cleaned_data.get('email')
@@ -150,17 +152,19 @@ class VmaigPasswordRestForm(forms.Form):
         protocol = 'http'
         uid = uid.decode("utf-8")
         title = "重置计算机语言作业平台的密码"
-        message = "你收到这封信是因为你请求重置你在 网站 %s 上的账户密码\n\n" % site_name + \
+        message = "你收到这封信是因为你请求重置你在 %s 上的账户密码\n\n" % site_name + \
                   "请访问该页面并输入新密码:\n\n" + \
-                  protocol + '://' + domain + '/' + '' + 'test/accounts/' + 'resetpassword' + '/' + uid + '/' + token + '/' + '  \n\n' + \
+                  protocol + '://' + domain + reverse('_resetpassword') + '/' + uid + '/' + token + '/' + '  \n\n' + \
                   "你的用户名，如果已经忘记的话:  %s\n\n" % self.user.id_num + \
-                  "感谢使用!\n\n" + \
-                  "南京邮电大学 计算机学院 软件教学中心\n\n\n"
+                  "感谢使用!\n\n"
 
         try:
             send_mail(title, message, from_email, [self.user.email])
         except Exception as e:
             logger.error(u'[UserControl]用户重置密码邮件发送失败:[%s]' % (email))
+            raise forms.ValidationError(
+                    self.error_messages["send_error"]
+                )
 
 
 class PasswordChangeForm(forms.Form):
@@ -181,10 +185,11 @@ class PasswordChangeForm(forms.Form):
         return self.user
 
     error_messages = {
-        'all_number': "密码不能全部是数字",
-        'unsuitable_length': "密码长度应该在8到16位",
-        'password_mismatch': u"两次密码不相同.",
-        'password_incorrect': '原密码不正确'
+        'the_same': u"新密码不能与原密码相同",
+        'all_number': u"密码不能全部是数字",
+        'unsuitable_length': u"密码长度应该在8到16位",
+        'password_mismatch': u"两次密码不相同",
+        'password_incorrect': u"原密码不正确"
     }
     old_password = forms.CharField(
         strip=False,
@@ -230,4 +235,87 @@ class PasswordChangeForm(forms.Form):
             raise forms.ValidationError(
                 self.error_messages["password_mismatch"]
             )
+        old_password = self.cleaned_data.get("old_password")
+        if password1 == old_password:
+            raise forms.ValidationError(
+                self.error_messages["the_same"]
+            )
         return password2
+
+class EmailChangeForm(forms.ModelForm):
+    error_messages={
+        'duplicate_email': "该邮件地址已被其他用户使用",
+    }
+
+    email=forms.EmailField(error_messages={
+        'invalid': "Email格式错误",
+        'required': "Email未填写"},
+        widget=widgets.TextInput(attrs={'class': "form-control",
+                                        'placeholder': '请输入您常用的Email地址'}))
+    class Meta:
+        model = MyUser
+        fields=('email',)
+
+    def clean_email(self):
+        email = self.cleaned_data["email"]
+        # 判断是这个email 用户是否存在
+        try:
+            MyUser._default_manager.get(email=email)
+        except MyUser.DoesNotExist:
+            return email
+        raise forms.ValidationError(self.error_messages["duplicate_email"])
+
+class SetPasswordForm(forms.Form):
+    """
+    A form that lets a user change set their password without entering the old
+    password
+    """
+    error_messages = {
+        'the_same': u"密码不能与账号相同",
+        'all_number': u"密码不能全部是数字",
+        'unsuitable_length': u"密码长度应该在8到16位",
+        'password_mismatch': u"两次密码不相同",
+    }
+    new_password1 = forms.CharField(widget=forms.PasswordInput,
+                                    error_messages={
+                                        'required': u"新密码未填",
+                                        'invalid': "密码只能包含字母、数字和字符@/./+/-/_，长度8到16位"
+                                    })
+    new_password2 = forms.CharField(widget=forms.PasswordInput,
+                                    error_messages={
+                                        'required': u"确认密码未填"
+                                    })
+
+    def __init__(self, user, *args, **kwargs):
+        self.user = user
+        super(SetPasswordForm, self).__init__(*args, **kwargs)
+
+    def clean_new_password2(self):
+        password1 = self.cleaned_data.get("new_password1")
+        if len(password1) < 8 or len(password1) > 16:
+            raise forms.ValidationError(
+                self.error_messages["unsuitable_length"]
+            )
+        if password1.isdigit():
+            raise forms.ValidationError(
+                self.error_messages['all_number']
+            )
+        password2 = self.cleaned_data.get("new_password2")
+        if password1 and password2 and password1 != password2:
+            raise forms.ValidationError(
+                self.error_messages["password_mismatch"]
+            )
+        old_password = self.user.id_num
+        if password1 == old_password:
+            raise forms.ValidationError(
+                self.error_messages["the_same"]
+            )
+        return password2
+
+    def save(self, commit=True):
+        password = self.cleaned_data["new_password1"]
+        self.user.set_password(password)
+        if commit:
+            self.user.save()
+        return self.user
+

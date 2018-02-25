@@ -1,13 +1,11 @@
 # encoding: utf-8
-import json
-import datetime,time
+import os, shutil, zipfile, string, json, datetime, time
 import _thread
 from django.contrib.auth.models import Group
-from django.core.exceptions import ObjectDoesNotExist
+from django.core.exceptions import ObjectDoesNotExist, PermissionDenied
 
 from django.core.urlresolvers import reverse
-from django.http import HttpResponse
-from django.http import JsonResponse
+from django.http import HttpResponse, StreamingHttpResponse, JsonResponse
 from django.shortcuts import render, get_object_or_404, redirect
 from django.utils.datastructures import MultiValueDictKeyError
 from django.views.decorators.csrf import csrf_exempt
@@ -18,8 +16,8 @@ from judge.models import ClassName, Problem, ChoiceProblem, Solution, SourceCode
 from judge.views import get_testCases
 from work.models import HomeWork, HomeworkAnswer, BanJi, MyHomework, TempHomeworkAnswer
 from django.contrib.auth.decorators import permission_required, login_required
-
 from django.conf import settings
+from process.views import get_similarity, update_ansdb
 import logging
 logger = logging.getLogger('django')
 logger_request = logging.getLogger('django.request')
@@ -66,7 +64,8 @@ def add_homework(request):
                             total_score=request.POST['total_score'],
                             creater=request.user,
                             work_kind=request.POST['work_kind'],
-                            allow_resubmit = True if request.POST['allow_resubmit'] == '1' else False,)
+                            allow_resubmit = True if request.POST['allow_resubmit'] == '1' else False,
+                            allow_similarity = True if request.POST['allow_similarity'] == '1' else False)
         homework.save()
         return redirect(reverse("homework_detail", args=[homework.pk]))
     classnames = ClassName.objects.all()
@@ -107,7 +106,8 @@ def get_json_work(request):
                   'courser': homework.courser.name, 'id': homework.pk,
                   'start_time': homework.start_time.strftime('%Y-%m-%d %H:%M:%S'),
                   'end_time': homework.end_time.strftime('%Y-%m-%d %H:%M:%S'),
-                  'creator': homework.creater.username}
+                  'creator': homework.creater.username,
+                  'isMine': request.user.is_admin or request.user==homework.creater,}
         recodes.append(recode)
     json_data['rows'] = recodes
     return HttpResponse(json.dumps(json_data))
@@ -231,6 +231,8 @@ def update_public_homework(request, pk):
     :return: 被修改作业的详细页面
     """
     homework = get_object_or_404(HomeWork, pk=pk)
+    if request.user != homework.creater and request.user.is_admin!=True:
+        raise PermissionDenied
     if request.method == 'POST':
         homework.name=request.POST['name']
         homework.choice_problem_ids=request.POST['choice-problem-ids']
@@ -248,6 +250,7 @@ def update_public_homework(request, pk):
         homework.total_score=request.POST['total_score']
         homework.work_kind=request.POST['work_kind']
         homework.allow_resubmit = True if request.POST['allow_resubmit'] == '1' else False
+        allow_similarity = True if request.POST['allow_similarity'] == '1' else False
         homework.save()
         return redirect(reverse("homework_detail", args=[homework.pk]))
     else:
@@ -283,6 +286,8 @@ def update_my_homework(request, pk):
         homework.tiankong_problem_info=request.POST['tiankong-problem-info']
         homework.gaicuo_problem_info=request.POST['gaicuo-problem-info']
         homework.allow_resubmit = True if request.POST['allow_resubmit'] == '1' else False
+        homework.allow_random = True if request.POST['allow_random'] == '1' else False
+        homework.allow_similarity = True if request.POST['allow_similarity'] == '1' else False
         homework.work_kind = request.POST['work_kind']
         #2017年9月新增功能
         tiankong_problem_ids = request.POST['tiankong-problem-ids'],
@@ -294,6 +299,8 @@ def update_my_homework(request, pk):
                    'name': homework.name, 'courser_id': homework.courser.id, 'start_time': homework.start_time,
                    'end_time': homework.end_time, 'title': '修改我的作业"' + homework.name + '"',
                    'allow_resubmit': '1' if homework.allow_resubmit else '0',
+                   'allow_random' : '1' if homework.allow_random else '0',
+                   'allow_similarity' : '1' if homework.allow_similarity else '0',
                    'work_kind': homework.work_kind}
     return render(request, 'homework_add.html', context=context)  # 查看作业结果
 
@@ -320,6 +327,7 @@ def show_homework_result(request, id=0):
     problems = []
     tiankong_problems = []
     gaicuo_problems = []
+    allow_similarity = MyHomework.objects.get(pk=homework_answer.homework_id).allow_similarity
     for info in json.loads(homework.choice_problem_info):  # 载入作业的选择题信息，并进行遍历
         if str(info['id']) in wrong_id:  # 如果答案有错
             choice_problems.append(
@@ -342,11 +350,24 @@ def show_homework_result(request, id=0):
                 sourceCode = SourceCode.objects.get(solution_id=solution.solution_id).source
             except ObjectDoesNotExist:
                 sourceCode = "代码未找到"
+            try:
+                if allow_similarity:
+                    if result == 4:
+                        score = 10
+                    else:               
+                        score = int(get_similarity(solution.solution_id)*10)
+                else:
+                    if result == 4:
+                        score = 10
+                    else:
+                        score = 0
+            except:
+                score = 0
         except:
             sourceCode = "未回答"
         problem = Problem.objects.get(pk=pid)
         problems.append({'code': sourceCode, 'desc': problem.description,
-                         'title': problem.title, 'result': result})
+                         'title': problem.title, 'result': result,'score': score})
     #获得程序填空题
     try:
         tiankong_ids = list(map(int,homework.tiankong_problem_ids.split(",")))
@@ -394,6 +415,7 @@ def show_homework_result(request, id=0):
                        'tiankong_problems': tiankong_problems, 'gaicuo_problems': gaicuo_problems,
                        'work_kind': homework.work_kind, 'summary': homework_answer.summary,
                        'teacher_comment': homework_answer.teacher_comment,
+                       'allow_similarity': allow_similarity,
                        'title': ' {}的"{}"详细'.format(homework_answer.creator.username, homework.name)}
     #logger.info(str(context))
     return render(request, 'homework_result.html',context)
@@ -635,6 +657,47 @@ def get_banji_list(request):
     json_data['rows'] = recodes
     return JsonResponse(json_data)
 
+@permission_required('work.add_banji')
+def get_assign_status(request):
+    """
+    处理获取班级列表信息的ajax请求，包含作业的布置状态
+    :param request: 请求
+    :return: 含有班级列表信息的json
+    """
+    json_data = {}
+    records = []
+    kwargs = {}
+    offset = int(request.GET['offset'])
+    limit = int(request.GET['limit'])
+    homework_id = int(request.GET.get('homework_id','0'))
+    if homework_id==0:
+        return JsonResponse(json_data)
+    classname = request.GET['classname']
+    if request.GET['my'] == 'true' and not request.user.is_superuser:
+        kwargs['teacher'] = request.user
+    if classname != '0':
+        kwargs['courser__id'] = classname
+    if 'search' in request.GET:
+        kwargs['name__icontains'] = request.GET['search']
+    banjis = BanJi.objects.filter(**kwargs)  # 合并多次筛选以提高数据库效率
+    try:  # 对数据按照指定方式排序
+        sort = request.GET['sort']
+    except MultiValueDictKeyError:
+        sort = 'pk'
+    json_data['total'] = banjis.count()
+    if request.GET['order'] == 'desc':
+        sort = '-' + sort
+    for banji in banjis.all().order_by(sort)[offset:offset + limit]:
+        homework = MyHomework.objects.get(pk=homework_id)
+        record = {'name': banji.name, 'pk': banji.pk,
+                  'courser': banji.courser.name, 'id': banji.pk, 'teacher': banji.teacher.username,
+                  'start_time': banji.start_time.strftime('%Y-%m-%d %H:%M:%S'),
+                  'end_time': banji.end_time.strftime('%Y-%m-%d %H:%M:%S'),
+                  'status': homework in banji.myhomework_set.all()}
+        logger.info(record)
+        records.append(record)
+    json_data['rows'] = records
+    return JsonResponse(json_data)
 
 # 删除班级
 @permission_required('work.delete_banji')
@@ -690,9 +753,11 @@ def copy_to_my_homework(request):
                                   gaicuo_problem_info=old_homework.gaicuo_problem_info,
                                   allowed_languages=old_homework.allowed_languages,
                                   allow_resubmit=old_homework.allow_resubmit,
+                                  allow_similarity=old_homework.allow_similarity,
                                   total_score=old_homework.total_score)  # todo 有更好的方法
             homework.save()
     except:
+        logger_request.exception("Exception Logged")
         return HttpResponse(0)
     return HttpResponse(1)
 
@@ -710,7 +775,7 @@ def show_banji(request, pk):
     """
     :return:a list like [{"name":"mike","grades":[100,200,300,400]},{...},...],score is sorted by homework's start time
     """
-    banji = BanJi.objects.get(pk=pk)
+    banji = get_object_or_404(BanJi, pk=pk)
     students_scores = []
     students = banji.students.all()
     homeworks = banji.myhomework_set.all().order_by('start_time')
@@ -771,6 +836,18 @@ def assign_homework(request):
     except:
         return HttpResponse(json.dumps({'result': 0, 'message': '出错了'}))
 
+@permission_required('work.add_homework')
+def unassign_homework(request):
+    homework_id = request.POST['homework_id']
+    banji_id = request.POST['id']
+    try:
+        homework = MyHomework.objects.get(pk=homework_id)
+        banji = BanJi.objects.get(pk=banji_id)
+        banji.myhomework_set.remove(homework)
+        return HttpResponse(json.dumps({'result': 0, 'count': 1}))
+    except:
+        return HttpResponse(json.dumps({'result': 0, 'message': '出错了'}))
+
 # 显示我的待做作业
 @login_required()
 def list_do_homework(request):
@@ -789,9 +866,14 @@ def get_my_homework_todo(request):
     limit = int(request.GET['limit'])
     banji = request.GET['banji']
     count = 0
-    homeworks = MyHomework.objects.filter(banji__students=user)
-    if banji != '0':
-        homeworks = homeworks.filter(banji__id=banji)
+    #homeworks = MyHomework.objects.filter(banji__students=user)
+
+    if banji != '0' and banji != '':
+        homeworks = MyHomework.objects.filter(banji__id=banji)
+    else:
+        banji = BanJi.objects.filter(students=user,end_time__gte=datetime.datetime.now())
+        homeworks = MyHomework.objects.filter(banji__id__in=banji)
+
     try:
         homeworks = homeworks.filter(name__icontains=request.GET['search'])
     except:
@@ -873,12 +955,19 @@ def get_problem_score(homework_answer, judged_score=0):
         try:
             solution = solutions.get(problem_id=info['id'])  # 获取题目
             for case in info['testcases']:  # 获取题目的测试分数
-                if solution.result == 11:  # 如果题目出现编译错误，直接判断为0分，不再继续判断
-                    break
+                if solution.result == 11 or solution.result == 6:  # 如果题目出现编译错误或答案错误，可以根据相似度判分
+                    if homework.allow_similarity == True:
+                        id = solution.solution_id
+                        score += int(10*get_similarity(id))
+                        break
+                    else:
+                        break
                 if solution.oi_info is None:
                     break
                 if json.loads(solution.oi_info)[str(case['desc']) + '.in']['result'] == 4:  # 参照测试点，依次加测试点分数
                     score += int(case['score'])
+                    id = solution.solution_id # 更新答案库 
+                    update_ansdb(id)
         except ObjectDoesNotExist:
             user = homework_answer.creator;
             logger_request.exception("获取编程题得分失败{{homework_id:{},answer_id:{},problem_id:{},user:{}({},{})}}".format(homework.pk,homework_answer.pk,info['id'],user.username,user.id_num,user.email))
@@ -1106,14 +1195,14 @@ def list_coursers(request):
 
 @permission_required('judge.add_knowledgepoint1')
 def list_kp1s(request, id):
-    courser = ClassName.objects.get(id=id)
+    courser = get_object_or_404(ClassName, id=id)
     kp1s = KnowledgePoint1.objects.filter(classname=courser)
     return render(request, 'kp1_list.html', {'kp1s': kp1s, 'title': '查看课程“%s”的一级知识点' % courser.name, 'id': id})
 
 
 @permission_required('judge.add_knowledgepoint2')
 def list_kp2s(request, id):
-    kp1 = KnowledgePoint1.objects.get(id=id)
+    kp1 = get_object_or_404(KnowledgePoint1, id=id)
     kp2s = KnowledgePoint2.objects.filter(upperPoint=kp1)
     return render(request, 'kp2s_list.html', context={'kp2s': kp2s, 'id': id, 'title': '查看一级知识点"%s”下的二级知识点' % kp1.name})
 
@@ -1198,7 +1287,7 @@ def judge_homework(homework_answer):
             homework_answer.save()  # 保存
             logger.info("执行动作：计算成绩，用户信息：{}({}:{})，作业ID：{}，总分：{}(选择题：{}，编程题：{}，程序填空题：{}，程序改错题：{})，执行结果：成功".format( \
                 homework_answer.creator.username,homework_answer.creator.pk,homework_answer.creator.id_num,\
-                homework.homework_id,zongfen,choice_problem_score,biancheng_score,tiankong_score,gaicuo_score))
+                homework_answer.homework,zongfen,choice_problem_score,biancheng_score,tiankong_score,gaicuo_score))
             break  # 跳出循环
 
 
@@ -1393,6 +1482,40 @@ def comment_change(request):
             pass
         return HttpResponse(1)
 
+@login_required()
+def send_zipfile(request,id):
+    def file_iterator(file_name, chunk_size=512):
+        with open(file_name,'rb') as f:
+            while True:
+                c = f.read(chunk_size)
+                if c:
+                    yield c
+                else:
+                    break
+
+    def zip_dir(dirname,zipfilename):
+        filelist=[]
+        if os.path.isfile(dirname):
+            filelist.append(dirname)
+        else:
+            for root,dirs,files in os.walk(dirname):
+                for name in files:
+                    filelist.append(os.path.join(root,name))
+        zf=zipfile.ZipFile(zipfilename,"w",zipfile.zlib.DEFLATED)
+        for tar in filelist:
+            arcname=tar[len(dirname):]
+            zf.write(tar,arcname)
+        zf.close()
+
+    dirname='/home/judge/data/'+str(id)
+    zipfilename='/tmp/'+str(id)+'.zip'
+    zip_dir(dirname,zipfilename)
+
+    the_file_name = zipfilename
+    response = StreamingHttpResponse(file_iterator(the_file_name))
+    response['Content-Type'] = 'application/octet-stream'
+    response['Content-Disposition'] = 'attachment; filename=%s' %zipfilename
+    return response
 
 # def list_depl_homeworks(request):
 #     return render(request,'depl_homework_list.html')

@@ -48,7 +48,7 @@ INSTALLED_APPS = [
     'weixin',
     'channels',
     'code_week',
-    'dict'
+    'process'
 ]
 
 MIDDLEWARE_CLASSES = [
@@ -151,6 +151,7 @@ STATIC_ROOT = '/var/www/html/static'
 
 LOGIN_URL = '/accounts/login/'
 
+
 # Channel settings
 CHANNEL_LAYERS = {
     "default": {
@@ -162,68 +163,75 @@ CHANNEL_LAYERS = {
     },
 }
 
-# LOGGING = {
-#     'version': 1,
-#     'disable_existing_loggers': False,
-#     'formatters': {#格式器
-#         'verbose': {#详细
-#             'format': '>>[%(asctime)s][%(name)s:%(lineno)d][%(levelname)s]-%(message)s'
-#         },
-#         'simple': {#简单
-#             'format': '$[%(threadName)s:%(thread)d] [%(levelname)s]- %(message)s'
-#         },
-#     },
-#     'filters': {
-#         'require_debug_false': {
-#             '()': 'django.utils.log.RequireDebugFalse',
-#             },
-#     },
-#     'handlers': {
-#         'mail_admins': {
-#             'level': 'INFO',
-#             'class': 'django.utils.log.AdminEmailHandler',
-#             'include_html': True,
-#         },
-#         #'default': {
-#         #    'level':'DEBUG',
-#         #    'class':'logging.handlers.RotatingFileHandler',
-#         #    'filename': os.path.join('/home/judge/log/','django_all.log'), #日志所在路径
-#         #    'maxBytes': 1024*1024*50, # 5 MB
-#         #    'backupCount': 5,
-#         #    'formatter':'verbose',
-#         #},
-#         'console':{
-#             'level': 'DEBUG',
-#             'class': 'logging.StreamHandler',
-#             'formatter': 'simple'
-#         },
-#         'file':{
-#             'level':'INFO',
-#             'class':'logging.handlers.RotatingFileHandler',
-#             'filename': os.path.join('/home/judge/log/','django.log'),
-#             'maxBytes': 1024*1024*50, # 5 MB
-#             'backupCount': 0, # 保留日志的数量，0代表不自动删除
-#             'formatter':'verbose',
-#             'encoding':'UTF-8',
-#         },
-#         'all':{
-#             'level':'INFO',
-#             'class':'logging.FileHandler',
-#             'filename': os.path.join('/home/judge/log/','all.log'),
-#             'formatter':'verbose',
-#             'encoding':'UTF-8',
-#         },
-#     },
-#     'loggers': {
-#         'django': {
-#             'handlers': ['file','all'],
-#             'level': 'INFO',
-#             'propagate': False
-#         },
-#         #'django.request':{
-#         #    'handlers':['mail_admins'],
-#         #    'level':'WARNING',
-#         #    'propagate':True,
-#         #},
-#     }
-# }
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {#格式器
+        'verbose': {#详细
+            'format': '>>[%(asctime)s][%(name)s:%(lineno)d][%(levelname)s]-%(message)s'
+        },
+        'simple': {#简单
+            'format': '$[%(threadName)s:%(thread)d] [%(levelname)s]- %(message)s'
+        },
+    },
+    'filters': {
+        'require_debug_false': {
+            '()': 'django.utils.log.RequireDebugFalse',
+            },
+    },
+    'handlers': {
+        'mail_admins': {
+            'level': 'INFO',
+            'class': 'django.utils.log.AdminEmailHandler',
+            'include_html': True,
+        },
+        #'default': {
+        #    'level':'DEBUG',
+        #    'class':'logging.handlers.RotatingFileHandler',
+        #    'filename': os.path.join('/home/judge/log/','django_all.log'), #日志所在路径
+        #    'maxBytes': 1024*1024*50, # 5 MB
+        #    'backupCount': 5,
+        #    'formatter':'verbose',
+        #},
+        'console':{
+            'level': 'DEBUG',
+            'class': 'logging.StreamHandler',
+            'formatter': 'simple'
+        },
+        'file':{
+            'level':'INFO',
+            'class':'logging.handlers.RotatingFileHandler',
+            'filename': os.path.join('/home/judge/log/','django.log'),
+            'maxBytes': 1024*1024*50, # 50 MB
+            'backupCount': 100, # 保留日志的数量，0代表不自动删除
+            'formatter':'verbose',
+            'encoding':'UTF-8',
+        },
+        'all':{
+            'level':'INFO',
+            'class':'logging.FileHandler',
+            'filename': os.path.join('/home/judge/log/','all.log'),
+            'formatter':'verbose',
+            'encoding':'UTF-8',
+        },
+        'request':{
+            'level':'INFO',
+            'class':'logging.FileHandler',
+            'filename': os.path.join('/home/judge/log/','request.log'),
+            'formatter':'verbose',
+            'encoding':'UTF-8',
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['file','all'],
+            'level': 'INFO',
+            'propagate': False
+        },
+        'django.request':{
+            'handlers':['request'],
+            'level':'WARNING',
+            'propagate':True,
+        },
+    }
+}

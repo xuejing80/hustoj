@@ -43,16 +43,16 @@
             </select>
         </div>
         <div class="form-group">
-            <label for="work_kind">作业类型</label>
-            <label class="checkbox-inline">
+            <label for="work_kind">作业类型：</label>
+            <label class="radio-inline">
                 <input type="radio" id="work_kind" value="作业" name="work_kind" checked>作业
             </label>
-            <label class="checkbox-inline">
+            <label class="radio-inline">
                 <input type="radio" id="work_kind" value="实验" name="work_kind">实验
             </label>
         </div>
         <div class="form-group">
-            <label for="languages">允许的编译器类型</label>
+            <label for="languages">允许的编译器类型：</label>
             <label class="checkbox-inline">
                 <input type="checkbox" id="inlineCheckbox1" value="0" name="languages" checked> C
             </label>
@@ -76,18 +76,37 @@
             </label>
         </div>
         <div class="form-group">
-            <label for="allow_resubmit">是否允许重复提交？</label>
-            <label class="checkbox-inline">
+            <label for="allow_resubmit">是否允许重复提交：</label>
+            <label class="radio-inline">
                 <input type="radio" id="allow_resubmit" value="1" name="allow_resubmit" checked>是
             </label>
-            <label class="checkbox-inline">
+            <label class="radio-inline">
                 <input type="radio" id="allow_resubmit" value="0" name="allow_resubmit">否
+            </label>
+        </div>
+	 <div class="form-group">
+            <label for="allow_random">是否打乱选择题显示顺序：</label>
+            <label class="radio-inline">
+                <input type="radio" id="allow_random" value="1" name="allow_random" checked>是
+            </label>
+            <label class="radio-inline">
+                <input type="radio" id="allow_random" value="0" name="allow_random">否
+            </label>
+        </div>
+
+        <div class="form-group">
+            <label for="allow_similarity">是否开启相似度判分：</label>
+            <label class="radio-inline">
+                <input type="radio" id="allow_similarity" value="1" name="allow_similarity" >是
+            </label>
+            <label class="radio-inline">
+                <input type="radio" id="allow_similarity" value="0" name="allow_similarity" checked>否
             </label>
         </div>
         <div class="row">
             <div class='col-sm-6'>
                 <div class="form-group">
-                    <label for="start_time">开始时间</label>
+                    <label for="start_time">开始时间：</label>
                     <div class='input-group date form_datetime' id='datetimepicker1'>
                         <input type='text' class="form-control" name="start_time" id="start_time"/>
                         <span class="input-group-addon"><span class="glyphicon glyphicon-calendar"></span></span>
@@ -96,7 +115,7 @@
             </div>
             <div class='col-sm-6'>
                 <div class="form-group">
-                    <label for="end_time">结束时间</label>
+                    <label for="end_time">结束时间：</label>
                     <div class='input-group date' id='datetimepicker2'>
                         <input type='text' class="form-control" name="end_time" id="end_time"/>
                         <span class="input-group-addon"><span class="glyphicon glyphicon-calendar"></span></span>
@@ -560,23 +579,26 @@
         });
         function actionFormatter(value, row, index) {
             return [
-                '<a class="like" href="javascript:updateTC(' + row.id + ',\'#table2\')" title="修改分值信息">',
-                '<i class="glyphicon glyphicon-wrench"></i>',
-                '</a>']
+                '<a class="btn btn-primary btn-xs" href="javascript:updateTC(' + row.id + ',\'#table2\')" title="修改分值信息">'+
+                '<i class="glyphicon glyphicon-wrench"></i></a> '+
+                '<a class="btn btn-success btn-xs" href="../send_zipfile_'+row.id+'" title="下载测试用例">'+
+                '<i class="glyphicon glyphicon-download-alt"></i></a>']
         }
         function actionFormatter3(value, row, index) {
             $tc_table=$table6;
             return [
-                '<a class="like" href="javascript:updateTC(' + row.id + ',\'#table6\')" title="修改分值信息">',
-                '<i class="glyphicon glyphicon-wrench"></i>',
-                '</a>']
+                '<a class="btn btn-primary btn-xs" href="javascript:updateTC(' + row.id + ',\'#table6\')" title="修改分值信息">'+
+                '<i class="glyphicon glyphicon-wrench"></i></a> '+
+                '<a class="btn btn-success btn-xs" href="../send_zipfile_'+row.id+'" title="下载测试用例">'+
+                '<i class="glyphicon glyphicon-download-alt"></i></a>']
         }
         function actionFormatter4(value, row, index) {
             $tc_table=$table8;
             return [
-                '<a class="like" href="javascript:updateTC(' + row.id + ',\'#table8\')" title="修改分值信息">',
-                '<i class="glyphicon glyphicon-wrench"></i>',
-                '</a>']
+                '<a class="btn btn-primary btn-xs" href="javascript:updateTC(' + row.id + ',\'#table8\')" title="修改分值信息">'+
+                '<i class="glyphicon glyphicon-wrench"></i></a> '+
+                '<a class="btn btn-success btn-xs" href="../send_zipfile_'+row.id+'" title="下载测试用例">'+
+                '<i class="glyphicon glyphicon-download-alt"></i></a>']
         }
         function updateTC(id,tableName){
                 $tc_table = $(tableName);
@@ -874,6 +896,8 @@
                                 $('#end_time').val(end_time);
                             $("#course option[value='{{ courser_id }}']").attr("selected", true);
                             $('#allow_resubmit[value="{{ allow_resubmit }}"]').attr('checked', true);
+                            $('#allow_random[value="{{ allow_random }}"]').attr('checked', true);
+                            $('#allow_similarity[value="{{ allow_similarity }}"]').attr('checked', true);
                             $('#work_kind[value="{{ work_kind }}"]').attr('checked',true);
                             data = window.location.pathname.split('-').pop();
                             if(data.replace("/","")=="myhomework")

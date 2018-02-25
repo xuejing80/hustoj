@@ -169,14 +169,17 @@ def select_point(request):
     course = request.POST.get('course', -1)
     parent = request.POST.get('parent', -1)
 
-    if course == -1:
-        point1 = KnowledgePoint1.objects.get(pk=parent)
-        points = point1.knowledgepoint2_set
-    else:
-        course = ClassName.objects.get(pk=course)
-        points = course.knowledgepoint1_set
-    for point in points.all():
-        response_data[point.id] = point.name
+    try:
+        if course == -1:
+            point1 = KnowledgePoint1.objects.get(pk=parent)
+            points = point1.knowledgepoint2_set
+        else:
+            course = ClassName.objects.get(pk=course)
+            points = course.knowledgepoint1_set
+        for point in points.all():
+            response_data[point.id] = point.name
+    except:
+        pass
     return HttpResponse(json.dumps(response_data), content_type='application/json')
 
 
@@ -256,6 +259,7 @@ def update_problem(request, id):
                'memory_limit': problem.memory_limit,
                'input': problem.input,
                'output': problem.output,
+               'sample_code': problem.sample_code,
                'sample_input1': problem.sample_input,
                'sample_output1': problem.sample_output,
                'sample_input2': problem.sample_input2,

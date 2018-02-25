@@ -56,6 +56,7 @@
             <th data-field="end_time" data-sortable="true">结束时间</th>
             <th data-field="creator" data-sortable="true" data-valign="middle">创建者</th>
             <th class="nobr" data-field="id" data-valign="middle" data-formatter="editFormatter">操作</th>
+            <th data-field="isMine" data-visible="false">isMine</th>
         </tr>
         </thead>
     </table>
@@ -122,6 +123,7 @@
                             data: {'ids': ids, 'my': false},
                             success: function (data) {
                                 if (data == 1) {
+                                    alert('成功将指定公共作业复制到我的作业列表');
                                     $table.bootstrapTable('refresh');
                                     return false
                                 } else {
@@ -138,9 +140,11 @@
                 }
             });
         });
-        function editFormatter(value) {
-            return '<a class="btn btn-primary btn-xs" href="{% url '_update_public_homework' %}' + value + '/" title="编辑" aria-label="编辑" data-pjax="0"><span class="glyphicon glyphicon glyphicon-edit"></span></a>' +
-                    ' <a class="btn btn-success btn-xs" href="{% url '_homework_detail' %}' + value + '/" title="查看" aria-label="查看" data-pjax="0"><span class="glyphicon glyphicon-eye-open"></span></a> ';
+        function editFormatter(value, row, index) {
+            if(row.isMine){
+                return '<a class="btn btn-primary btn-xs" href="{% url '_update_public_homework' %}' + value + '/" title="编辑" aria-label="编辑" data-pjax="0"><span class="glyphicon glyphicon glyphicon-edit"></span></a>' ;
+                //    ' <a class="btn btn-success btn-xs" href="{% url '_homework_detail' %}' + value + '/" title="查看" aria-label="查看" data-pjax="0"><span class="glyphicon glyphicon-eye-open"></span></a> ';
+            }
         }
     </script>
 

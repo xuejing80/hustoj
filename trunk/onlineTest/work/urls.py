@@ -35,6 +35,7 @@ urlpatterns = [
     url(r'^homework-detail-(?P<pk>\d+)/$', show_homework, name='homework_detail'),
 
     url(r'^assign-homework', assign_homework, name='assign_homework'),
+    url(r'^unassign-homework', unassign_homework, name='unassign_homework'),
     url(r'^copy-to-myhomework', copy_to_my_homework, name='copy_to_my_homework'),
 
     url(r'^my_homework_list', list_my_homework, name='my_homework_list'),
@@ -65,6 +66,8 @@ urlpatterns = [
     url(r'^del-homeworkanswer-$', delete_homeworkanswer, name='_delete_homeworkanswer'),
     url(r'^del-homeworkanswer-(?P<id>\d+)', delete_homeworkanswer, name='delete_homeworkanswer'),
     url(r'^homework-result-comment_change$',comment_change,name='comment_change'),
+    url(r'^get_assign_status',get_assign_status,name='get_assign_status'),
 
     url(r'^download',file_download,name='download'),
+    url(r'send_zipfile_(\d+)/$',send_zipfile,name='send_zipfile'),
 ]

@@ -27,7 +27,7 @@
 <h2>选择题</h2>
 <div class="panel-group" id="accordion" role="tablist" aria-multiselectable="true">
     {% for choice_problem in choice_problems %}
-	<div class="panel panel-default">
+	<div class="panel panel-default" name='sss'>
 	    <div class="panel-heading" role="tab" id="heading{{ choice_problem.detail.id }}">
 		<h4 class="panel-title">
 		    <a style="line-height:150%" {% if not forloop.first %}class="collapsed"{% endif %} role="button"
@@ -41,9 +41,9 @@
 		</h4>
 	    </div>
 	    <div id="collapse{{ choice_problem.detail.id }}"
-		 class="panel-collapse collapse {% if forloop.first %}in{% endif %}" role="tabpanel"
+ 		 class="panel-collapse collapse{% if forloop.first %}in{% endif %}" role="tabpanel"
 		 aria-labelledby="heading{{ choice_problem.detail.id }}">
-		<div class="panel-body">
+		<div class="panel-body" name='nhh'>
 		    <!--<div class="row">-->
 			<div class="col-lg-6 col-md-6">
 			    <label class="radio-inline">
@@ -435,6 +435,27 @@
                 $('#summary').val($('#summary').val().substring(0,500));//长度大于1000时截取钱1000个字符
             }
         })
+     
+      {% if homework.allow_random %}
+       $(document).ready(function(){　　
+         var arr = new Array(1, 2, 3, 4);
+         var ul = document.getElementsByName("nhh");
+         var UL = document.getElementsByName("sss"); 
+         var len1 = arr.length;  
+         var len2 = UL.length;
+         var len = len1;  　　　　
+              for (var i = 0; i < len2; i++)
+              {　　
+                var _ul = ul[i]
+                var index = parseInt(Math.random() * (len1));
+                _ul.appendChild(_ul.children[index]);　　
+                arr.pop(index);　　
+                len = arr.length;　　
+                index = parseInt(Math.random() * (len));　　
+              }
+      })
+      {% endif %}
+
     </script>
 
 {% endblock %}

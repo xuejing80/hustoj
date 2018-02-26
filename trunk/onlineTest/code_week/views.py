@@ -14,7 +14,6 @@ from django.apps import apps
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import transaction
 from onlineTest.settings import BASE_DIR
-import IPython, pdb
 
 @login_required
 def course_list_for_student(request):
@@ -142,7 +141,7 @@ def view_course(request, courseId):
     else:
         students = course[0].students.all()
         problems = course[0].problems.all()
-        return render(request, 'code_week\course_detail.html', {'course' : course[0], 'students' : students, 'problems':problems})
+        return render(request, 'code_week/course_detail.html', {'course' : course[0], 'students' : students, 'problems':problems})
 
 #学生查看课程主页
 @login_required()
@@ -151,7 +150,7 @@ def student_view_course(request, courseId):
     if course.count() == 0:
         return render(request, 'warning.html', {'info' : '查无此课'})
     elif request.user in course[0].students.all(): # 请求的用户在课程学生列表中
-        return render(request, 'code_week\student_course_detail.html', {'course' : course[0]})
+        return render(request, 'code_week/student_course_detail.html', {'course' : course[0]})
     else:
         return render(request, 'warning.html', {'info': '查无此课'})
 

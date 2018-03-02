@@ -259,7 +259,7 @@ def update_problem(request, id):
                'memory_limit': problem.memory_limit,
                'input': problem.input,
                'output': problem.output,
-               'sample_code': problem.sample_code,
+               'program': problem.program,
                'sample_input1': problem.sample_input,
                'sample_output1': problem.sample_output,
                'sample_input2': problem.sample_input2,

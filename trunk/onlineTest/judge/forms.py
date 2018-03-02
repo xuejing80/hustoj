@@ -15,7 +15,7 @@ class ProblemAddForm(forms.Form):
                             required=False)
     output = forms.CharField(label='输出描述', widget=forms.Textarea(attrs={'class': 'form-control', 'rows': '3'}),
                              required=False)
-    sample_code = forms.CharField(label='参考程序', widget=forms.Textarea(attrs={'class': 'form-control', 'rows': '20', "spellcheck": "false",}),
+    program = forms.CharField(label='参考答案', widget=forms.Textarea(attrs={'class': 'form-control', 'rows': '20', "spellcheck": "false",}),
                             required=False)
     sample_input1 = forms.CharField(label='样例输入1', widget=forms.Textarea(attrs={'class': 'form-control', 'rows': '3'}),
                                     required=False)
@@ -40,7 +40,7 @@ class ProblemAddForm(forms.Form):
         description = cd['description']
         input = cd['input']
         output = cd['output']
-        sample_code = cd['sample_code']
+        program = cd['program']
         sample_input1 = cd['sample_input1']
         sample_output1 = cd['sample_output1']
         sample_input2 = cd['sample_input2']
@@ -63,7 +63,7 @@ class ProblemAddForm(forms.Form):
             problem.creater = user
             problem.knowledgePoint1.clear()
             problem.knowledgePoint1.clear()
-            problem.sample_code = sample_code
+            problem.program = program
         else:
             problem = Problem(
                 title=title,
@@ -78,7 +78,7 @@ class ProblemAddForm(forms.Form):
                 sample_output2=sample_output2,
                 creater=user,
                 problem_type="编程",
-                sample_code=sample_code
+                program=program
             )
         problem.save()
         for point in keypoint:

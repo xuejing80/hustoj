@@ -150,14 +150,14 @@
                     <p class="text-muted">{{ form.output.help_text }}</p>
                 </div>
 
-                <div class="form-group {% if form.sample_code.errors %} has-error {% endif %}">
+                <div class="form-group {% if form.program.errors %} has-error {% endif %}">
                     <label class="control-label"
-                           for="{% if form.sample_code.errors %} inputError1 {% endif %}">{{ form.sample_code.label }}</label>
-                    {% if form.sample_code.errors %}
-                        <span class="text-danger pull-right">{{ form.sample_code.errors }}</span>
+                           for="{% if form.program.errors %} inputError1 {% endif %}">{{ form.program.label }}</label>
+                    {% if form.program.errors %}
+                        <span class="text-danger pull-right">{{ form.program.errors }}</span>
                     {% endif %}
-                    {{ form.sample_code }}
-                    <p class="text-muted">{{ form.output.help_text }}</p>
+                    {{ form.program }}
+                    <p class="text-muted">{{ form.program.help_text }}</p>
                 </div>
 
                 <div class="form-group row">

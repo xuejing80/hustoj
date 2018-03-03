@@ -15,8 +15,8 @@ class ProblemAddForm(forms.Form):
                             required=False)
     output = forms.CharField(label='输出描述', widget=forms.Textarea(attrs={'class': 'form-control', 'rows': '3'}),
                              required=False)
-    sample_code = forms.CharField(label='参考程序', widget=forms.Textarea(attrs={'class': 'form-control', 'rows': '20', "spellcheck": "false",}),
-                            required=False)
+    sample_code = forms.CharField(label='参考答案', widget=forms.Textarea(attrs={'class': 'form-control', 'rows': '20', "spellcheck": "false",
+                'data-validation': 'required','data-validation-error-msg': "请输入参考答案"}))
     sample_input1 = forms.CharField(label='样例输入1', widget=forms.Textarea(attrs={'class': 'form-control', 'rows': '3'}),
                                     required=False)
     sample_output1 = forms.CharField(label='样例输出1', widget=forms.Textarea(attrs={'class': 'form-control', 'rows': '3'}),

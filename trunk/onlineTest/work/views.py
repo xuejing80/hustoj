@@ -1,5 +1,5 @@
 # encoding: utf-8
-import os, shutil, zipfile, string, json, datetime, time
+import os, shutil, zipfile, string, json, datetime, time, random
 import _thread
 from django.contrib.auth.models import Group
 from django.core.exceptions import ObjectDoesNotExist, PermissionDenied
@@ -545,6 +545,8 @@ def do_homework(request, homework_id=0):
                     except ObjectDoesNotExist:
                        return render(request, 'warning.html', context={
             'info': '对不起，本作业(ID={})中请求的填空题(ID={})不在题库中，请及时联系管理员：'.format(homework_id,id) + settings.CONTACT_INFO})
+        if homework.allow_random:
+            random.shuffle(choice_problems)
         problems = []
         if homework.problem_ids is not None:
             for id in homework.problem_ids.split(','):

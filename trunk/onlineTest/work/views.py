@@ -669,9 +669,10 @@ def get_assign_status(request):
     kwargs = {}
     offset = int(request.GET['offset'])
     limit = int(request.GET['limit'])
-    homework_id = int(request.GET.get('homework_id','0'))
-    if homework_id==0:
+    homework_id = request.GET.get('homework_id','')
+    if homework_id=='': 
         return JsonResponse(json_data)
+    homework_id = int(homework_id)
     classname = request.GET['classname']
     if request.GET['my'] == 'true' and not request.user.is_superuser:
         kwargs['teacher'] = request.user

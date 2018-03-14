@@ -65,7 +65,7 @@ def update_ansdb(id):
         ans = Ansdb(
             problem_id = solution.problem_id,
             language = solution.language,
-            tokens = tokens
+            tokens = json.dumps(tokens)
         )
         ans.save()
 

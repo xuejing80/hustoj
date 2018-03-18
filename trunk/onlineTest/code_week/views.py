@@ -14,6 +14,8 @@ from django.apps import apps
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import transaction
 from onlineTest.settings import BASE_DIR
+from enum import Enum, unique
+import pdb
 
 @login_required
 def course_list_for_student(request):
@@ -150,7 +152,15 @@ def student_view_course(request, courseId):
     if course.count() == 0:
         return render(request, 'warning.html', {'info' : '查无此课'})
     elif request.user in course[0].students.all(): # 请求的用户在课程学生列表中
-        return render(request, 'code_week/student_course_detail.html', {'course' : course[0]})
+        group = None
+        try:
+            group = CodeWeekClassStudent.objects.get(codeWeekClass=course[0], student=request.user).group
+        except:
+            return render(request, 'warning.html', {'info': '查询时出现问题'})
+        problem = None
+        if group:  # 如果还没有加入组，group为None
+            problem = group.selectedProblem
+        return render(request, 'code_week/student_course_detail.html', {'course' : course[0], 'problem': problem})
     else:
         return render(request, 'warning.html', {'info': '查无此课'})
 
@@ -283,7 +293,7 @@ def get_problem_student(request, id):
                  'outline' : outline,
                   'id': i}
         recodes.append(recode)
-        ++i
+        i = i + 1
     json_data['rows'] = recodes
     return HttpResponse(json.dumps(json_data))
 
@@ -643,89 +653,88 @@ def choose_problem(request, courseId):
             return HttpResponse(0)
         return HttpResponse(1)
 
+@unique
+class TimeResult(Enum):
+    NOTSTART = 0
+    FINISHED = 1
+    OK = 2
+
+def check_time(cwclass):
+    # 检查现在时间是否在课程时间区间内
+    nowtime = datetime.datetime.now()
+    if nowtime < cwclass.begin_time:
+        return TimeResult.NOTSTART
+    elif nowtime > cwclass.end_time:
+        return TimeResult.FINISHED
+    elif cwclass.begin_time <= nowtime <= cwclass.end_time:
+        return TimeResult.OK
+
+def check_contribution(contribution, group):
+    # 检查贡献度是否和为100以及贡献度中的人是否都存在
+    # 这里贡献度是用,分割，格式为B14040315 zk:50,B1404031* **:50
+    # pdb.set_trace()
+    contributionDetails = contribution.split(',')
+    if len(contributionDetails) == group.Group_member.count(): # 条目数一样
+        # 开始计算和是否为100并且每个人都出现
+        students_list = []
+        for stu in group.Group_member.all():
+            students_list.append(stu.get_full_name())
+        students_list.sort()
+        sum = 0
+        to_test_students_list = [] # 从贡献度字符串中得到的学生列表
+        for student_contribution in contributionDetails:
+            a_student_list = student_contribution.split(':')
+            if not len(a_student_list) == 2:
+                return False
+            num = int(a_student_list[1])
+            if num > 100 or num < 0:
+                return False
+            to_test_students_list.append(a_student_list[0])
+            sum += num
+        to_test_students_list.sort()
+        if sum == 100 and students_list == to_test_students_list:
+            return True
+        else:
+            return False
+    else:
+        return False
+
 def un_zip(file_name):
     """
     解压zip文件到当前目录，并生成"file_name_files"文件夹保存解压的数据
     :param file_name: 文件名
     :return: 无
     """
-    zip_file = zipfile.ZipFile(file_name)
-    os.mkdir(file_name + "_files")
-    i = 0
-    dirname = None
-    for names in zip_file.namelist():
-        # pdb.set_trace()
-        # print(chardet.detect(names.encode('utf8')))
-        if i == 0:
-            dirname = names
-            i = i + 1
-        filename = names.encode('cp437').decode('gbk')
-        print(filename)
-        zip_file.extract(names, file_name + "_files/")
-        os.chdir(file_name + "_files/")
-        os.rename(names, filename)
-    shutil.rmtree(file_name + "_files/" + dirname) # 有点问题，所以删掉还是有乱码的，不知道为什么
-    zip_file.close()
+    os.mkdir(file_name + '_files')
+    shutil.unpack_archive(file_name, extract_dir=file_name+'_files')
+    # zip_file = zipfile.ZipFile(file_name)
+    # os.mkdir(file_name + "_files")
+    # i = 0
+    # dirname = None
+    # os.chdir(file_name + "_files/")
+    # #zip_file.extractall(members=zip_file.namelist())
+    # for names in zip_file.namelist():
+    #     #pdb.set_trace()
+    #     # print(chardet.detect(names.encode('utf8')))
+    #     if i == 0:
+    #         dirname = names
+    #         i = i + 1
+    #     filename = names.encode('cp437').decode('gbk')
+    #     print(filename)
+    #     zip_file.extract(names)
+    # #     os.chdir(file_name + "_files/")
+    #     os.rename(names, filename)
+    # # shutil.rmtree(file_name + "_files/" + dirname) # 有点问题，所以删掉还是有乱码的，不知道为什么
+    # zip_file.close()
 
-@login_required
-def submit_code(request, courseId):
-    if request.method == 'POST': # 处理上传的文件
-        form = SubmitCodeForm(request.POST, request.FILES)
-        if form.is_valid():
-            # 处理上传的文件
-            file = request.FILES['codeFile']
-            random_name = ''.join(random.sample(string.digits + string.ascii_letters * 10, 8))
-            tempdir = newFileName(random_name)
-            os.mkdir(tempdir)
-            filename = os.path.join(tempdir, file.name)
-            with open(filename, 'wb+') as destination:
-                for chunk in file.chunks():
-                    destination.write(chunk)
-            # un_zip(filename)
-            un_zip(filename)
-            return HttpResponse("SUCCESS")
-        else:
-            print(form.errors)
-            return HttpResponse("FAIL")
-    else:
-        return render(request, 'code_week/submit_code.html')
+# 返回保存代码单文件的路径
+def singleFileName(fileId):
+    filename = os.path.join(BASE_DIR, 'allCode/'+str(fileId))
+    return filename
 
-# 通过文件夹创建dict
-import os, json
-
-work_dir = "C:\\Users\\张柯\\Desktop\\测试"
-result = {}
-i = 0
-j = 1
-for root, dirs, files in os.walk(work_dir):
-    testroot = root
-    subdirs = []
-    temp = result
-    while len(work_dir) < len(testroot):  # while work_dir != dirs
-        testroot, subdir = os.path.split(testroot)
-        subdirs.append(subdir)
-    while len(subdirs) > 0:
-        temp = temp[subdirs.pop()]
-    for filename in files:
-        temp[filename] = j
-        j = j + 1
-    for dirname in dirs:
-        temp[dirname] = {}
-    # temp = temp[os.path.split(root)[1]]
-    # for filename in files:
-    #     temp[filename] = j
-    #     ++j
-    # for dirname in dirs:
-    #     temp[dirname] = {}
-print(json.dumps(result))
-
-@login_required
-# 用来测试，返回文件夹结构
-def get_dir(request):
-    work_dir = "C:\\Users\\张柯\\Desktop\\测试"
+# 将解压的文件夹中的文件编号并且复制到指定目录，并且生成目录的序列化结果
+def copy_generage_dict_info(work_dir, group):
     result = {}
-    i = 0
-    j = 1
     for root, dirs, files in os.walk(work_dir):
         testroot = root
         subdirs = []
@@ -735,9 +744,10 @@ def get_dir(request):
             subdirs.append(subdir)
         while len(subdirs) > 0:
             temp = temp[subdirs.pop()]
-        for filename in files:
-            temp[filename] = j
-            j = j + 1
+        for filename in files: # 单个文件，需要保存
+            fileRecord = CodeFile.objects.create(group=group)
+            shutil.copy(os.path.join(root, filename), singleFileName(fileRecord.id)) # 复制文件到指定目录
+            temp[filename] = fileRecord.id
         for dirname in dirs:
             temp[dirname] = {}
         # temp = temp[os.path.split(root)[1]]
@@ -746,6 +756,179 @@ def get_dir(request):
         #     ++j
         # for dirname in dirs:
         #     temp[dirname] = {}
-    return HttpResponse(json.dumps(result))
+    print(json.dumps(result))
+    return json.dumps(result)
+
+# 返回保存代码压缩文件的路径
+def codeZipFileName(fileId):
+    filename = os.path.join(BASE_DIR, 'codeZip/'+str(fileId))
+    return filename
+
+@login_required
+# 组长提交代码，保存提交的zip文件并且将压缩包内的所有文件都解压标号，生成目录序列化字符串
+def submit_code(request, courseId):
+    # 检查是否是组长，现在的逻辑是只有组长才能上传代码，而且需要组长手动填写贡献量
+    student = None
+    try:
+        student = CodeWeekClassStudent.objects.get(student=request.user, codeWeekClass=courseId)
+        # 再检查现在时间是否在课程时间之内
+        ckresult = check_time(student.codeWeekClass)
+        if ckresult == TimeResult.NOTSTART:
+            return render(request, 'warning.html', {'info': '课程还没开始，还不能提交代码'})
+        elif ckresult == TimeResult.FINISHED:
+            return render(request, 'warning.html', {'info': '课程已经结束，无法提交代码'})
+        elif ckresult == TimeResult.OK:  # 时间没问题
+            pass
+    except:  # 没有查到学生或者课程
+        return render(request, 'warning.html', {'info': '出现问题'})
+    if not student.isLeader:
+        return render(request, 'warning.html', {'info': '提交代码现在只能由组长完成'})
+    if request.method == 'POST':
+        # 检查是否是组长，现在的逻辑是只有组长才能上传代码，而且需要组长手动填写贡献量
+        student = None
+        try:
+            student = CodeWeekClassStudent.objects.get(student=request.user, codeWeekClass=courseId)
+            # 再检查现在时间是否在课程时间之内
+            ckresult = check_time(student.codeWeekClass)
+            if ckresult == TimeResult.NOTSTART:
+                return render(request, 'warning.html', {'info': '课程还没开始，还不能提交代码'})
+            elif ckresult == TimeResult.FINISHED:
+                return render(request, 'warning.html', {'info': '课程已经结束，无法提交代码'})
+            elif ckresult == TimeResult.OK: # 时间没问题
+                pass
+        except: # 没有查到学生或者课程
+            return render(request, 'warning.html', {'info': '出现问题'})
+        if not student.isLeader:
+            return render(request, 'warning.html', {'info': '提交代码现在只能由组长完成'})
+
+        form = SubmitCodeForm(request.POST, request.FILES)
+        if form.is_valid():
+            # 再检查贡献值是否正确，如果只是一个人无所谓
+            # 如果是多个人需要检查和是否为100%
+            if not check_contribution(request.POST['contribution'], student.group):
+                return render(request, 'warning.html', {'info': '贡献度不正确'})
+            # 处理上传的文件
+            # 首先检查文件后缀是否为.zip
+            # 然后开始解压压缩文件并且遍历文件夹生成文件夹的序列化结果
+            # 对每个文件进行编号并且复制到保存文件夹
+            # 保存序列化结果到数据库
+            # 保存这个压缩文件，来方便打包文件的下载
+            file = request.FILES['codeFile']
+            if not file.name.endswith(".zip"):
+                return render(request, 'warning.html', {'info': '只支持zip压缩文件'})
+            else:
+                random_name = ''.join(random.sample(string.digits + string.ascii_letters * 10, 8))
+                tempdir = newFileName(random_name)
+                os.mkdir(tempdir)
+                filename = os.path.join(tempdir, file.name)
+                with open(filename, 'wb+') as destination:
+                    for chunk in file.chunks():
+                        destination.write(chunk)
+                # un_zip(filename)
+                un_zip(filename)
+                dir_result = copy_generage_dict_info(filename + '_files/', student.group)
+                # 保存整个压缩文件
+                newCodeZip = CodeZipFile.objects.create(fileName = file.name)
+                shutil.copy(filename, codeZipFileName(newCodeZip.id))
+                # 保存代码版本（目录序列化结果）
+                newCodeHistory = CodeDirHistory.objects.create(zipFile=newCodeZip, dirText=dir_result, group=student.group, contribution=request.POST['contribution'])
+                # 将现在小组的代码历史指向新建的
+                student.group.nowCodeDir = newCodeHistory
+                student.group.save()
+                return render(request, 'code_week/submit_code.html', {'members': student.group.Group_member.all(),
+                                                                      'course': student.codeWeekClass})
+        else:
+            print(form.errors)
+            return render(request, 'warning.html', {'info': '提交的信息有误'})
+    else:
+        return render(request, 'code_week/submit_code.html', {'members': student.group.Group_member.all(),
+                                                              'course': student.codeWeekClass})
+
+@login_required
+# 返回当前组的目录结构
+def get_dir_struct(request, courseId):
+    student = None
+    try:
+        student = CodeWeekClassStudent.objects.get(student=request.user, codeWeekClass=courseId)
+    except:  # 没有查到学生或者课程
+        return HttpResponse(json.dumps({}))
+    if student.group.nowCodeDir:
+        return HttpResponse(student.group.nowCodeDir.dirText)
+    else:
+        return HttpResponse(json.dumps({}))
+
+@login_required
+# 返回代码文件
+def get_code_file(request, fileId):
+    file = None
+    try:
+        file = CodeFile.objects.get(id=fileId)
+    except:
+        return HttpResponse("", status=404)
+    # 检查请求者是否是这个文件的所有者
+    for member in file.group.Group_member.all():
+        if request.user == member.student:
+            fileName = singleFileName(fileId)
+            file = open(fileName, 'rb')
+            return HttpResponse(file.readlines())
+    return HttpResponse("")
+
+# # 通过文件夹创建dict
+# import os, json
+#
+# work_dir = "C:\\Users\\张柯\\Desktop\\测试"
+# result = {}
+# i = 0
+# j = 1
+# for root, dirs, files in os.walk(work_dir):
+#     testroot = root
+#     subdirs = []
+#     temp = result
+#     while len(work_dir) < len(testroot):  # while work_dir != dirs
+#         testroot, subdir = os.path.split(testroot)
+#         subdirs.append(subdir)
+#     while len(subdirs) > 0:
+#         temp = temp[subdirs.pop()]
+#     for filename in files:
+#         temp[filename] = j
+#         j = j + 1
+#     for dirname in dirs:
+#         temp[dirname] = {}
+#     # temp = temp[os.path.split(root)[1]]
+#     # for filename in files:
+#     #     temp[filename] = j
+#     #     ++j
+#     # for dirname in dirs:
+#     #     temp[dirname] = {}
+# print(json.dumps(result))
+#
+# @login_required
+# # 用来测试，返回文件夹结构
+# def get_dir(request):
+#     work_dir = "C:\\Users\\张柯\\Desktop\\测试"
+#     result = {}
+#     i = 0
+#     j = 1
+#     for root, dirs, files in os.walk(work_dir):
+#         testroot = root
+#         subdirs = []
+#         temp = result
+#         while len(work_dir) < len(testroot):  # while work_dir != dirs
+#             testroot, subdir = os.path.split(testroot)
+#             subdirs.append(subdir)
+#         while len(subdirs) > 0:
+#             temp = temp[subdirs.pop()]
+#         for filename in files:
+#             temp[filename] = j
+#             j = j + 1
+#         for dirname in dirs:
+#             temp[dirname] = {}
+#         # temp = temp[os.path.split(root)[1]]
+#         # for filename in files:
+#         #     temp[filename] = j
+#         #     ++j
+#         # for dirname in dirs:
+#         #     temp[dirname] = {}
+#     return HttpResponse(json.dumps(result))
 
 

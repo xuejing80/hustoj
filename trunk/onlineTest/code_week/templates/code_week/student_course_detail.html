@@ -16,6 +16,9 @@
     <p>开始时间: {{ course.begin_time }}</p>
     <p>结束时间: {{ course.end_time }}</p>
     <p>课程人数限制： {{ course.numberEachGroup }}</p>
+    {% if problem %}
+        <p>小组已经选择的题目: {{ problem.title }}</p><a href={% url 'download_file' problem.problem_id %}>下载题目描述文件</a>
+    {% endif %}
     <p>课程题目</p>
     <table id="table"
            data-toggle="table"
@@ -36,7 +39,16 @@
         </tr>
         </thead>
     </table>
-    <button class="btn btn-success" id="leader">成为组长</button>
+    {% if course.numberEachGroup > 1 %}
+        <button class="btn btn-success" id="leader" onclick="sendLeader()">成为组长</button>
+    {% elif course.numberEachGroup == 1 %}
+        {% if problem %}
+            <button class="btn btn-success" id="reChooseProblem" onclick="reChooseProblem()">重新选择题目</button>
+        {% else %}
+            <button class="btn btn-success" id="chooseProblem" onclick="chooseProblem()">选择题目</button>
+        {% endif %}
+        <button class="btn btn-success" id="sumbitCode" onclick="submitCode()">提交代码</button>
+    {% endif %}
     <script type="text/javascript">
         $(document).ready(function(){
             $.ajaxSetup({
@@ -54,7 +66,6 @@
                 }
             });
         });
-        $('#leader').click(sendLeader);
 
         chatsock.onmessage = handleMessage;
     </script>

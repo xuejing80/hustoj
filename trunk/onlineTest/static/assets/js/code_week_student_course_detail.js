@@ -151,16 +151,23 @@ function handleFirstMsg(data) { // 用于处理以打开页面就获得的数据
     max = data.max;
     nowid = data.id;
     groups = data.groups;
-    for (var i = 0; i < groups.length; ++i)
+    if (max == 1) // 每个小组只有一个成员，这是不显示小组
     {
-        var problem = null
-        try {
-            problem = groups[i]["problem"];
-        } catch (error) {
-            
-        }
-        addGroup(groups[i]["groupid"], groups[i]["leader"], groups[i]["members"], problem);
+        // 只提供选择题目和提交代码按钮
     }
+    else if (max > 1) {
+        for (var i = 0; i < groups.length; ++i)
+        {
+            var problem = null
+            try {
+                problem = groups[i]["problem"];
+            } catch (error) {
+                
+            }
+            addGroup(groups[i]["groupid"], groups[i]["leader"], groups[i]["members"], problem);
+        }
+    }
+    
 }
 // var b = document.getElementById("addGroup");
 // b.onclick
@@ -278,8 +285,11 @@ function handleMessage(message) { // 用于处理websocket收到的消息
     }
     else if (data['action'] == 'choose') // 收到消息有小组选择了题目
     {
-        var groupid = data['groupId'];
-        groupsVue.get(groupsVue).problem = data['problem'];
+        if (max > 1)
+        {
+            var groupid = data['groupId'];
+            groupsVue.get(groupsVue).problem = data['problem'];
+        }
     }
 }
 function retryData(id)  // 获取nowid到id中丢失的

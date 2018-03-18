@@ -69,6 +69,7 @@ class CodeWeekClassGroup(models.Model):
     selectedProblem = models.ForeignKey(ShejiProblem, related_name='GroupSelectProblem', on_delete=models.PROTECT, null=True)
     counter = models.IntegerField(default=0)
     using = models.BooleanField(default=True)
+    nowCodeDir = models.ForeignKey("CodeDirHistory", null=True)
 
 class CodeWeekClassStudent(models.Model):
     """
@@ -92,3 +93,28 @@ class ClassOperation(models.Model):
     operation_id = models.IntegerField()
     operation = models.CharField(max_length=1000)
     time = models.DateTimeField(auto_now_add=True)
+
+class CodeZipFile(models.Model):
+    """
+    用来记录学生上传的代码文件压缩包，方便学生或者老师下载
+    """
+    id = models.AutoField(primary_key=True)
+    fileName = models.TextField("文件名")
+    uploadTime = models.DateTimeField(auto_now_add=True)
+
+class CodeFile(models.Model):
+    """
+    用来记录所有学生上传的文件
+    """
+    id = models.AutoField(primary_key=True)
+    group = models.ForeignKey(CodeWeekClassGroup, related_name='Group_codefile', null=True, on_delete=models.SET_NULL)
+
+class CodeDirHistory(models.Model):
+    """
+    用来记录学生提交代码的版本
+    """
+    id = models.AutoField(primary_key=True)
+    zipFile = models.OneToOneField(CodeZipFile)
+    dirText = models.TextField("目录序列化的结果")
+    group = models.ForeignKey(CodeWeekClassGroup, related_name='Code_history', null=True, on_delete=models.SET_NULL)
+    contribution = models.TextField("贡献度")

@@ -478,7 +478,9 @@ def get_json(request, model_name):
             #knowledge_point += point.upperPoint.classname.name + ' > ' + point.upperPoint.name + ' > ' + point.name + '<br>'
         recode = {'title': title, 'pk': problem.pk,
                   'update_date': problem.update_date.strftime('%Y-%m-%d %H:%M:%S'), 'id': problem.pk,
-                  'knowledge_point': knowledge_point, 'testcases': testCases, 'total_score': total_score}
+                  'knowledge_point': knowledge_point, 'testcases': testCases, 'total_score': total_score,
+		  'creator': problem.creater.username, 'isMine': request.user.is_admin or request.user==problem.creater,
+}
         recodes.append(recode)
     json_data['rows'] = recodes
     return HttpResponse(json.dumps(json_data))

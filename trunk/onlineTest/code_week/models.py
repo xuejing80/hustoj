@@ -118,3 +118,5 @@ class CodeDirHistory(models.Model):
     dirText = models.TextField("目录序列化的结果")
     group = models.ForeignKey(CodeWeekClassGroup, related_name='Code_history', null=True, on_delete=models.SET_NULL)
     contribution = models.TextField("贡献度")
+    submitTime = models.DateTimeField(auto_now_add=True)
+    fileHash = models.CharField("文件hash", max_length=40)

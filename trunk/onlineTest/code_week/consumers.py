@@ -6,6 +6,7 @@ import json, pdb
 from django.db import transaction
 from django.core.exceptions import ObjectDoesNotExist
 import IPython
+from .views import TimeResult, check_time
 
 def sendMsgToStudent(message, text):
     # 将消息发给学生一个人，一般用于命令的反馈
@@ -112,6 +113,15 @@ def ws_receive_student_detail(message, courseId):
     except ObjectDoesNotExist:
         return
 
+    ckresult = check_time(student.codeWeekClass)
+    if ckresult == TimeResult.NOTSTART:
+        result = {'msg': 'fail', 'info': '课程还没有开始，无法操作'}
+        sendMsgToStudent(message, result)
+        return
+    elif ckresult == TimeResult.FINISHED:
+        result = {'msg': 'fail', 'info': '课程已经结束，无法操作'}
+        sendMsgToStudent(message, result)
+        return
     if student:
         #开始处理消息
         msg = ""
@@ -192,6 +202,9 @@ def ws_receive_student_detail(message, courseId):
                 if group.Group_member.count() >= CodeWeekClass.objects.get(id=courseId).numberEachGroup: #人已经满了
                     result = {'msg': 'fail', 'info': '组中人已经满了'}
                     sendMsgToStudent(message, result)
+                elif group.selectedProblem:
+                    result = {'msg': 'fail', 'info': '该小组已经选择了题目，无法加入'}
+                    sendMsgToStudent(message, result)
                 else: # 加入组并且保存这个成功的操作
                     result = None
                     try:
@@ -235,6 +248,10 @@ def ws_receive_student_detail(message, courseId):
                     return
                 if student.group.Group_member.count() != 1:  #除了自己还有别人，不能删除
                     result = {'msg': 'fail', 'info': '组内有其他人'}
+                    sendMsgToStudent(message, result)
+                    return
+                if student.group.nowCodeDir: # 已经提交代码了
+                    result = {'msg': 'fail', 'info': '已经提交了代码了，无法解散组'}
                     sendMsgToStudent(message, result)
                     return
                 else: #可以删除
@@ -281,6 +298,10 @@ def ws_receive_student_detail(message, courseId):
             if student.group:
                 if not student.isLeader: # 不是组长
                     result = {'msg': 'fail', 'info': '您不是组长'}
+                    sendMsgToStudent(message, result)
+                    return
+                elif student.group.nowCodeDir: # 已经提交代码了
+                    result = {'msg': 'fail', 'info': '已经提交了代码了，无法移除组员'}
                     sendMsgToStudent(message, result)
                     return
                 else:

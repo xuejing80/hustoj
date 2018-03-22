@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from .models import *
 from .forms import *
-import datetime
+import datetime, hashlib
 from django.contrib.auth.decorators import permission_required, login_required
 from django.shortcuts import redirect, get_object_or_404
 from django.core.urlresolvers import reverse
@@ -315,11 +315,19 @@ def encodeFilename(filename):
 
 # 实现描述文件的下载功能
 @login_required()
-def download(request, fileId):
-    files = ShejiProblem.objects.filter(problem_id=fileId)
-    if files: #能够搜索到
-        file = files[0]
-        filename = newFileName(fileId)
+def download(request, courseId):
+    student = None
+    try:
+        student = CodeWeekClassStudent.objects.get(student=request.user, codeWeekClass=courseId)
+    except:
+        return render(request, 'warning.html', {'info': '找不到描述文件'})
+    if student: #能够匹配到学生
+        if not student.group:
+            return render(request, 'warning.html', {'info': '您还没有加入小组或者成为组长'})
+        if not student.group.selectedProblem:
+            return render(request, 'warning.html', {'info': '您所在的小组还没有选题'})
+        file = student.group.selectedProblem
+        filename = newFileName(file.problem_id)
 
         def file_iterator(file_name, chunk_size=512):
             with open(file_name, 'rb') as f:
@@ -331,8 +339,8 @@ def download(request, fileId):
                         break
 
         response = StreamingHttpResponse(file_iterator(filename))
-        response['Content-Type'] = files[0].content_type
-        response['Content-Disposition'] = '''attachment;filename*= UTF-8''{0}'''.format(encodeFilename(files[0].filename))
+        response['Content-Type'] = file.content_type
+        response['Content-Disposition'] = '''attachment;filename*= UTF-8''{0}'''.format(encodeFilename(file.filename))
         return response
     else:
         return render(request, 'warning.html' ,{'info' : '没有此文件'})
@@ -642,6 +650,11 @@ def choose_problem(request, courseId):
             problem = ShejiProblem.objects.get(problem_id=problemId)
         except :
             return HttpResponse(0)
+        ckresult = check_time(student.codeWeekClass)
+        if ckresult == TimeResult.NOTSTART:
+            return HttpResponse(0)
+        elif ckresult == TimeResult.FINISHED:
+            return HttpResponse(0)
         try:
             with transaction.atomic():
                 if student and student.group and student.isLeader and student.group.selectedProblem == None:
@@ -743,13 +756,13 @@ def copy_generage_dict_info(work_dir, group):
             testroot, subdir = os.path.split(testroot)
             subdirs.append(subdir)
         while len(subdirs) > 0:
-            temp = temp[subdirs.pop()]
+            temp = temp[(subdirs.pop()).encode('cp437').decode('gbk')]
         for filename in files: # 单个文件，需要保存
             fileRecord = CodeFile.objects.create(group=group)
             shutil.copy(os.path.join(root, filename), singleFileName(fileRecord.id)) # 复制文件到指定目录
-            temp[filename] = fileRecord.id
+            temp[filename.encode('cp437').decode('gbk')] = fileRecord.id
         for dirname in dirs:
-            temp[dirname] = {}
+            temp[dirname.encode('cp437').decode('gbk')] = {}
         # temp = temp[os.path.split(root)[1]]
         # for filename in files:
         #     temp[filename] = j
@@ -763,6 +776,14 @@ def copy_generage_dict_info(work_dir, group):
 def codeZipFileName(fileId):
     filename = os.path.join(BASE_DIR, 'codeZip/'+str(fileId))
     return filename
+
+# 用于计算文件hash
+def sha1(filepath):
+    with open(filepath,'rb') as f:
+        sha1obj = hashlib.sha1()
+        sha1obj.update(f.read())
+        hash = sha1obj.hexdigest()
+        return hash
 
 @login_required
 # 组长提交代码，保存提交的zip文件并且将压缩包内的所有文件都解压标号，生成目录序列化字符串
@@ -781,23 +802,15 @@ def submit_code(request, courseId):
             pass
     except:  # 没有查到学生或者课程
         return render(request, 'warning.html', {'info': '出现问题'})
-    if not student.isLeader:
-        return render(request, 'warning.html', {'info': '提交代码现在只能由组长完成'})
+    try:
+        group = student.group
+        if not group:
+            return render(request, 'warning.html', {'info': '你还没有加入组或者成为组长'})
+    except:
+        return render(request, 'warning.html', {'info': '你还没有加入组或者成为组长'})
+
     if request.method == 'POST':
         # 检查是否是组长，现在的逻辑是只有组长才能上传代码，而且需要组长手动填写贡献量
-        student = None
-        try:
-            student = CodeWeekClassStudent.objects.get(student=request.user, codeWeekClass=courseId)
-            # 再检查现在时间是否在课程时间之内
-            ckresult = check_time(student.codeWeekClass)
-            if ckresult == TimeResult.NOTSTART:
-                return render(request, 'warning.html', {'info': '课程还没开始，还不能提交代码'})
-            elif ckresult == TimeResult.FINISHED:
-                return render(request, 'warning.html', {'info': '课程已经结束，无法提交代码'})
-            elif ckresult == TimeResult.OK: # 时间没问题
-                pass
-        except: # 没有查到学生或者课程
-            return render(request, 'warning.html', {'info': '出现问题'})
         if not student.isLeader:
             return render(request, 'warning.html', {'info': '提交代码现在只能由组长完成'})
 
@@ -825,13 +838,18 @@ def submit_code(request, courseId):
                     for chunk in file.chunks():
                         destination.write(chunk)
                 # un_zip(filename)
+                sha1result = sha1(filename)
+                # 这边可以利用文件hash做一些额外工作，例如比较和以前版本是否一样
                 un_zip(filename)
                 dir_result = copy_generage_dict_info(filename + '_files/', student.group)
                 # 保存整个压缩文件
                 newCodeZip = CodeZipFile.objects.create(fileName = file.name)
                 shutil.copy(filename, codeZipFileName(newCodeZip.id))
                 # 保存代码版本（目录序列化结果）
-                newCodeHistory = CodeDirHistory.objects.create(zipFile=newCodeZip, dirText=dir_result, group=student.group, contribution=request.POST['contribution'])
+                newCodeHistory = CodeDirHistory.objects.create(zipFile=newCodeZip, dirText=dir_result,
+                                                               group=student.group,
+                                                               contribution=request.POST['contribution'],
+                                                               fileHash=sha1result)
                 # 将现在小组的代码历史指向新建的
                 student.group.nowCodeDir = newCodeHistory
                 student.group.save()

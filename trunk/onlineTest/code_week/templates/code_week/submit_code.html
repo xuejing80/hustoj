@@ -29,7 +29,7 @@
 	<div class="zTreeDemoBackground left">
 		<ul id="treeDemo" class="ztree"></ul>
 	</div>
-        <textarea id="code-display" cols="50" rows="10"></textarea>
+        <textarea id="code-display" cols="100" rows="50"></textarea>
     <script type="text/javascript">
         var editor;
         var setting = {
@@ -66,14 +66,14 @@
                 lineNumbers:true,
                 mode:"text/x-c++src",
                 theme:'material',
+                readOnly: 'true',
             });
 
 		});
         function clickFile(event, treeId, treeNode, clickFlag) {
-            editor.setValue(treeNode.id.toString());
             $.ajax({
                 type:"GET",
-                url:"/code_week/get-code-" + treeNode.id.toString(),
+                url:"/code_week/get-code-" + treeNode.id.toString() +"/",
                 success:function (data) {
                     editor.setValue(data);
                 },

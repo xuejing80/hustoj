@@ -386,6 +386,46 @@ def student_info(request, courseId):
         return
     return HttpResponse(json.dumps(data))
 
+# 用于教师获取学生课程有关分组信息
+@login_required()
+def teacher_get_student_info(request, courseId):
+    """
+    :param request:
+    :param courseId: 正则匹配的课程id
+    打包传输现在的学生分组情况用来初始前端显示
+    """
+    course = None
+    data = None
+    try:
+        with transaction.atomic():
+            course = CodeWeekClass.objects.get(id=courseId, teacher=request.user)
+            if course.numberEachGroup <= 1:
+                return
+            if course:
+                data = {'id': course.counter}
+                groups = course.CodeWeekClass_group.all()
+                groupsData = []
+                for group in groups:
+                    if group.using:
+                        aGroupMemberData = []
+                        aGroupData = {}
+                        students = group.Group_member.all()
+                        for s in students:
+                            if s.isLeader:
+                                aGroupData['leader'] = s.get_full_name()
+                            else:
+                                aGroupMemberData.append(s.get_full_name())
+                        aGroupData['groupid'] = group.id
+                        aGroupData['members'] = aGroupMemberData
+                        if group.selectedProblem:
+                            aGroupData['problem'] = group.selectedProblem.title
+                        groupsData.append(aGroupData)
+                    # pdb.set_trace()
+                data['groups'] = groupsData
+    except ObjectDoesNotExist:
+        return
+    return HttpResponse(json.dumps(data))
+
 # 用于教师获取课程信息
 @login_required
 def teacher_course_info(request, courseId):
@@ -602,14 +642,64 @@ def get_student_state(request, courseId):
 
     json_data['total'] = students.count()
 
-    for student in students.all():
-        recode = {'pk': student.pk,
-                  'name': student.get_full_name(),
-                  'state': student.state,
-                  'id': student.pk}
-        recodes.append(recode)
+    if course.numberEachGroup == 1:
+        for student in students.all():
+            recode = {'pk': student.pk,
+                      'name': student.get_full_name(),
+                      'state': singleStuState(student),
+                      'id': student.pk}
+            recodes.append(recode)
+    else:
+        for student in students.all():
+            recode = {'pk': student.pk,
+                      'name': student.get_full_name(),
+                      'state': multipStuState(student),
+                      'id': student.pk}
+            recodes.append(recode)
     json_data['rows'] = recodes
     return HttpResponse(json.dumps(json_data))
+
+# 返回单人课程的学生状态
+def singleStuState(student):
+    problem = None
+    try:
+        problem = student.group.selectedProblem
+    except:
+        return "还没有选择题目"
+    if not problem:
+        return "还没有选择题目"
+    result = "已经选择题目: " + problem.title + "<br>"
+    if student.group.Code_history.all().count() == 0:
+        result += "还没有提交代码"
+    else:
+        latest = student.group.Code_history.all()[0]
+        result += "最近提交代码的时间: "
+        result += latest.submitTime.strftime('%Y/%m/%d %X')
+
+    return result
+
+# 返回多人课程的学生状态
+def multipStuState(student):
+    group = None
+    try:
+        group = student.group
+    except:
+        return "还没有加入组"
+    if not group:
+        return "还没有加入组"
+    result = ""
+    if student.isLeader:
+        result += "已经建立了小组"
+    else:
+        for stu in group.Group_member.all():
+            if stu.isLeader:
+                result += '已经加入了 '
+                result += stu.get_full_name()
+                result += '的小组'
+                break
+    result += '<br>'
+    result += singleStuState(student)
+    return result
 
 @login_required
 # 用于教师移除学生
@@ -911,7 +1001,7 @@ def get_all_code_history(request, courseId):
     return  HttpResponse(json.dumps(result))
 
 # 实现代码打包文件的下载功能
-@login_required()
+@login_required
 def download_codeZip(request, historyId):
     codeHistory = None
     try:
@@ -949,6 +1039,98 @@ def download_codeZip(request, historyId):
         return response
     else:
         return render(request, 'warning.html' ,{'info' : '找不到代码文件'})
+
+# 老师查看课程学生的代码提交情况
+@login_required
+def teacher_read_code(request, courseId, groupId):
+    # 检查是否是该课程的老师
+    course = None
+    try:
+        course = CodeWeekClass.objects.get(teacher=request.user, id=courseId)
+    except:
+        return render(request, 'warning.html', {'info': '没有查到这个课程'})
+    group = None
+    try:
+        group = CodeWeekClassGroup.objects.get(id=groupId)
+    except:
+        return render(request, 'warning.html', {'info': '没有查到学生组'})
+    if group.cwclass != course or group.using == False:
+        return render(request, 'warning.html', {'info': '没有查到学生组'})
+    return render(request, 'code_week/teacher_code.html', {'courseId': courseId, 'groupId': groupId})
+
+# 老师查看自己课程的一个组的代码提交情况
+@login_required
+def teacher_get_all_code_history(request, courseId, groupId):
+    # 检查是否是该课程的老师
+    course = None
+    try:
+        course = CodeWeekClass.objects.get(teacher=request.user, id=courseId)
+    except:
+        return HttpResponse("")
+    group = None
+    try:
+        group = CodeWeekClassGroup.objects.get(id=groupId)
+    except:
+        return HttpResponse("")
+    result = []
+    for record in group.Code_history.all():
+        result.append({'time': record.submitTime.strftime('%Y/%m/%d %X'), 'text': record.dirText,
+                       'id': record.id})
+    return HttpResponse(json.dumps(result))
+
+# 老师下载自己课程的某个组提交的代码
+@login_required
+def teacher_get_single_code(request, courseId, fileId):
+    # 检查是否是该课程的老师
+    course = None
+    try:
+        course = CodeWeekClass.objects.get(teacher=request.user, id=courseId)
+    except:
+        return HttpResponse("", status=404)
+    file = None
+    try:
+        file = CodeFile.objects.get(id=fileId)
+    except:
+        return HttpResponse("", status=404)
+    if file.group.cwclass == course:
+        fileName = singleFileName(fileId)
+        file = open(fileName, 'rb')
+        return HttpResponse(file.readlines())
+
+# 老师下载自己课程的某个组的某次提交的代码打包文件
+@login_required
+def teacher_get_code_zip(request, courseId, historyId):
+    # 检查是否是该课程的老师
+    course = None
+    try:
+        course = CodeWeekClass.objects.get(teacher=request.user, id=courseId)
+    except:
+        return HttpResponse("", status=404)
+    codeHistory = None
+    try:
+        codeHistory = CodeDirHistory.objects.get(id=historyId)
+    except:
+        return render(request, 'warning.html', {'info': '找不到代码文件'})
+    if codeHistory:
+        if codeHistory.group.cwclass == course:
+            file = codeHistory.zipFile
+            filename = codeZipFileName(file.id)
+
+            def file_iterator(file_name, chunk_size=512):
+                with open(file_name, 'rb') as f:
+                    while True:
+                        c = f.read(chunk_size)
+                        if c:
+                            yield c
+                        else:
+                            break
+
+            response = StreamingHttpResponse(file_iterator(filename))
+            response['Content-Disposition'] = '''attachment;filename*= UTF-8''{0}'''.format(
+                encodeFilename(file.fileName))
+            return response
+    return render(request, 'warning.html', {'info': '找不到代码文件'})
+
 # # 通过文件夹创建dict
 # import os, json
 #

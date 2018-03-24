@@ -859,8 +859,11 @@ def submit_code(request, courseId):
             print(form.errors)
             return render(request, 'warning.html', {'info': '提交的信息有误'})
     else:
-        return render(request, 'code_week/submit_code.html', {'members': student.group.Group_member.all(),
+        if student.isLeader:
+            return render(request, 'code_week/submit_code.html', {'members': student.group.Group_member.all(),
                                                               'course': student.codeWeekClass})
+        else:
+            return render(request, 'code_week/submit_code.html', {'course': student.codeWeekClass})
 
 @login_required
 # 返回当前组的目录结构
@@ -868,6 +871,7 @@ def get_dir_struct(request, courseId):
     student = None
     try:
         student = CodeWeekClassStudent.objects.get(student=request.user, codeWeekClass=courseId)
+        student.group
     except:  # 没有查到学生或者课程
         return HttpResponse(json.dumps({}))
     if student.group.nowCodeDir:
@@ -891,6 +895,60 @@ def get_code_file(request, fileId):
             return HttpResponse(file.readlines())
     return HttpResponse("")
 
+@login_required
+# 返回学生所在组的所有提交记录
+def get_all_code_history(request, courseId):
+    student = None
+    try:
+        student = CodeWeekClassStudent.objects.get(student=request.user, codeWeekClass=courseId)
+        student.group
+    except:  # 没有查到学生或者课程
+        return HttpResponse(json.dumps([]))
+    result = []
+    for record in student.group.Code_history.all():
+        result.append({'time':record.submitTime.strftime('%Y/%m/%d %X'), 'text':record.dirText,
+                       'id': record.id})
+    return  HttpResponse(json.dumps(result))
+
+# 实现代码打包文件的下载功能
+@login_required()
+def download_codeZip(request, historyId):
+    codeHistory = None
+    try:
+        codeHistory = CodeDirHistory.objects.get(id = historyId)
+    except:
+        return render(request, 'warning.html', {'info': '找不到代码文件'})
+    if codeHistory: #能够匹配到历史代码,检查学生是否是这个代码的所有者
+        student = None
+        try:
+            student = CodeWeekClassStudent.objects.get(student=request.user, codeWeekClass=codeHistory.group.cwclass)
+        except:
+            return render(request, 'warning.html', {'info': '你不是下载该文件'})
+        owner = False
+        for stu in codeHistory.group.Group_member.all():
+            if student == stu:
+                owner = True
+                break
+        if not owner:
+            return render(request, 'warning.html', {'info': '你不是下载该文件'})
+
+        file = codeHistory.zipFile
+        filename = codeZipFileName(file.id)
+
+        def file_iterator(file_name, chunk_size=512):
+            with open(file_name, 'rb') as f:
+                while True:
+                    c = f.read(chunk_size)
+                    if c:
+                        yield c
+                    else:
+                        break
+
+        response = StreamingHttpResponse(file_iterator(filename))
+        response['Content-Disposition'] = '''attachment;filename*= UTF-8''{0}'''.format(encodeFilename(file.fileName))
+        return response
+    else:
+        return render(request, 'warning.html' ,{'info' : '找不到代码文件'})
 # # 通过文件夹创建dict
 # import os, json
 #

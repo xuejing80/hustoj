@@ -456,6 +456,14 @@ function handleMessage(message) { // 用于处理websocket收到的消息
             if (groupid == globalgroupid)
             {
                 addProblemInfo(data['title']);
+                if (name == groupsVue.get(groupid).leader)
+                {
+                    addSubmitButton(groupid); 
+                }
+                else
+                {
+                    addReadCodeButton(groupid);
+                }
             }
         }
         else if (max == 1)

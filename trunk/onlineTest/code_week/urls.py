@@ -27,6 +27,8 @@ urlpatterns = [
     url(r'^remove-student/$', remove_student, name='remove_student'),
     url(r'^choose-problem-(?P<courseId>\d+)/$', choose_problem, name='choose_problem'),
     url(r'^submit-code-(?P<courseId>\d+)/$', submit_code, name='submit_code'),
-    url(r'^get-dir-(?P<courseId>\d+)/$', get_dir_struct, name='get_dir'),
+    # url(r'^get-dir-(?P<courseId>\d+)/$', get_dir_struct, name='get_dir'),
     url(r'^get-code-(?P<fileId>\d+)/$', get_code_file, name='get_code'),
+    url(r'^get-all-history-(?P<courseId>\d+)/$', get_all_code_history, name='get_all_code_history'),
+    url(r'^get-code-zip-(?P<historyId>\d+)/$', download_codeZip, name='get_code_zip'),
 ]

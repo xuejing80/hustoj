@@ -207,17 +207,15 @@
                                         }
                                         setTimeout(unassign_homework, 0);
                                     } else {
-                                        alert({
+                                        $.alert({
                                             text: '信息提交过程中遇到错误：' + data.message + '！',
                                             type: 'danger',
                                             position: 'top-center'
                                         });
                                     }
-                                    //alert(data);
                                 },
                                 error: function (XMLHttpRequest, textStatus, errorThrown) {
-                                    alert({text: '保存数据时发生错误！', type: 'danger', position: 'top-center'});
-                                    //alert(errorThrown);
+                                    $.alert({text: '保存数据时发生错误！', type: 'danger', position: 'top-center'});
                                 }
                             });
                         } else {
@@ -261,17 +259,15 @@
                                         }
                                         setTimeout(assign_homework, 0);
                                     } else {
-                                        alert({
+                                        $.alert({
                                             text: '信息提交过程中遇到错误：' + data.message + '！',
                                             type: 'danger',
                                             position: 'top-center'
                                         });
                                     }
-                                    //alert(data);
                                 },
                                 error: function (XMLHttpRequest, textStatus, errorThrown) {
-                                    alert({text: '保存数据时发生错误！', type: 'danger', position: 'top-center'});
-                                    //alert(errorThrown);
+                                    $.alert({text: '保存数据时发生错误！', type: 'danger', position: 'top-center'});
                                 }
                             });
                         } else {

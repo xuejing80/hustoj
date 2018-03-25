@@ -117,7 +117,11 @@
         return '<a class="btn btn-primary btn-xs remove" href="javascript:void(0)" title="删除" aria-label="删除" data-pjax="0"><span class="glyphicon glyphicon-trash"></span></a>';
     }
     function studentFormatter(value) {
-        return '<a class="btn btn-primary btn-xs remove" href="javascript:void(0)" title="移除" aria-label="移除" data-pjax="0"><span class="glyphicon glyphicon-trash"></span></a>';
+        return '<a class="btn btn-primary btn-xs remove" href="javascript:void(0)" title="移除" aria-label="移除" data-pjax="0"><span class="glyphicon glyphicon-trash"></span></a>'+
+                '<a class="btn btn-primary btn-xs read" href="javascript:void(0)" title="查看学生代码" aria-label="查看学生代码" data-pjax="0"><span class="glyphicon glyphicon-eye-open"></span></a>';
+    }
+    function readStudentCode(value) {
+        return '<a class="btn btn-primary btn-xs read" href="javascript:void(0)" title="查看学生代码" aria-label="查看学生代码" data-pjax="0"><span class="glyphicon glyphicon-eye-open"></span></a>';
     }
     window.actionEvents = {
         'click .remove': function (e, value) {
@@ -127,6 +131,9 @@
     window.studentactionEvents = {
         'click .remove': function (e, value) {
             removeStudent(value);
+        },
+        'click .read': function (e, value) {
+            readCode(value);
         }
     }
     $(document).ready(function(){
@@ -347,6 +354,25 @@
                 return false
             }
 
+        }).fail(function () {
+            self.setContent('数据传输时出现问题');
+            return false
+        });
+    }
+    function readCode(value) {
+        $.ajax({
+            url: '{% url 'teacher_check_student' %}',
+            dataType: 'json',
+            method: 'post',
+            data: {'courseId': $('#course_id').text(), 'studentId': value,}
+        }).done(function (response) {
+            if (response != -1) {
+                var url = "/code_week/teacher-read-code-" + $("#course_id").text() + "-" + response + "/";
+                window.open(url);
+                return true;
+            } else {
+                return false;
+            }
         }).fail(function () {
             self.setContent('数据传输时出现问题');
             return false

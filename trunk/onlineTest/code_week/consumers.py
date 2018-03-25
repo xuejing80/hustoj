@@ -2,10 +2,10 @@ from channels import Channel, Group
 from channels.sessions import channel_session
 from channels.auth import channel_session_user, channel_session_user_from_http
 from .models import *
-import json, pdb
+import json
 from django.db import transaction
 from django.core.exceptions import ObjectDoesNotExist
-import IPython
+# import IPython, pdb
 from .views import TimeResult, check_time
 
 def sendMsgToStudent(message, text):
@@ -15,6 +15,8 @@ def sendMsgToStudent(message, text):
 def sendMsgToClass(courseId, message, text):
     # 将消息发给一个班级的人，一般用于命令处理成功的广播消息
     Group('codeweekStudent-' + courseId, channel_layer=message.channel_layer).send(
+        {'text': json.dumps(text)})
+    Group('codeweekTeacher-' + courseId, channel_layer=message.channel_layer).send(
         {'text': json.dumps(text)})
 
 @channel_session_user_from_http

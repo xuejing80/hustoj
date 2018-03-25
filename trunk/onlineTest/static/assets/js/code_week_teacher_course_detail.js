@@ -5,7 +5,7 @@
 
 var ws_scheme = window.location.protocol == "https:" ? "wss" : "ws";
 var chatsock = new WebSocket(ws_scheme + '://' + window.location.host  + window.location.pathname);
-
+chatsock.onmessage = handleMessage;
 var groupsVue = new Map();
 var nowid; // 用来记录消息的id，;防止中间消息没有收到
 

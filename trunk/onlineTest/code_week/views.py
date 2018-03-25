@@ -15,7 +15,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.db import transaction
 from onlineTest.settings import BASE_DIR
 from enum import Enum, unique
-import pdb
+# import pdb
 
 @login_required
 def course_list_for_student(request):
@@ -1130,6 +1130,28 @@ def teacher_get_code_zip(request, courseId, historyId):
                 encodeFilename(file.fileName))
             return response
     return render(request, 'warning.html', {'info': '找不到代码文件'})
+
+# 老师检查是否可以查看学生代码
+@login_required
+def teacher_check_student(request):
+    courseId = None
+    studentId = None
+    try:
+        courseId = request.POST['courseId']
+        studentId = request.POST['studentId']
+    except:
+        return HttpResponse(-1)
+    student = None
+    try:
+        course = CodeWeekClass.objects.get(id=courseId, teacher=request.user)
+        student = CodeWeekClassStudent.objects.get(codeWeekClass=course, id=studentId)
+    except:
+        return HttpResponse(-1)
+    # 如果学生已经已经加入小组或者成立小组就无法移除
+    if student.group:
+        if student.group.selectedProblem:
+            return HttpResponse(student.group.id)
+    return HttpResponse(-1)
 
 # # 通过文件夹创建dict
 # import os, json

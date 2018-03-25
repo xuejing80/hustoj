@@ -37,4 +37,5 @@ urlpatterns = [
     url(r'^teacher-all-history-(?P<courseId>\d+)-(?P<groupId>\d+)/$', teacher_get_all_code_history, name='teacher_get_all_history'),
     url(r'^teacher-read-code-(?P<courseId>\d+)-(?P<groupId>\d+)/$', teacher_read_code, name='teacher_read_code'),
     # url(r'^teacher-read-code-(?P<courseId>\d+)-(?P<groupId>\d+)/$', teacher_read_code, name='teacher_read_code'),
+    url(r'teacher-check-student/$', teacher_check_student, name='teacher_check_student'),
 ]

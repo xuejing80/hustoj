@@ -14,6 +14,20 @@
     <script src="{% static 'assets/js/vue.js' %}"></script>
 {% endblock %}
 {% block content %}
+    {% if leader %}
+        <p>组长：</p>
+        <label>{{ leader }}</label>
+    {% endif %}
+    {% if members %}
+        <p>组员：</p>
+        {% for member in members %}
+            <label>{{ member }}</label><br>
+        {% endfor %}
+    {% endif %}
+    {% if problem %}
+        <p>选择的题目：</p>
+        <label>{{ problem }}</label>
+    {% endif %}
     <label id="courseId" hidden="true">{{ courseId }}</label>
     <div id="selects"></div>
     <div class="content_wrap">

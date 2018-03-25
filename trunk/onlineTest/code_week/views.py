@@ -313,6 +313,32 @@ def encodeFilename(filename):
     returnstr = originStr[2:len(originStr)-1]
     return returnstr
 
+# 老师下载描述文件
+@permission_required('code_week.add_shejiproblem')
+def teacher_download(request, problemId):
+    problem = None
+    try:
+        problem = ShejiProblem.objects.get(problem_id=problemId)
+    except:
+        return render(request, 'warning.html', {'info': '找不到描述文件'})
+    if problem:
+        filename = newFileName(problemId)
+        def file_iterator(file_name, chunk_size=512):
+            with open(file_name, 'rb') as f:
+                while True:
+                    c = f.read(chunk_size)
+                    if c:
+                        yield c
+                    else:
+                        break
+
+        response = StreamingHttpResponse(file_iterator(filename))
+        response['Content-Type'] = problem.content_type
+        response['Content-Disposition'] = '''attachment;filename*= UTF-8''{0}'''.format(encodeFilename(problem.filename))
+        return response
+    else:
+        return render(request, 'warning.html', {'info': '没有此文件'})
+
 # 实现描述文件的下载功能
 @login_required()
 def download(request, courseId):
@@ -1055,7 +1081,18 @@ def teacher_read_code(request, courseId, groupId):
         return render(request, 'warning.html', {'info': '没有查到学生组'})
     if group.cwclass != course or group.using == False:
         return render(request, 'warning.html', {'info': '没有查到学生组'})
-    return render(request, 'code_week/teacher_code.html', {'courseId': courseId, 'groupId': groupId})
+    leader = None
+    members = []
+    for stu in group.Group_member.all():
+        if stu.isLeader:
+            leader = stu.get_full_name()
+        else:
+            memebers.append(stu.get_full_name())
+    problem = None
+    if group.selectedProblem:
+        problem = group.selectedProblem.title
+    return render(request, 'code_week/teacher_code.html', {'courseId': courseId, 'groupId': groupId,
+                                                           'leader': leader, 'members': members, 'problem': problem})
 
 # 老师查看自己课程的一个组的代码提交情况
 @login_required

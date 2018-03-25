@@ -6,9 +6,11 @@
     <p>
     <div class="btn-group">
         <a class="btn btn-primary btn-l" href="{% url 'choice_problem_list' %}" role="button">返回列表</a>
+      {% if isMine %}
         <button type="button" class="btn btn-danger" id="delete">删除此题</button>
         <a class="btn btn-success btn-l" href="{% url 'update_choice_problem' problem.id %}"
            role="button">重新编辑</a>
+      {% endif %}
     </div>
     </p>
     <table id="w0" class="table table-striped table-bordered detail-view table-hover ">
@@ -51,7 +53,7 @@
         </tr>
         <tr>
             <th>创建者</th>
-            <td>{{ problem.creater.first_name }}</td>
+            <td>{{ problem.creater }}</td>
         </tr>
         <tr>
             <th>引用权限</th>

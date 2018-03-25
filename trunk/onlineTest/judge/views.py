@@ -243,6 +243,8 @@ class ChoiceProblemDetailView(DetailView):
             str += point.upperPoint.classname.name + ' > ' + point.upperPoint.name + ' > ' + point.name + '\n'
         context['knowledge_point'] = str
         context['title'] = '选择题“' + self.object.title + '”的详细信息'
+        if self.object.creater == self.request.user:
+            context['isMine'] = True
         return context
 
 

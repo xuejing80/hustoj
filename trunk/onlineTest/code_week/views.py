@@ -399,8 +399,6 @@ def teacher_get_student_info(request, courseId):
     try:
         with transaction.atomic():
             course = CodeWeekClass.objects.get(id=courseId, teacher=request.user)
-            if course.numberEachGroup <= 1:
-                return
             if course:
                 data = {'id': course.counter}
                 groups = course.CodeWeekClass_group.all()
@@ -422,6 +420,7 @@ def teacher_get_student_info(request, courseId):
                         groupsData.append(aGroupData)
                     # pdb.set_trace()
                 data['groups'] = groupsData
+                data['max'] = course.numberEachGroup
     except ObjectDoesNotExist:
         return
     return HttpResponse(json.dumps(data))

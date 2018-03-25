@@ -72,6 +72,10 @@ function handleFirstMsg(data) { // 用于处理以打开页面就获得的数据
     max = data.max;
     nowid = data.id;
     groups = data.groups;
+    if (max == 1)
+    {
+        return;
+    }
     for (var i = 0; i < groups.length; ++i)
     {
         var problem = '';
@@ -135,6 +139,10 @@ function handleMessage(message) { // 用于处理websocket收到的消息
     }
     else if (data['action'] == 'choose') // 收到消息有小组选择了题目
     {
+        if (max == 1)
+        {
+            return;
+        }
         var groupid = data['groupId'];
         groupsVue.get(groupid).problem = data['title'];
     }

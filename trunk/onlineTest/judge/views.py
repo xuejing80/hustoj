@@ -13,6 +13,7 @@ import cgi
 
 from django.apps import apps
 from django.contrib.auth.decorators import permission_required
+from django.contrib.auth.decorators import PermissionDenied
 from django.core.urlresolvers import reverse
 from django.http import HttpResponse
 from django.shortcuts import render, redirect, get_object_or_404
@@ -122,7 +123,9 @@ def del_choice_problem(request):
         ids = request.POST.getlist('ids[]')
         try:
             for pk in ids:
-                ChoiceProblem.objects.filter(pk=pk).delete()
+                problem = ChoiceProblem.objects.get(pk=pk)
+                if request.user.is_admin or request.user == problem.creater:
+                    ChoiceProblem.objects.filter(pk=pk).delete()
         except:
             return HttpResponse(0)
         return HttpResponse(1)
@@ -293,6 +296,8 @@ def update_problem(request, id):
 @permission_required('judge.change_choiceproblem')
 def update_choice_problem(request, id):
     problem = get_object_or_404(ChoiceProblem, pk=id)
+    if request.user != problem.creater and not request.user.is_admin:
+        raise PermissionDenied
     json_dic = {}  # 知识点选择的需要的初始化数据
     for point in problem.knowledgePoint2.all():
         json_dic[point.id] = point.upperPoint.classname.name + ' > ' + point.upperPoint.name + ' > ' + point.name

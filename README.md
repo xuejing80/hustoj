@@ -18,7 +18,7 @@ Ubuntu14.04快速安装指南：
 
     1、安装Ubuntu Server 14.04 LTS  (本安装尚不支持16.x的Ubuntu系统)
     2、执行如下命令
-        wget https://raw.githubusercontent.com/zhblue/hustoj/master/trunk/install/install-ubuntu14.04.sh
+        wget https://raw.githubusercontent.com/xuejing80/hustoj/master/trunk/install/install-ubuntu14.04.sh
         sudo bash install-ubuntu14.04.sh
     3、执行如下命令，修改90,91行的数据库账号和密码,如需配置发送邮件功能，设置131到136行中邮箱账号和密码
         sudo vi /var/www/html/onlineTest/onlineTest/settings.py

@@ -66,7 +66,7 @@ else echo "<option value='".strval($i)."'>".$jresult[$i]."</option>";
 echo "</select>";
 ?>
 </select>
-<?php if(isset($_SESSION['administrator'])||isset($_SESSION['source_browser'])){
+<?php if(isset($_SESSION[$OJ_NAME.'_'.'administrator'])||isset($_SESSION[$OJ_NAME.'_'.'source_browser'])){
 if(isset($_GET['showsim']))
 $showsim=intval($_GET['showsim']);
 else
@@ -168,6 +168,6 @@ echo "[<a href=status.php?".$str2."&top=".$bottom."&prevtop=$top>Next Page</a>]"
 		 }
 		?>''];
 	</script>
-	<script src="template/<?php echo $OJ_TEMPLATE?>/auto_refresh.js" ></script>
+	<script src="template/<?php echo $OJ_TEMPLATE?>/auto_refresh.js?v=0.30" ></script>
   </body>
 </html>

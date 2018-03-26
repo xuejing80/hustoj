@@ -1,7 +1,14 @@
  <?php
-	$OJ_CACHE_SHARE=!isset($_GET['cid']);
+	if(isset($_POST['keyword']))
+                $cache_time=1;
+        else
+                $cache_time=30;
+
+
+	$OJ_CACHE_SHARE=false;//!(isset($_GET['cid'])||isset($_GET['my']));
 	require_once('./include/cache_start.php');
     require_once('./include/db_info.inc.php');
+    require_once('./include/memcache.php');
 	require_once('./include/my_func.inc.php');
 	require_once('./include/const.inc.php');
 	require_once('./include/setlang.php');
@@ -93,10 +100,10 @@
 			}else{
 				 $row=$result[0];
 				$view_private=$row['private'];
-				if($password!=""&&$password==$row['password']) $_SESSION['c'.$cid]=true;
-				if ($row['private'] && !isset($_SESSION['c'.$cid])) $contest_ok=false;
+				if($password!=""&&$password==$row['password']) $_SESSION[$OJ_NAME.'_'.'c'.$cid]=true;
+				if ($row['private'] && !isset($_SESSION[$OJ_NAME.'_'.'c'.$cid])) $contest_ok=false;
 				if ($row['defunct']=='Y') $contest_ok=false;
-				if (isset($_SESSION['administrator'])) $contest_ok=true;
+				if (isset($_SESSION[$OJ_NAME.'_'.'administrator'])) $contest_ok=true;
 									
 				$now=time();
 				$start_time=strtotime($row['start_time']);
@@ -108,7 +115,7 @@
 				
 				
 				
-				if (!isset($_SESSION['administrator']) && $now<$start_time){
+				if (!isset($_SESSION[$OJ_NAME.'_'.'administrator']) && $now<$start_time){
 					$view_errors=  "<h2>$MSG_PRIVATE_WARNING</h2>";
 					require("template/".$OJ_TEMPLATE."/error.php");
 					exit(0);
@@ -142,7 +149,7 @@
 			 foreach($result as $row){
 				
 				$view_problemset[$cnt][0]="";
-				if (isset($_SESSION['user_id'])) 
+				if (isset($_SESSION[$OJ_NAME.'_'.'user_id'])) 
 					$view_problemset[$cnt][0]=check_ac($cid,$cnt);
 				$view_problemset[$cnt][1]= $row['pid']." Problem &nbsp;".$PID[$cnt];
 				$view_problemset[$cnt][2]= "<a href='problem.php?cid=$cid&pid=$cnt'>".$row['title']."</a>";
@@ -160,17 +167,20 @@ if(isset($_GET['page'])) $page=intval($_GET['page']);
 $page_cnt=10;
 $pstart=$page_cnt*$page-$page_cnt;
 $pend=$page_cnt;
-$view_total_page=intval(pdo_query("select count(1) from contest where defunct='N'")[0][0]/$page_cnt);
+$rows=pdo_query("select count(1) from contest where defunct='N'");
+if($rows)$total=$rows[0][0];
+$view_total_page=intval($total/$page_cnt)+1;
   $keyword="";
   if(isset($_POST['keyword'])){
       $keyword="%".$_POST['keyword']."%";
   }
   //echo "$keyword";
   $mycontests="";
+  $len=mb_strlen($OJ_NAME.'_');
   foreach($_SESSION as $key => $value){
-      if(($key[0]=='m'||$key[0]=='c')&&intval(substr($key,1))>0){
+      if(($key[$len]=='m'||$key[$len]=='c')&&intval(mb_substr($key,$len+1))>0){
 //      echo substr($key,1)."<br>";
-         $mycontests.=",".intval(substr($key,1));
+         $mycontests.=",".intval(mb_substr($key,$len+1));
       }
   }
   if(strlen($mycontests)>0) $mycontests=substr($mycontests,1);
@@ -188,7 +198,7 @@ $view_total_page=intval(pdo_query("select count(1) from contest where defunct='N
   }else{
 	$sql="select *  from contest left join (select * from privilege where rightstr like 'm%') p on concat('m',contest_id)=rightstr where contest.defunct='N' $wheremy  order by contest_id desc ";
 	$sql.=" limit ".strval($pstart).",".strval($pend); 
-	$result=pdo_query($sql);
+	$result=mysql_query_cache($sql);
   }
   
 			$view_contest=Array();

@@ -1,17 +1,15 @@
 <?php
-	$cache_time=1;
-	$OJ_CACHE_SHARE=false;
-    require_once('./include/cache_start.php');
     require_once('./include/db_info.inc.php');
     require_once('./include/const.inc.php');
+    require_once('./include/memcache.php');
 	require_once('./include/setlang.php');
 	$view_title=$MSG_SUBMIT;
- if (!isset($_SESSION['user_id'])){
+ if (!isset($_SESSION[$OJ_NAME.'_'.'user_id'])){
 
 	$view_errors= "<a href=loginpage.php>$MSG_Login</a>";
 	require("template/".$OJ_TEMPLATE."/error.php");
 	exit(0);
-//	$_SESSION['user_id']="Guest";
+//	$_SESSION[$OJ_NAME.'_'.'user_id']="Guest";
 }
 if (isset($_GET['id'])){
 	$id=intval($_GET['id']);
@@ -34,8 +32,19 @@ if (isset($_GET['id'])){
 	$sql="SELECT * FROM `solution` WHERE `solution_id`=?";
 	$result=pdo_query($sql,$sid);
 	 $row=$result[0];
-	if ($row && $row['user_id']==$_SESSION['user_id']) $ok=true;
-	if (isset($_SESSION['source_browser'])) $ok=true;
+	if ($row && $row['user_id']==$_SESSION[$OJ_NAME.'_'.'user_id']) $ok=true;
+	if (isset($_SESSION[$OJ_NAME.'_'.'source_browser'])) {
+		$ok=true;
+	}else{
+		if(isset($OJ_EXAM_CONTEST_ID)){
+			if($cid<$OJ_EXAM_CONTEST_ID&&!isset($_SESSION[$OJ_NAME.'_'.'source_browser'])){
+				header("Content-type: text/html; charset=utf-8");
+				 echo $MSG_SOURCE_NOT_ALLOWED_FOR_EXAM;
+				 exit();
+			}
+		}
+	
+	}
 	
 	if ($ok==true){
 		$sql="SELECT `source` FROM `source_code_user` WHERE `solution_id`=?";
@@ -47,7 +56,7 @@ if (isset($_GET['id'])){
 	}
 	
  }
-$problem_id=$id;
+if(isset($id))$problem_id=$id;
 $view_sample_input="1 2";
 $view_sample_output="3";
  if(isset($sample_sql)){
@@ -78,7 +87,7 @@ if(!$view_src){
 
 }
 	$sql="SELECT count(1) FROM `solution` WHERE result<4";
-	$result=pdo_query($sql);
+	$result=mysql_query_cache($sql);
 	 $row=$result[0];
 	if($row[0]>10) {
 		$OJ_VCODE=true;
@@ -91,7 +100,5 @@ if(!$view_src){
 /////////////////////////Template
 require("template/".$OJ_TEMPLATE."/submitpage.php");
 /////////////////////////Common foot
-if(file_exists('./include/cache_end.php'))
-	require_once('./include/cache_end.php');
 ?>
 

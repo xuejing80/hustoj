@@ -6,10 +6,10 @@
  * 如果您确定直接使用本程序，使用之前请仔细确认相关安全设置。
  *
  */
-@session_start();
-if (!(isset($_SESSION['administrator'])
-      ||isset($_SESSION['problem_editor'])
-      ||isset($_SESSION['contest_creator'])
+require_once("../../include/db_info.inc.php");
+if (!(isset($_SESSION[$OJ_NAME.'_'.'administrator'])
+      ||isset($_SESSION[$OJ_NAME.'_'.'problem_editor'])
+      ||isset($_SESSION[$OJ_NAME.'_'.'contest_creator'])
      )){
         echo "<a href='../loginpage.php'>Please Login First!</a>";
         exit(1);
@@ -30,7 +30,7 @@ $ext_arr = array(
 	'image' => array('gif', 'jpg', 'jpeg', 'png', 'bmp'),
 	'flash' => array('swf', 'flv'),
 	'media' => array('swf', 'flv', 'mp3', 'wav', 'wma', 'wmv', 'mid', 'avi', 'mpg', 'asf', 'rm', 'rmvb'),
-	'file' => array('doc', 'docx', 'xls', 'xlsx', 'ppt', 'htm', 'html', 'txt', 'zip', 'rar', 'gz', 'bz2'),
+	'file' => array('pdf','doc', 'docx', 'xls', 'xlsx', 'ppt', 'htm', 'html', 'txt', 'zip', 'rar', 'gz', 'bz2'),
 );
 //最大文件大小
 $max_size = 1000000;
@@ -86,7 +86,7 @@ if (empty($_FILES) === false) {
 	}
 	//检查目录写权限
 	if (@is_writable($save_path) === false) {
-		alert("上传目录没有写权限。");
+		alert("上传目录没有写权限。在服务器上执行下述命令解决该问题:\n chown www-data -R /home/judge/src/web/upload \n");
 	}
 	//检查是否已上传
 	if (@is_uploaded_file($tmp_name) === false) {

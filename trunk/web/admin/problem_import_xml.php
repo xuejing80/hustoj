@@ -1,6 +1,6 @@
 <?php require_once ("admin-header.php");
 require_once("../include/check_post_key.php");
-if (!(isset($_SESSION['administrator']))){
+if (!(isset($_SESSION[$OJ_NAME.'_'.'administrator']))){
 	echo "<a href='../loginpage.php'>Please Login First!</a>";
 	exit(1);
 }
@@ -31,11 +31,12 @@ function getLang($language){
 }
 function submitSolution($pid,$solution,$language)
 {
+	global $OJ_NAME;
 	$language=getLang($language);
 	$len=mb_strlen($solution,'utf-8');
 	$sql="INSERT INTO solution(problem_id,user_id,in_date,language,ip,code_length,result)
 						VALUES(?,?,NOW(),?,'127.0.0.1',?,14)";
-	$insert_id = pdo_query( $sql,$pid,$_SESSION['user_id'],$language,$len );
+	$insert_id = pdo_query( $sql,$pid,$_SESSION[$OJ_NAME.'_'.'user_id'],$language,$len );
 	//echo "submiting$language.....";
 	$sql = "INSERT INTO `source_code`(`solution_id`,`source`)VALUES(?,?)";
 	pdo_query( $sql ,$insert_id,$solution);
@@ -55,7 +56,7 @@ function getAttribute($Node, $TagName,$attribute) {
 	return $Node->children()->$TagName->attributes()->$attribute;
 }
 function hasProblem($title){
-	
+//return false;	
 	$md5=md5($title);
 	$sql="select 1 from problem where md5(title)=?";  
 	$result=pdo_query( $sql,$md5 );
@@ -147,7 +148,7 @@ function import_fps($tempfile){
 						$base64=getValue($img,"base64");
 						$ext=pathinfo($src);
 						$ext=strtolower($ext['extension']);
-						if(!stristr(",jpeg,jpg,png,gif,bmp",$ext)){
+						if(!stristr(",jpeg,jpg,svg,png,gif,bmp",$ext)){
 							$ext="bad";
 							exit(1);
 						}
@@ -231,7 +232,7 @@ function import_fps($tempfile){
 
 	if($spid>0){
 		require_once("../include/set_get_key.php");
-		echo "<br><a class=blue href=contest_add.php?spid=$spid&getkey=".$_SESSION['getkey'].">Use these problems to create a contest.</a>";
+		echo "<br><a class=blue href=contest_add.php?spid=$spid&getkey=".$_SESSION[$OJ_NAME.'_'.'getkey'].">Use these problems to create a contest.</a>";
 	 }
 }
 

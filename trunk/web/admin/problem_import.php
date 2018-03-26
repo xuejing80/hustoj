@@ -7,13 +7,14 @@
 	return $ret;
 }
 require_once("admin-header.php");
-if (!(isset($_SESSION['administrator']))){
+if (!(isset($_SESSION[$OJ_NAME.'_'.'administrator']))){
 	echo "<a href='../loginpage.php'>Please Login First!</a>";
 	exit(1);
 }
    $maxfile=min(ini_get("upload_max_filesize"),ini_get("post_max_size"));
 
 ?>
+<div class="container">
 Import FPS data ,please make sure you file is smaller than [<?php echo $maxfile?>] <br/>
 or set upload_max_filesize and post_max_size in PHP.ini<br/>
 if you fail on import big files[10M+],try enlarge your [memory_limit]  setting in php.ini.<br>
@@ -50,5 +51,6 @@ if you fail on import big files[10M+],try enlarge your [memory_limit]  setting i
    
 ?>
 <br>
-
-free problem set FPS-xml can be download at <a href=http://code.google.com/p/freeproblemset/downloads/list>FPS-Googlecode</a>
+免费题目<a href="https://github.com/zhblue/freeproblemset/blob/master/fps-examples/fps-loj-small-pics.zip" target="_blank">下载</a><br>
+更多题目请到 <a href="http://tk.hustoj.com/" target="_blank">TK 题库</a> 选购。
+</div>

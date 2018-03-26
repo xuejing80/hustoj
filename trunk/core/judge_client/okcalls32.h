@@ -17,7 +17,7 @@
  * along with HUSTOJ. if not, see <http://www.gnu.org/licenses/>.
  */
 //c & c++
-int LANG_CV[256] = { 85, 8,140, SYS_time, SYS_read, SYS_uname, SYS_write, SYS_open,
+int LANG_CV[256] = { 85, 8,140,146, SYS_time, SYS_read, SYS_uname, SYS_write, SYS_open,
 		SYS_close, SYS_execve, SYS_access, SYS_brk, SYS_munmap, SYS_mprotect,
 		SYS_mmap2, SYS_fstat64, SYS_set_thread_area, 252, 0 };
 //pascal
@@ -115,7 +115,7 @@ int LANG_SV[256] = { 100, 295, SYS_fcntl64, SYS_getdents64, SYS_ugetrlimit,
 //lua
 int LANG_LUAV[256]={3,4,5,6,11,13,33,45,91,125,174,192,195,197,243,252,330,0};
 //nodejs
-int LANG_JSV[256]={3,4,5,6,11,33,45,54,78,85,91,120,122,125,174,175,183,191,192,195,196,197,224,240,243,252,255,256,258,265,311,328,329,331,0};
+int LANG_JSV[256]={3,4,5,6,11,33,45,54,75,78,85,91,120,122,125,168,174,175,183,191,192,195,196,197,199,200,201,202,224,240,243,252,255,256,258,265,266,311,328,329,331,0};
 //go-lang
 int LANG_GOV[256]={3,4,11,120,123,174,175,186,192,240,242,252,265,0};
 

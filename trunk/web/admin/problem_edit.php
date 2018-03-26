@@ -4,12 +4,11 @@
 <title>Edit Problem</title>
 </head>
 <body>
-<center>
 <?php require_once("../include/db_info.inc.php");?>
 <?php require_once("admin-header.php");
 
-if (!(isset($_SESSION['administrator'])
-      ||isset($_SESSION['problem_editor'])
+if (!(isset($_SESSION[$OJ_NAME.'_'.'administrator'])
+      ||isset($_SESSION[$OJ_NAME.'_'.'problem_editor'])
      )){
 	echo "<a href='../loginpage.php'>Please Login First!</a>";
 	exit(1);
@@ -18,38 +17,33 @@ if (!(isset($_SESSION['administrator'])
 <?php
 include_once("kindeditor.php") ;
 ?>
-<p align="center"><font color="#333399" size="4">Welcome To Administrator's Page of Judge Online of ACM ICPC, <?php echo $OJ_NAME?>.</font>
-<td width="100"></td>
-</center>
-<hr>
+<div class="container">
 <?php if(isset($_GET['id'])){
 ;//	require_once("../include/check_get_key.php");
 ?>
-<h1>Edit problem</h1>
 <form method=POST action=problem_edit.php>
-<input type=hidden name=problem_id value=New Problem>
 <?php $sql="SELECT * FROM `problem` WHERE `problem_id`=?";
 $result=pdo_query($sql,intval($_GET['id']));
  $row=$result[0];
 ?>
 <p>Problem Id: <?php echo $row['problem_id']?></p>
 <input type=hidden name=problem_id value='<?php echo $row['problem_id']?>'>
-<p>Title:<input type=text name=title size=71 value='<?php echo htmlentities($row['title'],ENT_QUOTES,"UTF-8")?>'></p>
-<p>Time Limit:<input type=text name=time_limit size=20 value='<?php echo $row['time_limit']?>'>S</p>
-<p>Memory Limit:<input type=text name=memory_limit size=20 value='<?php echo $row['memory_limit']?>'>MByte</p>
-<p>Description:<br><textarea class="kindeditor" rows=13 name=description cols=120><?php echo htmlentities($row['description'],ENT_QUOTES,"UTF-8")?></textarea></p>
-<p>Input:<br><textarea class="kindeditor" rows=13 name=input cols=120><?php echo htmlentities($row['input'],ENT_QUOTES,"UTF-8")?></textarea></p>
-<p>Output:<br><textarea class="kindeditor" rows=13 name=output cols=120><?php echo htmlentities($row['output'],ENT_QUOTES,"UTF-8")?></textarea></p>
+<p><?php echo $MSG_TITLE?>:<input class="input-xxlarge" type=text name=title value='<?php echo htmlentities($row['title'],ENT_QUOTES,"UTF-8")?>'></p>
+<?php echo $MSG_Time_Limit?>:<input class="input-mini" type=text name=time_limit size=20 value='<?php echo $row['time_limit']?>'>S
+<?php echo $MSG_Memory_Limit?>:<input class="input-mini" type=text name=memory_limit size=20 value='<?php echo $row['memory_limit']?>'>MByte</p>
+<p><?php echo $MSG_Description?>:<br><textarea class="kindeditor" rows=13 name=description cols=120><?php echo htmlentities($row['description'],ENT_QUOTES,"UTF-8")?></textarea></p>
+<p><?php echo $MSG_Input?>:<br><textarea class="kindeditor" rows=13 name=input cols=120><?php echo htmlentities($row['input'],ENT_QUOTES,"UTF-8")?></textarea></p>
+<p><?php echo $MSG_Output?>:<br><textarea class="kindeditor" rows=13 name=output cols=120><?php echo htmlentities($row['output'],ENT_QUOTES,"UTF-8")?></textarea></p>
 
-<p>Sample Input:<br><textarea rows=13 name=sample_input cols=120><?php echo htmlentities($row['sample_input'],ENT_QUOTES,"UTF-8")?></textarea></p>
-<p>Sample Output:<br><textarea rows=13 name=sample_output cols=120><?php echo htmlentities($row['sample_output'],ENT_QUOTES,"UTF-8")?></textarea></p>
-<p>Hint:<br>
+<p><?php echo $MSG_Sample_Input?>:<textarea rows=13 name=sample_input cols=120><?php echo htmlentities($row['sample_input'],ENT_QUOTES,"UTF-8")?></textarea>
+<?php echo $MSG_Sample_Output?>:<textarea rows=13 name=sample_output cols=120><?php echo htmlentities($row['sample_output'],ENT_QUOTES,"UTF-8")?></textarea></p>
+<p><?php echo $MSG_HINT?>:<br>
 <textarea class="kindeditor" rows=13 name=hint cols=120><?php echo htmlentities($row['hint'],ENT_QUOTES,"UTF-8")?></textarea></p>
 </p>
-<p>SpecialJudge: 
+<p><?php echo $MSG_SPJ?>: 
 N<input type=radio name=spj value='0' <?php echo $row['spj']=="0"?"checked":""?>>
 Y<input type=radio name=spj value='1' <?php echo $row['spj']=="1"?"checked":""?>></p>
-<p>Source:<br><textarea name=source rows=1 cols=70><?php echo htmlentities($row['source'],ENT_QUOTES,"UTF-8")?></textarea></p>
+<p><?php echo $MSG_Source?>:<br><textarea name=source rows=1 cols=70><?php echo htmlentities($row['source'],ENT_QUOTES,"UTF-8")?></textarea></p>
 <div align=center>
 <?php require_once("../include/set_post_key.php");?>
 <input type=submit value=Submit name=submit>
@@ -59,7 +53,7 @@ Y<input type=radio name=spj value='1' <?php echo $row['spj']=="1"?"checked":""?>
 <?php }else{
 require_once("../include/check_post_key.php");
 $id=intval($_POST['problem_id']);
-if(!(isset($_SESSION["p$id"])||isset($_SESSION['administrator']))) exit();	
+if(!(isset($_SESSION[$OJ_NAME.'_'."p$id"])||isset($_SESSION[$OJ_NAME.'_'.'administrator']))) exit();	
 $title=$_POST['title'];
 $time_limit=$_POST['time_limit'];
 $memory_limit=$_POST['memory_limit'];
@@ -88,7 +82,7 @@ if (get_magic_quotes_gpc ()) {
 	$source = stripslashes ( $source );
 }
 $basedir=$OJ_DATA."/$id";
-echo "Sample data file in $basedir Updated!<br>";
+echo "Sample data file Updated!<br>";
 
 	if($sample_input&&file_exists($basedir."/sample.in")){
 		//mkdir($basedir);
@@ -115,6 +109,7 @@ echo "Edit OK!";
 echo "<a href='../problem.php?id=$id'>See The Problem!</a>";
 }
 ?>
+</div>
 </body>
 </html>
 

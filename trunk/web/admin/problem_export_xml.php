@@ -108,7 +108,7 @@ function getSolution($pid,$lang){
 function fixurl($img_url){
    $img_url= html_entity_decode( $img_url,ENT_QUOTES,"UTF-8");
    
-   if (substr($img_url,0,7)!="http://"){
+   if (substr($img_url,0,4)!="http"){
      if(substr($img_url,0,1)=="/"){
 	     	$ret='http://'.$_SERVER['HTTP_HOST'].':'.$_SERVER["SERVER_PORT"].$img_url;
      }else{
@@ -122,7 +122,7 @@ function fixurl($img_url){
 } 
 function image_base64_encode($img_url){
     $img_url=fixurl($img_url);
-    if (substr($img_url,0,7)!="http://") return false;
+    if (substr($img_url,0,4)!="http") return false;
 	$handle = @fopen($img_url, "rb");
 	if($handle){
 		$contents = stream_get_contents($handle);
@@ -157,7 +157,7 @@ function fixImageURL(&$html,&$did){
    }   	
 }
 
-if (! isset ( $_SESSION ['administrator'] )) {
+if (! isset ( $_SESSION[$OJ_NAME.'_'.'administrator'] )) {
 	echo "<meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\">";
 	echo "<a href='../loginpage.php'>Please Login First!</a>";
 	exit ( 1 );
@@ -194,7 +194,7 @@ if (isset($_POST ['do'])||isset($_GET['cid'])) {
 	   require_once("../include/check_post_key.php");
 	   $start = intval ( $_POST ['start'] );
 		$end = intval ( $_POST ['end'] );
-	 	$sql = "select * from problem where problem_id>=? and problem_id<=?";
+	 	$sql = "select * from problem where problem_id>=? and problem_id<=? order by problem_id ";
 		$result = pdo_query( $sql,$start ,$end);
 	
        $filename="-$start-$end";
@@ -207,7 +207,7 @@ if (isset($_POST ['do'])||isset($_GET['cid'])) {
 		header ( 'Content-Type:   text/xml' );
 	else {
 		header ( "content-type:   application/file" );
-		header ( "content-disposition:   attachment;   filename=\"fps-".$_SESSION['user_id'].$filename.".xml\"" );
+		header ( "content-disposition:   attachment;   filename=\"fps-".$_SESSION[$OJ_NAME.'_'.'user_id'].$filename.".xml\"" );
 	}
 	echo "<?xml version=\"1.0\" encoding=\"UTF-8\"?>";
   

@@ -4,6 +4,7 @@
         require_once('./include/cache_start.php');
     require_once('./include/db_info.inc.php');
         require_once('./include/setlang.php');
+        require_once('./include/memcache.php');
         $view_title= $MSG_RANKLIST;
 
         $scope="";
@@ -11,7 +12,13 @@
                 $scope=$_GET['scope'];
         if($scope!=""&&$scope!='d'&&$scope!='w'&&$scope!='m')
                 $scope='y';
-
+	$where="";
+	if(isset($_GET['prefix'])){
+		$prefix=$_GET['prefix'];
+		$where="where user_id like ?";
+	}else{
+		$where="where defunct='N' ";
+	}
         $rank = 0;
         if(isset( $_GET ['start'] ))
                 $rank = intval ( $_GET ['start'] );
@@ -24,7 +31,7 @@
                 if ($rank < 0)
                         $rank = 0;
 
-                $sql = "SELECT `user_id`,`nick`,`solved`,`submit` FROM `users` ORDER BY `solved` DESC,submit,reg_time  LIMIT  " . strval ( $rank ) . ",$page_size";
+                $sql = "SELECT `user_id`,`nick`,`solved`,`submit` FROM `users` $where ORDER BY `solved` DESC,submit,reg_time  LIMIT  " . strval ( $rank ) . ",$page_size";
 
                 if($scope){
                         $s="";
@@ -45,10 +52,16 @@
                         }
                         //echo $s."<-------------------------";
                         $sql="SELECT users.`user_id`,`nick`,s.`solved`,t.`submit` FROM `users`
-                                        right join
-                                        (select count(distinct problem_id) solved ,user_id from solution where in_date>str_to_date('$s','%Y-%m-%d') and result=4 group by user_id order by solved desc limit " . strval ( $rank ) . ",$page_size) s on users.user_id=s.user_id
-                                        left join
-                                        (select count( problem_id) submit ,user_id from solution where in_date>str_to_date('$s','%Y-%m-%d') group by user_id order by submit desc limit " . strval ( $rank ) . ",".($page_size*2).") t on users.user_id=t.user_id
+                                        inner join
+                                        (select count(distinct problem_id) solved ,user_id from solution 
+						where in_date>str_to_date('$s','%Y-%m-%d') and result=4 
+						group by user_id order by solved desc limit " . strval ( $rank ) . ",$page_size) s 
+					on users.user_id=s.user_id
+                                        inner join
+                                        (select count( problem_id) submit ,user_id from solution 
+						where in_date>str_to_date('$s','%Y-%m-%d') 
+						group by user_id order by submit desc ) t 
+					on users.user_id=t.user_id
                                 ORDER BY s.`solved` DESC,t.submit,reg_time  LIMIT  0,50
                          ";
 //                      echo $sql;
@@ -56,17 +69,14 @@
 
 
       
-        if($OJ_MEMCACHE){
-                require("./include/memcache.php");
-                $result = mysql_query_cache($sql) ;//;
+		
+		if(isset($_GET['prefix'])){
+			$result = pdo_query($sql,$_GET['prefix']."%");
+		}else{
+                	$result = mysql_query_cache($sql) ;
+		}
                 if($result) $rows_cnt=count($result);
                 else $rows_cnt=0;
-        }else{
-
-                $result = pdo_query($sql) ;
-                if($result) $rows_cnt=count($result);
-                else $rows_cnt=0;
-        }
                 $view_rank=Array();
                 $i=0;
                 for ( $i=0;$i<$rows_cnt;$i++ ) {
@@ -91,12 +101,8 @@
 
                 $sql = "SELECT count(1) as `mycount` FROM `users`";
         //        $result = mysql_query ( $sql );
-        if($OJ_MEMCACHE){
           // require("./include/memcache.php");
                 $result = mysql_query_cache($sql);
-        }else{
-                $result = pdo_query($sql);
-        }
                  $row=$result[0];
                 $view_total=$row['mycount'];
 

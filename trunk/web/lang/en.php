@@ -93,6 +93,10 @@ $MSG_TEST_RUN="Test Running Done";
 	$MSG_Output= "Output" ;
 	$MSG_Sample_Input= "Sample Input" ;
 	$MSG_Sample_Output= "Sample Output" ;
+	$MSG_Test_Input= "Test Input" ;
+	$MSG_Test_Output= "Test Output" ;
+	$MSG_SPJ= "Special Judge" ;
+
 	$MSG_HINT= "HINT" ;
 	$MSG_Source= "Source" ;
 	$MSG_Time_Limit="Time Limit";
@@ -139,4 +143,54 @@ $MSG_TEST_RUN="Test Running Done";
 
   $MSG_MY_SUBMISSIONS="My Submissions"; 
   $MSG_MY_CONTESTS="My Contests"; 
+  $MSG_Creator="Creator";
+
+  $MSG_IMPORTED="Imported";
+  
+  
+    
+  $MSG_USER="User";
+   
+  $MSG_PRINTER="Printer";
+  $MSG_PRINT_DONE="Printed Fine";
+  $MSG_PRINT_PENDING="Pending for Print";
+  $MSG_PRINT_WAITING="Please waiting for delivery, don't post duplicated print task";
+  $MSG_COLOR="Color";
+  $MSG_BALLOON="Balloon";
+  $MSG_BALLOON_DONE="Balloon Sent";
+  $MSG_BALLOON_PENDING="Balloon Pending";
+
+
+  $MSG_HELP_SEEOJ="watch the front pages";
+  $MSG_HELP_ADD_NEWS="add news for the homepage";
+  $MSG_HELP_NEWS_LIST="edit or shutdown published news";
+  $MSG_HELP_USER_LIST="enable/disable user";
+  $MSG_HELP_ADD_PROBLEM="add new problem,multi test cases can be added after problem added ,using TestData button on the Problem List";
+  $MSG_HELP_PROBLEM_LIST="manage existing problems, test case files can be uploaded within a zip file and decompress later";
+  $MSG_HELP_ADD_CONTEST="schedule a new contest, problem list seperated with comma. You can set up private contest and restrict participants with passwords or lists.";
+  $MSG_HELP_CONTEST_LIST="The existing list of contests, modification time and public / private, try not to adjust the list of items after the start.";
+  $MSG_HELP_TEAMGENERATOR="Generate accounts and passwords in batches for competitors from different schools. Small system should not be used casually, may produce garbage accounts, which can not be easily deleted.";
+  $MSG_HELP_SETMESSAGE="Set scroll notification content";
+  $MSG_HELP_SETPASSWORD="Reset the password for the specified user, for administrator account need to downgrade to ordinary users to modify.";
+  $MSG_HELP_REJUDGE="To review a specified subject, submission, or contest.";
+ $MSG_HELP_ADD_PRIVILEGE=" adds permissions to designated users, including administrators, subjects, players, organizers, participants, code viewer, manual judge questions, remote questions and other permissions. ";
+$MSG_HELP_PRIVILEGE_LIST= "looks at the existing list of special permissions and deletes them. ";
+$MSG_HELP_GIVESOURCE=" transfers the label of the import system to the designated account number, which is used to assist the person who has not passed the training after the training. ";
+$MSG_HELP_EXPORT_PROBLEM= "export the problems of the system in the form of fps.xml file. ";
+$MSG_HELP_IMPORT_PROBLEM=" import fps.xml files downloaded from internet or tk.hustoj.com. ";
+$MSG_HELP_UPDATE_DATABASE= "update the database structure, after each upgrade (sudo update-hustoj), run it once. ";
+$MSG_HELP_ONLINE= "view online users";
+  $MSG_HELP_PE="Your output format is not exactly the same as the judge's output, although your answer to the problem is correct. Check your output for spaces, blank lines,etc against the problem output specification"; 
+  $MSG_HELP_WA=" Correct solution not reached for the inputs. The inputs and outputs that we use to test the programs are not public (it is recomendable to get accustomed to a true contest dynamic ;-)"; 
+  $MSG_HELP_TLE="Your program tried to run during too much time"; 
+  $MSG_HELP_MLE="Your program tried to use more memory than the judge default settings"; 
+  $MSG_HELP_OLE="Your program tried to write too much information. This usually occurs if it goes into a infinite loop. Currently the output limit is 1M bytes"; 
+  $MSG_HELP_RE="All the other Error on the running phrase will get Runtime Error, such as 'segmentation fault','floating point exception','used forbidden functions', 'tried to access forbidden memories' and so on";
+  $MSG_HELP_CE="The compiler (gcc/g++/gpc) could not compile your ANSI program. Of course, warning messages are not error messages. Click the link at the judge reply to see the actual error message"; 
+  $MSG_HELP_AC="Congratulations!"; 
+  
+  $MSG_HELP_MORE_TESTDATA_LATER="more testdata can be added later after this problem added."; 
+  $MSG_HELP_SPJ="<a href='https://cn.bing.com/search?q=hustoj+special+judge' target='_blank'>search hustoj special judge</a>for more details"; 
+ 
+  $MSG_HELP_BALLOON_SCHOOL="School Field of the Printer/Balloon privileged Accout, will be used as filter in task list.";
  ?>

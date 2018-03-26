@@ -14,7 +14,7 @@ if(isset($_GET['keyword'])){
 	 $sql="select `user_id`,`nick`,`reg_time`,`ip`,`school`,`defunct` FROM `users` where user_id like ? ";
 	 $result=pdo_query($sql,$keyword);
 }else{
-     $sql="select `user_id`,`nick`,`reg_time`,`ip`,`school`,`defunct` FROM `users`  order by `reg_time` desc";
+     $sql="select `user_id`,`nick`,`reg_time`,`ip`,`school`,`defunct` FROM `users`  order by `reg_time` desc limit 100 ";
 	 $result=pdo_query($sql);
 }
 ?>
@@ -29,8 +29,8 @@ foreach($result as $row){
         echo "<td><a href='../userinfo.php?user=".$row['user_id']."'>".$row['user_id']."</a>";
         echo "<td>".$row['nick'];
         $cid=$row['user_id'];
-        if(isset($_SESSION['administrator'])){
-                echo "<td><a href=user_df_change.php?cid=".$row['user_id']."&getkey=".$_SESSION['getkey'].">".($row['defunct']=="N"?"<span class=green>Available</span>":"<span class=red>Reserved</span>")."</a>";
+        if(isset($_SESSION[$OJ_NAME.'_'.'administrator'])){
+                echo "<td><a href=user_df_change.php?cid=".$row['user_id']."&getkey=".$_SESSION[$OJ_NAME.'_'.'getkey'].">".($row['defunct']=="N"?"<span class=green>Available</span>":"<span class=red>Reserved</span>")."</a>";
         }else{
                 echo "<td>No permissions";
         }

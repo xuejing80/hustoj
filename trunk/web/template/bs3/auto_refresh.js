@@ -5,18 +5,13 @@ function auto_refresh(){
 	var tb=window.document.getElementById('result-tab');
 	var rows=tb.rows;
 	for(var i=rows.length-1;i>0;i--){
-		var cell=rows[i].cells[3].children[0].innerHTML;
+		var result=$(rows[i].cells[3].children[0]).attr("result");
 		rows[i].cells[3].className="td_result";
 		var sid=rows[i].cells[0].innerHTML;
-	        for(var j=0;j<4;j++){
-			if(cell.indexOf(judge_result[j])!=-1){
+			if(result<4){
 			   window.setTimeout("fresh_result("+sid+")",interval);
 			   console.log("auto_refresh "+sid+" actived!");
-
-               return;
-
 			}
-		}
 	}
 }
 function findRow(solution_id){
@@ -46,10 +41,15 @@ function fresh_result(solution_id){
 			// alert(r);
 			// alert(judge_result[r]);
 			var loader="<img width=18 src=image/loader.gif>";
-			row.cells[3].innerHTML="<span class='btn btn-warning'>"+judge_result[ra[0]]+"</span>"+loader;
 			row.cells[4].innerHTML=ra[1];
 			row.cells[5].innerHTML=ra[2];
+			row.cells[9].innerHTML=ra[3];
 			if(ra[0]<4){
+			//	console.log(loader);
+				if(-1==row.cells[3].innerHTML.indexOf("loader")){
+			//		console.log(row.cells[3].innerHTML);
+			 		row.cells[3].innerHTML+=loader;
+				}
 				window.setTimeout("fresh_result("+solution_id+")",interval);
 				interval*=2;
 			}else{
@@ -74,8 +74,6 @@ function fresh_result(solution_id){
 	xmlhttp.open("GET","status-ajax.php?solution_id="+solution_id,true);
 	xmlhttp.send();
 }
-//<?php if ($last>0&&$_SESSION['user_id']==$_GET['user_id']) echo "fresh_result($last);";?>
-//alert(123);
 var hj_ss="<select class='http_judge form-control' length='2' name='result'>";
 	for(var i=0;i<10;i++){
    		hj_ss+="	<option value='"+i+"'>"+judge_result[i]+" </option>";
@@ -95,7 +93,9 @@ $(".http_judge_form").submit(function (){
 auto_refresh();
 $(".td_result").mouseover(function (){
 //   $(this).children(".btn").hide(300);
-   $(this).children(".http_judge_form").show(600);
+   $(this).find("form").show(600);
+   var sid=$(this).find("span[class=original]").attr("sid");
+   $(this).find("span[class=original]").load("status-ajax.php?q=user_id&solution_id="+sid);
 });
 $(".http_judge_form").hide();
 

@@ -33,7 +33,7 @@ if (isset($_GET['solution_id'])){
 
 	if ($result){
 		$row=$result[0];
-		if(isset($_GET['tr'])&&isset($_SESSION['user_id'])){
+		if(isset($_GET['tr'])&&isset($_SESSION[$OJ_NAME.'_'.'user_id'])){
 				$res=$row['result'];
 			if($res==11){
 				$sql="SELECT `error` FROM `compileinfo` WHERE `solution_id`=?";
@@ -51,10 +51,14 @@ if (isset($_GET['solution_id'])){
 		
 			//echo $sql.$res;
 		}else{
-			echo $row['result'].",".$row['memory'].",".$row['time'];
+		    if(isset($_GET['q'])&&"user_id"==$_GET['q']){
+			echo $row['user_id'];
+		    }else{
+			echo $row['result'].",".$row['memory'].",".$row['time'].",".$row['judger'];
+		    }
 		}
 	}else{
-		echo "0, 0, 0";
+		echo "0, 0, 0,unknown";
 	}
 
 

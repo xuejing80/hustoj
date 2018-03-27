@@ -12,6 +12,17 @@
     <script src="{% static 'assets/js/codemirror/mode/clike.js' %}"></script>
     <script src="{% static 'assets/js/codemirror/mode/python.js' %}"></script>
     <script src="{% static 'assets/js/vue.js' %}"></script>
+    <style type="text/css">
+        div.content_wrap {width: 600px;height:380px;}
+        div.content_wrap div.left{float: left;width: 250px;}
+        div.content_wrap div.right{float: right;width: 340px;}
+    div.content_wrap div.left{float: left;width: 250px;}
+    div.zTreeDemoBackground {width:250px;height:362px;text-align:left;}
+    div.content_wrap {
+	margin: 0;padding: 0;border: 0;outline: 0;font-weight: inherit;font-style: inherit;font-size: 100%;font-family: inherit;vertical-align: baseline;}
+    div.zTreeDemoBackground {
+	margin: 0;padding: 0;border: 0;outline: 0;font-weight: inherit;font-style: inherit;font-size: 100%;font-family: inherit;vertical-align: baseline;}
+    </style>
 {% endblock %}
 {% block content %}
     {% if members %}
@@ -29,22 +40,13 @@
 </form>
     {% endif %}
     <div id="selects"></div>
-{#    {% verbatim %}#}
-{#    <div id="historyCodeSelect">#}
-{#        <p>选择以前版本代码</p>#}
-{#        <select v-model="selected">#}
-{#            <option v-for="option in options" v-bind:value="option.value">#}
-{#                {{ option.text }}#}
-{#            </option>#}
-{#        </select>#}
-{#        <span>Selected: {{ selected }}</span>#}
-{#    </div>#}
-{#    {% endverbatim %}#}
     <div class="content_wrap">
 	<div class="zTreeDemoBackground left">
 		<ul id="treeDemo" class="ztree"></ul>
 	</div>
-        <textarea id="code-display" cols="100" rows="50"></textarea>
+{#        <div class="container">#}
+        <textarea id="code-display" cols="50" rows="10"></textarea>
+{#            </div>#}
     <script type="text/javascript">
         var editor;
         var setting = {

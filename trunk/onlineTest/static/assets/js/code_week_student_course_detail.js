@@ -157,7 +157,14 @@ function addGroup(groupid, leader, members, problem){ // 测试jQuery插入dom
                     }
                 },
                 chooseP: function() {
-                    chooseProblem();
+                    if (problem == "")
+                    {
+                        chooseProblem();
+                    }
+                    else
+                    {
+                        reChooseProblem();
+                    }
                 }
             }
         }));
@@ -257,6 +264,9 @@ function addProblemInfo(problem) { // 添加题目信息
     + '/" title="下载题目描述文件">' + problem + '</a></p>';
     $('#groupNumberLimit').after(selectedProblem);
 }
+function changeProblemInfo(problem) { // 改变显示的题目信息
+    $('#problemInfo a').text(problem);
+}
 function singleSelectedProblem(problem) {
     // 分组为一人的选过题目的
     // 将选择题目按钮变为重新选择题目
@@ -273,13 +283,16 @@ function singleSelectedProblem(problem) {
     + '/\'"> 提交代码</button>';
     $('#reChooseProblem').after(submitCodeButton);
 }
-function singleNotSelectProblem() {
-    // 分组为一个的还没有选过题目
+function addChooseButton() {
     // 添加选择题目按钮
     var chooseProblemButton = '<button class="btn btn-success"\
     id="chooseProblem" onclick="chooseProblem()">\
     选择题目</button>';
     $('#buttons').after(chooseProblemButton);
+}
+function singleNotSelectProblem() {
+    // 分组为一个的还没有选过题目
+    addChooseButton();
 }
 // var b = document.getElementById("addGroup");
 // b.onclick
@@ -342,6 +355,43 @@ function chooseProblem() {
             {
                 $.alert('输入的序号无效!');
                 return false;
+            }
+        }
+    });
+}
+function reChooseProblem() {
+    $.confirm({
+        title: '重新选择题目',
+        content: '请输入题目的序号，只有当前还没有提交代码才可以重新选择，输入-1恢复到未选题状态 <input class="form-control" id="problem_id" type="text" placeholder="输入题目序号"/>',
+        confirmButton: '确认',
+        cancelButton: '放弃',
+        confirm: function () {
+            id = parseInt($('#problem_id').val());
+            if (id == -1)
+            {
+                var message = {
+                    action: "noChoose",
+                }
+                chatsock.send(JSON.stringify(message));
+                return true;
+            }
+            else
+            {
+                if ($('#table').bootstrapTable("getData")[id-1])
+                {
+                    var selectedProblemId = $('#table').bootstrapTable("getData")[id-1].pk;
+                    var message = {
+                        action: "reChoose",
+                        id: selectedProblemId,
+                    };
+                    chatsock.send(JSON.stringify(message));
+                    return true;
+                }
+                else
+                {
+                    $.alert('输入的序号无效!');
+                    return false;
+                }
             }
         }
     });
@@ -472,6 +522,50 @@ function handleMessage(message) { // 用于处理websocket收到的消息
             if (getGroupId == globalgroupid)
             {
                 singleSelectedProblem(data['title']);
+            }
+        }
+    }
+    else if (data['action'] == 'reChoose') // 收到消息有小组重新选择了题目
+    {
+        if (max > 1)
+        {
+            var groupid = data['groupId'];
+            groupsVue.get(groupid).problem = data['title'];
+            if (groupid == globalgroupid)
+            {
+                changeProblemInfo(data['title']); // 改变显示题目的信息
+            }
+        }
+        else if (max == 1)
+        {
+            var getGroupId = data['groupId'];
+            if (getGroupId == globalgroupid)
+            {
+                changeProblemInfo(data['title']);
+            }
+        }
+    }
+    else if (data['action'] == 'noChoose') // 收到消息有小组恢复到未选择题目的状态
+    {
+        if (max > 1)
+        {
+            var groupid = data['groupId'];
+            groupsVue.get(groupid).problem = "";
+            if (groupid == globalgroupid)
+            {
+                $('#submitCode').remove(); // 组员和组长都移除按钮
+                $('#problemInfo').remove(); // 删除题目信息
+            }
+        }
+        else if (max == 1)
+        {
+            var getGroupId = data['groupId'];
+            if (getGroupId == globalgroupid)
+            {
+                $('#reChooseProblem').remove(); // 移除重新选题按钮
+                $('#submitCode').remove(); // 移除提交代码
+                $('#problemInfo').remove(); // 移除题目信息
+                addChooseButton();
             }
         }
     }

@@ -397,6 +397,114 @@ def ws_receive_student_detail(message, courseId):
                 result = {'msg' : 'fail', 'info': '您还没有加入小组'}
                 sendMsgToStudent(message, result)
                 return
+
+        elif action == 'reChoose':  # 重新选择题目，只有当前还未提交代码才可以重新选择
+            student = None
+            try:
+                student = CodeWeekClassStudent.objects.get(codeWeekClass=courseId, student=message.user)
+            except ObjectDoesNotExist:
+                return
+            if student.group:
+                if not student.isLeader:  # 不是组长
+                    result = {'msg': 'fail', 'info': '您不是组长'}
+                    sendMsgToStudent(message, result)
+                    return
+                if not student.group.selectedProblem:  # 还没有选择题目
+                    result = {'msg': 'fail', 'info': '您还没有选择题目'}
+                    sendMsgToStudent(message, result)
+                    return
+                else:
+                    if student.group.nowCodeDir: # 已经提交过代码
+                        result = {'msg': 'fail', 'info': '您已经提交过代码，无法修改题目'}
+                        sendMsgToStudent(message, result)
+                        return
+                    else:
+                        problem = None
+                        try:
+                            problemId = msg['id']
+                            problem = ShejiProblem.objects.get(problem_id=problemId)
+                        except:
+                            return
+                        result = None
+                        try:
+                            with transaction.atomic():
+                                # 重新选择题目的步骤
+                                # 将课程的操作计数值增加，存储
+                                # 记录下这次操作
+                                student.group.selectedProblem = problem
+                                student.group.save()
+                                courses = CodeWeekClass.objects.select_for_update().filter(
+                                    id=courseId)  # 显式要求update锁，在事务结束时会自动释放
+                                course = courses[0]
+                                # 存储这次操作
+                                course.counter += 1
+                                course.save()
+                                result = {'action': 'reChoose', 'problemId': problem.problem_id, 'title': problem.title,
+                                          'groupId': student.group.id, 'operationId': course.counter}
+                                ClassOperation.objects.create(cwclass=course, operation_id=(course.counter),
+                                                              operation=json.dumps(result))
+                        except:
+                            result = {'msg': 'fail'}
+                            sendMsgToStudent(message, result)
+                            return
+                    sendMsgToStudent(message, {'msg': 'success'})
+                    sendMsgToClass(courseId, message, result)
+
+            else:  # 都没有小组
+                result = {'msg': 'fail', 'info': '您还没有加入小组'}
+                sendMsgToStudent(message, result)
+                return
+
+        elif action == 'noChoose':  # 恢复未选题的状态，只有当前还未提交代码才可以操作
+            student = None
+            try:
+                student = CodeWeekClassStudent.objects.get(codeWeekClass=courseId, student=message.user)
+            except ObjectDoesNotExist:
+                return
+            if student.group:
+                if not student.isLeader:  # 不是组长
+                    result = {'msg': 'fail', 'info': '您不是组长'}
+                    sendMsgToStudent(message, result)
+                    return
+                if not student.group.selectedProblem:  # 还没有选择题目
+                    result = {'msg': 'fail', 'info': '您还没有选择题目'}
+                    sendMsgToStudent(message, result)
+                    return
+                else:
+                    if student.group.nowCodeDir: # 已经提交过代码
+                        result = {'msg': 'fail', 'info': '您已经提交过代码，无法修改题目'}
+                        sendMsgToStudent(message, result)
+                        return
+                    else:
+                        result = None
+                        try:
+                            with transaction.atomic():
+                                # 重新选择题目的步骤
+                                # 将课程的操作计数值增加，存储
+                                # 记录下这次操作
+                                student.group.selectedProblem = None
+                                student.group.save()
+                                courses = CodeWeekClass.objects.select_for_update().filter(
+                                    id=courseId)  # 显式要求update锁，在事务结束时会自动释放
+                                course = courses[0]
+                                # 存储这次操作
+                                course.counter += 1
+                                course.save()
+                                result = {'action': 'noChoose',
+                                          'groupId': student.group.id, 'operationId': course.counter}
+                                ClassOperation.objects.create(cwclass=course, operation_id=(course.counter),
+                                                              operation=json.dumps(result))
+                        except:
+                            result = {'msg': 'fail'}
+                            sendMsgToStudent(message, result)
+                            return
+                    sendMsgToStudent(message, {'msg': 'success'})
+                    sendMsgToClass(courseId, message, result)
+
+            else:  # 都没有小组
+                result = {'msg': 'fail', 'info': '您还没有加入小组'}
+                sendMsgToStudent(message, result)
+                return
         #Group('codeweekStudent-' + courseId, channel_layer=message.channel_layer).send({'text': message['text']})
 
 @channel_session_user

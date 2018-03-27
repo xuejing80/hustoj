@@ -17,7 +17,7 @@ from judge.views import get_testCases
 from work.models import HomeWork, HomeworkAnswer, BanJi, MyHomework, TempHomeworkAnswer
 from django.contrib.auth.decorators import permission_required, login_required
 from django.conf import settings
-from process.views import get_similarity, update_ansdb
+from process.views import get_similarity, update_ansdb,get_similarity_v2
 import logging
 logger = logging.getLogger('django')
 logger_request = logging.getLogger('django.request')
@@ -323,6 +323,7 @@ def show_homework_result(request, id=0):
     wrong_id = homework_answer.wrong_choice_problems.split(',')  # todo 应该该讲两个字段合并
     wrong_info = homework_answer.wrong_choice_problems_info.split(',')
     homework = homework_answer.homework
+    homework_answers = homework.homeworkanswer_set.all().order_by('create_time')
     choice_problems = []
     problems = []
     tiankong_problems = []
@@ -343,6 +344,7 @@ def show_homework_result(request, id=0):
         problem_ids = []
     for pid in problem_ids:
         result = 0
+        similar_code_owners = []
         try:
             solution = Solution.objects.get(problem_id=pid,homework_answer=homework_answer)
             result = solution.result
@@ -361,13 +363,28 @@ def show_homework_result(request, id=0):
                         score = 10
                     else:
                         score = 0
+                if request.user.isTeacher() :
+                    for homework_answer_compare in homework_answers:
+                        solution_compare = Solution.objects.get(problem_id=pid, homework_answer=homework_answer_compare)
+                        if solution_compare.solution_id == solution.solution_id:
+                            continue
+                        try:
+                            sourceCode_compare = SourceCode.objects.get(solution_id=solution_compare.solution_id).source
+                            # 如果用于比较的代码早于此题的代码提交且相似度高于0.8
+                            if get_similarity_v2(sourceCode,sourceCode_compare) >= 0.9:
+                                similar_code_owners.append({'id_num': homework_answer_compare.creator.id_num,
+                                                            'username': homework_answer_compare.creator.username,
+                                                            'homework_answer_compare_id':homework_answer_compare.id})
+                        except ObjectDoesNotExist:
+                            sourceCode_compare = "用于比较的代码未找到"
             except:
                 score = 0
         except:
             sourceCode = "未回答"
         problem = Problem.objects.get(pk=pid)
         problems.append({'code': sourceCode, 'desc': problem.description,
-                         'title': problem.title, 'result': result,'score': score})
+                         'title': problem.title, 'result': result,'score': score,
+                         'similar_code_owners':similar_code_owners})
     #获得程序填空题
     try:
         tiankong_ids = list(map(int,homework.tiankong_problem_ids.split(",")))
@@ -406,7 +423,6 @@ def show_homework_result(request, id=0):
         problem = Problem.objects.get(pk=solution.problem_id)
         gaicuo_problems.append({'code': sourceCode, 'desc': problem.description,
                          'title': problem.title, 'result': result})
-
     context={'choice_problems': choice_problems, 'problem_score': homework_answer.problem_score,
                        'choice_problem_score': homework_answer.choice_problem_score,
                        'gaicuo_score': homework_answer.gaicuo_score,

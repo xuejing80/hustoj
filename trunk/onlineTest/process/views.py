@@ -3,6 +3,7 @@ from judge.models import  Solution,SourceCode
 from process.panfen import get_token, panfen
 from process.models import Ansdb
 import json
+from difflib import *
 # Create your views here.
 
 
@@ -19,9 +20,10 @@ def init_ansdb():
             ans = Ansdb(
                 problem_id = solution.problem_id,
                 language = solution.language,
-                tokens = tokens
+                tokens = tokens,
+                solution_id = solu_id
             )
-        ans.save() 
+            ans.save()
         print(str(i) + "/" + str(total)) 
 
 def get_similarity(id):
@@ -69,6 +71,49 @@ def update_ansdb(id):
         )
         ans.save()
 
-        
-    
+# 比较Yuan、ratio、quick_ratio、real_quick_ratio
+def test():
+    right_solution = Solution.objects.filter(language=0, result=4, problem_id=8)[0]
+    first_column = []
+    second_column = []
+    third_column = []
+    fourth_column = []
+    sequenceMatcher = SequenceMatcher()
+    right_solution_code = SourceCode.objects.filter(solution_id=right_solution.solution_id)[0].source
+    right_solution_tokens = get_token(right_solution_code)
+    solutions = Solution.objects.filter(language=0, result=4,problem_id=8)
+    total = len(solutions)
+    for i in range(0, total):
+        solution = solutions[i]
+        solu_id = solution.solution_id
+        if judge_insert(solu_id) == True:
+            source = SourceCode.objects.filter(solution_id=solu_id)[0].source
+            compare_tokens = json.dumps(get_token(source))
+            first_column.append(panfen(right_solution_tokens, json.loads(compare_tokens)))
+            sequenceMatcher.set_seqs(source,right_solution_code)
+            second_column.append(sequenceMatcher.ratio())
+            third_column.append(sequenceMatcher.quick_ratio())
+            fourth_column.append(sequenceMatcher.real_quick_ratio())
+    file = open('Yuan.txt','w')
+    file.write(str(first_column))
+    file.close()
+    file = open('ratio.txt', 'w')
+    file.write(str(second_column))
+    file.close()
+    file = open('quick_ratio.txt', 'w')
+    file.write(str(third_column))
+    file.close()
+    file = open('real_quick_ratio.txt', 'w')
+    file.write(str(fourth_column))
+    file.close()
 
+def get_similarity_v2(sourceCode, sourceCode_comapre):
+    '''
+    :param sourceCode:该同学该题的代码
+    :param sourceCode_comapre:用来比较的代码,来源为同样提交该作业的其他同学
+    :return:返回相似度
+    '''
+    tokens = get_token(sourceCode)
+    tokens_compare = get_token(sourceCode_comapre)
+    exponent = panfen(tokens, tokens_compare)
+    return exponent

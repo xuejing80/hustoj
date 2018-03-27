@@ -83,8 +83,14 @@
                 {% else %}&nbsp;得分：{{problem.score}}&nbsp;/&nbsp;10
                 {% endif %} 
                 </div><div class="panel-body">
-                <pre><code>{{ problem.code }}</code></pre>
+                <pre><code>{{ problem.code }}</code></pre></div>
+             {% if problem.similar_code_owners %}
+                <div class="panel-footer">
+                        这份代码与{% for owner in problem.similar_code_owners %}
+                    <a href="{% url 'show_homework_result' owner.homework_answer_compare_id %}">{{ owner.id_num }}{{ owner.username }}</a>
+                    {% endfor %}的代码相似度达到90%以上。
                 </div>
+             {% endif %}
          </div>
         {% endfor %}
     {% endif %}

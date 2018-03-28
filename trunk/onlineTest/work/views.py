@@ -342,8 +342,12 @@ def show_homework_result(request, id=0):
         problem_ids = list(map(int,homework.problem_ids.split(",")))
     except:
         problem_ids = []
+    info = json.loads(homework.problem_info)
     for pid in problem_ids:
         result = 0
+        for inf in info:
+            if inf['id'] == pid:
+                total_score = int(inf['total_score'])
         similar_code_owners = []
         try:
             solution = Solution.objects.get(problem_id=pid,homework_answer=homework_answer)
@@ -355,12 +359,12 @@ def show_homework_result(request, id=0):
             try:
                 if allow_similarity:
                     if result == 4:
-                        score = 10
+                        score = total_score
                     else:               
-                        score = int(get_similarity(solution.solution_id)*10)
+                        score = int(get_similarity(solution.solution_id)*total_score)
                 else:
                     if result == 4:
-                        score = 10
+                        score = total_score
                     else:
                         score = 0
                 if request.user.isTeacher() :
@@ -973,11 +977,13 @@ def get_problem_score(homework_answer, judged_score=0):
     for info in json.loads(homework.problem_info):
         try:
             solution = solutions.get(problem_id=info['id'])  # 获取题目
+            # 根据测试用例获取编程题总分
+            total_score = int(info['total_score'])
             for case in info['testcases']:  # 获取题目的测试分数
                 if solution.result == 11 or solution.result == 6:  # 如果题目出现编译错误或答案错误，可以根据相似度判分
                     if homework.allow_similarity == True:
                         id = solution.solution_id
-                        score += int(10*get_similarity(id))
+                        score += int(total_score*get_similarity(id))
                         break
                     else:
                         break

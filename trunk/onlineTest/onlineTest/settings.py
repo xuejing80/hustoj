@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'auth_system',
+    'teetest', #验证码
     'judge',   #题库管理系统
     'work',    #作业管理系统
     'faq',     #智能问答系统
@@ -139,7 +140,7 @@ EMAIL_HOST = 'smtp.163.com'  # SMTP地址
 EMAIL_PORT = 25  # SMTP端口
 EMAIL_HOST_USER = 'xuejing_cn@163.com'  # 我自己的邮箱
 EMAIL_HOST_PASSWORD = 'password'  # 我的邮箱密码
-EMAIL_SUBJECT_PREFIX = '计算机语言作业平台'  # 为邮件Subject-line前缀,默认是'[django]'
+EMAIL_SUBJECT_PREFIX = '程序设计类课程作业平台'  # 为邮件Subject-line前缀,默认是'[django]'
 EMAIL_USE_TLS = True  # 与SMTP服务器通信时，是否启动TLS链接(安全链接)。默认是false
 
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER

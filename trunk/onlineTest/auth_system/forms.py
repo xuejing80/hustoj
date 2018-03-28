@@ -13,7 +13,7 @@ from django.core.urlresolvers import reverse
 import base64
 import logging
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('django.request')
 
 
 # 参考自django.contrib.auth.forms.UserCreationForm
@@ -69,7 +69,7 @@ class VmaigUserCreationForm(forms.ModelForm):
 
     def clean_password2(self):
         password1 = self.cleaned_data.get("password1")
-        if len(password1) < 8 or len(password1) > 16:
+        if password1 is None or len(password1) < 8 or len(password1) > 16:
             raise forms.ValidationError(
                 self.error_messages["unsuitable_length"]
             )

@@ -42,11 +42,11 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'auth_system',
-    'judge',
-    'work',
-    'faq',
-    'weixin',
-    'process'
+    'judge',   #题库管理系统
+    'work',    #作业管理系统
+    'faq',     #智能问答系统
+    'process', #程序相似度计算
+    'qqlogin'  #QQ登录模块
 ]
 
 MIDDLEWARE_CLASSES = [
@@ -95,6 +95,11 @@ DATABASES = {
         'PORT': '',
     }
 }
+
+# OAuth设置
+QQ_APP_ID = ''
+QQ_KEY = ''
+QQ_RECALL_URL = '/qqlogin/oauth/qq/check'
 
 AUTH_USER_MODEL = 'auth_system.MyUser'
 # Password validation

@@ -28,6 +28,9 @@ def ws_connect_teacher_detail(message, courseId):
     将这个wb放到channel的一个组内来实时发送消息
     """
     #核查是否是该用户的课程
+    if not message.user.is_authenticated:
+        message.reply_channel.send({"accept": False})  # 断开这个wb连接
+        return
     course = None
     try:
         course = CodeWeekClass.objects.get(id=courseId) # 查询id为courseId的程序设计课
@@ -74,6 +77,9 @@ def ws_connect_student_detail(message, courseId):
     # except ObjectDoesNotExist:
     #     return
     # if course:
+    if not message.user.is_authenticated:
+        message.reply_channel.send({"accept": False})  # 断开这个wb连接
+        return
     if CodeWeekClassStudent.objects.filter(codeWeekClass=courseId, student=message.user).exists():
         message.reply_channel.send({"accept": True})
         # 加入到这个课程的频道中

@@ -907,14 +907,6 @@ def submit_code(request, courseId):
     student = None
     try:
         student = CodeWeekClassStudent.objects.get(student=request.user, codeWeekClass=courseId)
-        # 再检查现在时间是否在课程时间之内
-        ckresult = check_time(student.codeWeekClass)
-        if ckresult == TimeResult.NOTSTART:
-            return render(request, 'warning.html', {'info': '课程还没开始，还不能提交代码'})
-        elif ckresult == TimeResult.FINISHED:
-            return render(request, 'warning.html', {'info': '课程已经结束，无法提交代码'})
-        elif ckresult == TimeResult.OK:  # 时间没问题
-            pass
     except:  # 没有查到学生或者课程
         return render(request, 'warning.html', {'info': '出现问题'})
     try:
@@ -925,6 +917,14 @@ def submit_code(request, courseId):
         return render(request, 'warning.html', {'info': '你还没有加入组或者成为组长'})
 
     if request.method == 'POST':
+        # 再检查现在时间是否在课程时间之内
+        ckresult = check_time(student.codeWeekClass)
+        if ckresult == TimeResult.NOTSTART:
+            return render(request, 'warning.html', {'info': '课程还没开始，还不能提交代码'})
+        elif ckresult == TimeResult.FINISHED:
+            return render(request, 'warning.html', {'info': '课程已经结束，无法提交代码'})
+        elif ckresult == TimeResult.OK:  # 时间没问题
+            pass
         # 检查是否是组长，现在的逻辑是只有组长才能上传代码，而且需要组长手动填写贡献量
         if not student.isLeader:
             return render(request, 'warning.html', {'info': '提交代码现在只能由组长完成'})

@@ -111,8 +111,6 @@
                     </a>
                 </li>
                 {% if user.is_authenticated %}
-                    {% comment %} 添加程序设计课 {% endcomment %}
-                    {% if user.is_superuser %}
                    {% if 'code_week.add_codeweekclass' in perms %} {% comment %}教师用户{% endcomment %}
                        <li class="sub-menu">
                            <a href="javascript:;" id="code_week_list">
@@ -132,7 +130,6 @@
                        </a>
                        </li>
                    {% endif %}
-                        {% endif %}
                     <li><a href="{% url 'list_do_homework' %}" id="unfinished">
                         <i class="fa fa-edit" aria-hidden="true"></i>
                         <span>我的作业列表</span></a></li>

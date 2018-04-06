@@ -66,7 +66,7 @@ $MSG_Compile_OK="人品问题-愚人节快乐";
 	$MSG_CE="编译错误";
 	$MSG_CO="编译成功";
 	
-	$MSG_RUNID="运行编号";
+	$MSG_RUNID="提交编号";
 	$MSG_USER="用户";
 	$MSG_PROBLEM="问题";
 	$MSG_RESULT="结果";
@@ -104,6 +104,9 @@ $MSG_Compile_OK="人品问题-愚人节快乐";
 	$MSG_Output= "输出" ;
 	$MSG_Sample_Input= "样例输入" ;
 	$MSG_Sample_Output= "样例输出" ;
+	$MSG_Test_Input= "测试输入" ;
+	$MSG_Test_Output= "测试输出" ;
+	$MSG_SPJ= "特殊裁判" ;
 	$MSG_HINT= "提示" ;
 	$MSG_Source= "来源" ;
 	$MSG_Time_Limit="时间限制";
@@ -144,4 +147,50 @@ $MSG_Compile_OK="人品问题-愚人节快乐";
   $MSG_BLOCKLY_TEST="翻译运行"; 
   $MSG_MY_SUBMISSIONS="我的提交"; 
   $MSG_MY_CONTESTS="我的$MSG_CONTEST"; 
+  $MSG_Creator="命题人";
+  $MSG_IMPORTED="外部导入";
+  
+  $MSG_USER="用户";
+   
+  $MSG_PRINTER="打印";
+  $MSG_PRINT_DONE="打印完成";
+  $MSG_PRINT_PENDING="提交成功,待打印";
+  $MSG_PRINT_WAITING="请耐心等候，不要重复提交相同的打印任务";
+
+  $MSG_COLOR="颜色";
+  $MSG_BALLOON="气球";
+  $MSG_BALLOON_DONE="气球已发放";
+  $MSG_BALLOON_PENDING="气球待发放";
+
+  $MSG_HELP_SEEOJ="跳转回到前台";
+  $MSG_HELP_ADD_NEWS="添加首页显示的新闻";
+  $MSG_HELP_NEWS_LIST="管理已经发布的新闻";
+  $MSG_HELP_USER_LIST="对注册用户停用、启用帐号";
+  $MSG_HELP_ADD_PROBLEM="手动添加新的题目，多组测试数据在添加后从题目列表TestData按钮进入上传，新建题目<b>默认隐藏</b>，需在问题列表中点击红色<font color='red'>Reserved</font>切换为绿色<font color='green'>Available</font>启用。。";
+  $MSG_HELP_PROBLEM_LIST="管理已有的题目和数据，上传数据可以用zip压缩不含目录的数据。";
+  $MSG_HELP_ADD_CONTEST="规划新的比赛，用逗号分隔题号。可以设定私有比赛，用密码或名单限制参与者。";
+  $MSG_HELP_CONTEST_LIST="已有的比赛列表，修改时间和公开/私有，尽量不要在开赛后调整题目列表。";
+  $MSG_HELP_TEAMGENERATOR="批量生成大量比赛帐号、密码，用于来自不同学校的参赛者。小系统不要随便使用，可能产生垃圾帐号，无法删除。";
+  $MSG_HELP_SETMESSAGE="设置滚动公告内容";
+  $MSG_HELP_SETPASSWORD="重设指定用户的密码，对于管理员帐号需要先降级为普通用户才能修改。";
+  $MSG_HELP_REJUDGE="重判指定的题目、提交或比赛。";
+  $MSG_HELP_ADD_PRIVILEGE="给指定用户增加权限，包括管理员、题目添加者、比赛组织者、比赛参加者、代码查看者、手动判题、远程判题、打印员、气球发放员等权限。";
+  $MSG_HELP_PRIVILEGE_LIST="查看已有的特殊权限列表、进行删除操作。";
+  $MSG_HELP_GIVESOURCE="将导入系统的标程赠与指定帐号，用于训练后辅助未通过的人学习参考。";
+  $MSG_HELP_EXPORT_PROBLEM="将系统中的题目以fps.xml文件的形式导出。";
+  $MSG_HELP_IMPORT_PROBLEM="导入从官方群共享或tk.hustoj.com下载到的fps.xml文件。";
+  $MSG_HELP_UPDATE_DATABASE="更新数据库结构，在每次升级（sudo update-hustoj）之后或者导入老系统数据库备份，应至少操作一次。";
+  $MSG_HELP_ONLINE="查看在线用户";
+  $MSG_HELP_AC="答案正确，请再接再厉。"; 
+  $MSG_HELP_PE="答案基本正确，但是格式不对。"; 
+  $MSG_HELP_WA="答案不对，仅仅通过样例数据的测试并不一定是正确答案，一定还有你没想到的地方，点击查看系统可能提供的对比信息。"; 
+  $MSG_HELP_TLE="运行超出时间限制，检查下是否有死循环，或者应该有更快的计算方法"; 
+  $MSG_HELP_MLE="超出内存限制，数据可能需要压缩，检查内存是否有泄露"; 
+  $MSG_HELP_OLE="输出超过限制，你的输出比正确答案长了两倍，一定是哪里弄错了"; 
+  $MSG_HELP_RE="运行时错误，非法的内存访问，数组越界，指针漂移，调用禁用的系统函数。请点击后获得详细输出";
+  $MSG_HELP_CE="编译错误，请点击后获得编译器的详细输出"; 
+  
+  $MSG_HELP_MORE_TESTDATA_LATER="更多组测试数据，请在题目添加完成后补充"; 
+  $MSG_HELP_SPJ="特殊裁判的使用，请参考<a href='https://cn.bing.com/search?q=hustoj+special+judge' target='_blank'>搜索hustoj special judge</a>"; 
+  $MSG_HELP_BALLOON_SCHOOL="打印，气球帐号的School字段用于过滤任务列表，例如填zjicm则只显示帐号为zjicm开头的任务";
 ?>

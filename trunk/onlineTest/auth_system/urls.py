@@ -6,7 +6,7 @@ from auth_system.views import UserControl, change_password, list_users, get_user
 urlpatterns = [
     url(r'^login/$', TemplateView.as_view(template_name="demo/login.html"), name='login'),
     url(r'^register/$', TemplateView.as_view(template_name="demo/register.html"), name='register'),
-    url(r'^changepassword/$', change_password, name='change_password'),
+    #url(r'^changepassword/$', change_password, name='change_password'),
     url(r'^forgetpassword/$', TemplateView.as_view(template_name="demo/forgetpassword.html"), name='forget_password'),
     url(r'^resetpassword$', change_password, name='_resetpassword'),
     url(r'^resetpassword/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>.+)/$',

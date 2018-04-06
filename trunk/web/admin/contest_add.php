@@ -8,13 +8,13 @@
 	require_once("../include/const.inc.php");
 
 $description="";
- if (isset($_POST['syear']))
+ if (isset($_POST['startdate']))
 {
 	
 	require_once("../include/check_post_key.php");
 	
-	$starttime=intval($_POST['syear'])."-".intval($_POST['smonth'])."-".intval($_POST['sday'])." ".intval($_POST['shour']).":".intval($_POST['sminute']).":00";
-	$endtime=intval($_POST['eyear'])."-".intval($_POST['emonth'])."-".intval($_POST['eday'])." ".intval($_POST['ehour']).":".intval($_POST['eminute']).":00";
+	$starttime=$_POST['startdate']." ".intval($_POST['shour']).":".intval($_POST['sminute']).":00";
+	$endtime=$_POST['enddate']." ".intval($_POST['ehour']).":".intval($_POST['eminute']).":00";
 	//	echo $starttime;
 	//	echo $endtime;
 
@@ -37,9 +37,9 @@ $description="";
 $langmask=((1<<count($language_ext))-1)&(~$langmask);
 	//echo $langmask;	
 	
-        $sql="INSERT INTO `contest`(`title`,`start_time`,`end_time`,`private`,`langmask`,`description`,`password`)
+        $sql="insert INTO `contest`(`title`,`start_time`,`end_time`,`private`,`langmask`,`description`,`password`)
                 VALUES(?,?,?,?,?,?,?)";
-	echo $sql;
+	echo $sql.$title.$starttime.$endtime.$private.$langmask.$description.$password;
 	$cid=pdo_query($sql,$title,$starttime,$endtime,$private,$langmask,$description,$password) ;
 	echo "Add Contest ".$cid;
 	$sql="DELETE FROM `contest_problem` WHERE `contest_id`=$cid";
@@ -63,8 +63,8 @@ $langmask=((1<<count($language_ext))-1)&(~$langmask);
 	$sql="DELETE FROM `privilege` WHERE `rightstr`=?";
 	pdo_query($sql,"c$cid");
 	$sql="insert into `privilege` (`user_id`,`rightstr`)  values(?,?)";
-	pdo_query($sql,$_SESSION['user_id'],"m$cid");
-	$_SESSION["m$cid"]=true;
+	pdo_query($sql,$_SESSION[$OJ_NAME.'_'.'user_id'],"m$cid");
+	$_SESSION[$OJ_NAME.'_'."m$cid"]=true;
 	$pieces = explode("\n", trim($_POST['ulist']));
 	if (count($pieces)>0 && strlen($pieces[0])>0){
 		$sql_1="INSERT INTO `privilege`(`user_id`,`rightstr`) 
@@ -88,10 +88,9 @@ else{
 			$plist="";
 			$sql="SELECT `problem_id` FROM `contest_problem` WHERE `contest_id`=? ORDER BY `num`";
 			$result=pdo_query($sql,$cid) ;
-			for ($i=count($result);$i>0;$i--){
-				$row=$result[0];
+			foreach($result as $row){
+				if ($plist) $plist=$plist.',';
 				$plist=$plist.$row[0];
-				if ($i>1) $plist=$plist.',';
 			}
 			
    }
@@ -101,7 +100,7 @@ else if(isset($_POST['problem2contest'])){
 	   sort($_POST['pid']);
 	   foreach($_POST['pid'] as $i){		    
 			if ($plist) 
-				$plist.=','.$i;
+				$plist.=','.intval($i);
 			else
 				$plist=$i;
 	   }
@@ -121,24 +120,25 @@ else if(isset($_POST['problem2contest'])){
   include_once("kindeditor.php") ;
 ?>
 	
+<div class="container">
 	<form method=POST >
-	<p align=center><font size=4 color=#333399>Add a Contest</font></p>
-	<p align=left>Title:<input class=input-xxlarge  type=text name=title size=71 value="<?php echo isset($title)?$title:""?>"></p>
-	<p align=left>Start Time:<br>&nbsp;&nbsp;&nbsp;
-	Year:<input  class=input-mini type=text name=syear value=<?php echo date('Y')?> size=4 >
-	Month:<input class=input-mini  type=text name=smonth value=<?php echo date('m')?> size=2 >
-	Day:<input class=input-mini type=text name=sday size=2 value=<?php echo date('d')?> >&nbsp;
+	<p align=left><?php echo $MSG_TITLE?><input class=input-xxlarge  type=text name=title size=71 value="<?php echo isset($title)?$title:""?>"></p>
+	<p align=left><?php echo $MSG_Start?>:
+	<input  class=input-large type=date name='startdate' value='<?php echo date('Y').'-'. date('m').'-'.date('d')?>' size=4 >
 	Hour:<input class=input-mini    type=text name=shour size=2 value=<?php echo date('H')?>>&nbsp;
 	Minute:<input class=input-mini    type=text name=sminute value=00 size=2 ></p>
-	<p align=left>End Time:<br>&nbsp;&nbsp;&nbsp;
-	Year:<input class=input-mini    type=text name=eyear value=<?php echo date('Y')?> size=4 >
-	Month:<input class=input-mini    type=text name=emonth value=<?php echo date('m')?> size=2 >
-	
-	Day:<input class=input-mini  type=text name=eday size=2 value=<?php echo date('d')+(date('H')+4>23?1:0)?>>&nbsp;
+	<p align=left><?php echo $MSG_End?>
+	<input  class=input-large type=date name='enddate' value='<?php echo date('Y').'-'. date('m').'-'.date('d')?>' size=4 >
 	Hour:<input class=input-mini  type=text name=ehour size=2 value=<?php echo (date('H')+4)%24?>>&nbsp;
 	Minute:<input class=input-mini  type=text name=eminute value=00 size=2 ></p>
-	Public:<select name=private><option value=0>Public</option><option value=1>Private</option></select>
-	Password:<input type=text name=password value="">
+	Public:<select name=private><option value=0><?php echo $MSG_Public?></option>
+				    <option value=1><?php echo $MSG_Private?></option>
+               </select>
+	<?php echo $MSG_PASSWORD?>:<input type=text name=password value="">
+	<?php require_once("../include/set_post_key.php");?>
+	<br>Problems:<input class=input-xxlarge placeholder="Example:1000,1001,1002" type=text size=60 name=cproblem value="<?php echo isset($plist)?$plist:""?>">
+	<br>
+	<p align=left>Description:<br><textarea class=kindeditor rows=13 name=description cols=80></textarea>
 	Language:<select name="lang[]" multiple="multiple"    style="height:220px">
 	<?php
 $lang_count=count($language_ext);
@@ -155,17 +155,12 @@ $lang_count=count($language_ext);
 
 
         </select>
-	<?php require_once("../include/set_post_key.php");?>
-	<br>Problems:<input class=input-xxlarge placeholder="Example:1000,1001,1002" type=text size=60 name=cproblem value="<?php echo isset($plist)?$plist:""?>">
-	<br>
-	<p align=left>Description:<br><textarea class=kindeditor rows=13 name=description cols=80></textarea>
 
 
-	Users:<textarea name="ulist" rows="20" cols="20"></textarea>
-	<br />
-	*可以将学生学号从Excel整列复制过来，然后要求他们用学号做UserID注册,就能进入Private的比赛作为作业和测验。
-	<p><input type=submit value=Submit name=submit><input type=reset value=Reset name=reset></p>
+	Users:<textarea name="ulist" rows="12" cols="20" placeholder="*可以将学生学号从Excel整列复制过来，然后要求他们用学号做UserID注册,就能进入Private的比赛作为作业和测验。"></textarea>
+	<input type=submit value=Submit name=submit><input type=reset value=Reset name=reset>
 	</form>
+</div>
 <?php }
 require_once("../oj-footer.php");
 

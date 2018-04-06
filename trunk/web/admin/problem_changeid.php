@@ -1,6 +1,6 @@
 <?php require("admin-header.php");
 
-if (!(isset($_SESSION['administrator']))){
+if (!(isset($_SESSION[$OJ_NAME.'_'.'administrator']))){
 	echo "<a href='../loginpage.php'>Please Login First!</a>";
 	exit(1);
 }
@@ -26,25 +26,18 @@ function writable($path){
 		
 		if($row==0&&rename("$OJ_DATA/$from","$OJ_DATA/$to")){
 			$sql="UPDATE `problem` SET `problem_id`=? WHERE `problem_id`=?";
-			if(!pdo_query($sql,$to,$from)){
+			if(pdo_query($sql,$to,$from)==0){
 				 rename("$OJ_DATA/$to","$OJ_DATA/$from");
+				 echo "fail...";
 				 exit(1);
 			}
 			$sql="UPDATE `solution` SET `problem_id`=? WHERE `problem_id`=?";
-			if(!pdo_query($sql,$to,$from)){
-				 rename("$OJ_DATA/$to","$OJ_DATA/$from");
-				 exit(1);
-			}
+			pdo_query($sql,$to,$from);
 			$sql="UPDATE `contest_problem` SET `problem_id`=? WHERE `problem_id`=?";
-			if(!pdo_query($sql,$to,$from)){
-				 rename("$OJ_DATA/$to","$OJ_DATA/$from");
-				 exit(1);
-			}
+			pdo_query($sql,$to,$from);
 			$sql="UPDATE `topic` SET `pid`=? WHERE `pid`=?";
-			if(!pdo_query($sql,$to,$from)){
-				 rename("$OJ_DATA/$to","$OJ_DATA/$from");
-				 exit(1);
-			}
+			pdo_query($sql,$to,$from);
+			
 			$sql="select max(problem_id) from problem";
 			if($result=pdo_query($sql)){
 				$f=$result[0];

@@ -2,19 +2,18 @@
 include_once("kindeditor.php") ;
 include_once("../lang/$OJ_LANG.php");
 include_once("../include/const.inc.php");
-if (isset($_POST['syear']))
+if (isset($_POST['startdate']))
 {
 	require_once("../include/check_post_key.php");
 	
-	$starttime=intval($_POST['syear'])."-".intval($_POST['smonth'])."-".intval($_POST['sday'])." ".intval($_POST['shour']).":".intval($_POST['sminute']).":00";
-	$endtime=intval($_POST['eyear'])."-".intval($_POST['emonth'])."-".intval($_POST['eday'])." ".intval($_POST['ehour']).":".intval($_POST['eminute']).":00";
-//	echo $starttime;
+	$starttime=$_POST['startdate']." ".intval($_POST['shour']).":".intval($_POST['sminute']).":00";
+	$endtime=$_POST['enddate']." ".intval($_POST['ehour']).":".intval($_POST['eminute']).":00";
+	echo $starttime;
 //	echo $endtime;
     $title=($_POST['title']);
     $password=$_POST['password'];
     $description=$_POST['description'];
     $private=$_POST['private'];
- 
        
         if (get_magic_quotes_gpc ()) {
       		  $title = stripslashes ( $title);
@@ -31,7 +30,7 @@ if (isset($_POST['syear']))
 	echo $langmask;	
 
 	$cid=intval($_POST['cid']);
-	if(!(isset($_SESSION["m$cid"])||isset($_SESSION['administrator']))) exit();
+	if(!(isset($_SESSION[$OJ_NAME.'_'."m$cid"])||isset($_SESSION[$OJ_NAME.'_'.'administrator']))) exit();
 	$sql="UPDATE `contest` set `title`=?,description=?,`start_time`=?,`end_time`=?,`private`=?,`langmask`=? ,password=? WHERE `contest_id`=?";
 	//echo $sql;
 	pdo_query($sql,$title,$description,$starttime,$endtime,$private,$langmask,$password, $cid) ;
@@ -109,31 +108,30 @@ if (isset($_POST['syear']))
 }
 ?>
 
+<div class="container">
 <form method=POST >
 <?php require_once("../include/set_post_key.php");?>
-<p align=center><font size=4 color=#333399>Edit a Contest</font></p>
 <input type=hidden name='cid' value=<?php echo $cid?>>
-<p align=left>Title:<input class=input-xxlarge type=text name=title size=71 value='<?php echo $title?>'></p>
-<p align=left>Start Time:<br>&nbsp;&nbsp;&nbsp;
-Year:<input class=input-mini  type=text name=syear value=<?php echo substr($starttime,0,4)?> size=4 >
-Month:<input class=input-mini  type=text name=smonth value='<?php echo substr($starttime,5,2)?>' size=2 >
-Day:<input class=input-mini  type=text name=sday size=2 value='<?php echo substr($starttime,8,2)?>'>
+<p align=left><?php echo $MSG_TITLE?>:<input class=input-xxlarge type=text name=title size=71 value='<?php echo $title?>'></p>
+<p align=left><?php echo $MSG_Start?>:
+<input type="date" name='startdate' value='<?php echo substr($starttime,0,10)?>' >
 Hour:<input class=input-mini  type=text name=shour size=2 value='<?php echo substr($starttime,11,2)?>'>
 Minute:<input class=input-mini  type=text name=sminute size=2 value=<?php echo substr($starttime,14,2)?>></p>
-<p align=left>End Time:<br>&nbsp;&nbsp;&nbsp;
+<p align=left><?php echo $MSG_End?>:
 
-Year:<input class=input-mini  type=text name=eyear value=<?php echo substr($endtime,0,4)?> size=4 >
-Month:<input class=input-mini  type=text name=emonth value=<?php echo substr($endtime,5,2)?> size=2 >
-Day:<input class=input-mini  type=text name=eday size=2 value=<?php echo substr($endtime,8,2)?>>
+<input class=input-large  type=date name='enddate' value=<?php echo substr($endtime,0,10)?> size=4 >
 Hour:<input class=input-mini  type=text name=ehour size=2 value=<?php echo substr($endtime,11,2)?>> 
 Minute:<input class=input-mini  type=text name=eminute size=2 value=<?php echo substr($endtime,14,2)?>></p>
 
-Public/Private:<select name=private>
-	<option value=0 <?php echo $private=='0'?'selected=selected':''?>>Public</option>
-	<option value=1 <?php echo $private=='1'?'selected=selected':''?>>Private</option>
+<?php echo $MSG_Public?>/<?php echo $MSG_Private?>:<select name=private>
+	<option value=0 <?php echo $private=='0'?'selected=selected':''?>><?php echo $MSG_Public?></option>
+	<option value=1 <?php echo $private=='1'?'selected=selected':''?>><?php echo $MSG_Private?></option>
 </select>
-Password:<input type=text name=password value="<?php echo htmlentities($password,ENT_QUOTES,'utf-8')?>">
+<?php echo $MSG_PASSWORD?>:<input type=text name=password value="<?php echo htmlentities($password,ENT_QUOTES,'utf-8')?>">
 <br>Problems:<input class=input-xxlarge type=text size=60 name=cproblem value='<?php echo $plist?>'>
+
+<br>
+<p align=left><?php echo $MSG_Description?>:<br><textarea class="kindeditor" rows=13 name=description cols=80><?php echo htmlentities($description,ENT_QUOTES,"UTF-8")?></textarea>
 
  Language:<select name="lang[]"  multiple="multiple"    style="height:220px">
 <?php
@@ -155,13 +153,10 @@ if(isset($_COOKIE['lastlang'])) $lastlang=$_COOKIE['lastlang'];
    </select>
 	
 
-<br>
-<p align=left>Description:<br><textarea class="kindeditor" rows=13 name=description cols=80><?php echo htmlentities($description,ENT_QUOTES,"UTF-8")?></textarea>
 
-
-Users:<textarea name="ulist" rows="20" cols="20"><?php if (isset($ulist)) { echo $ulist; } ?></textarea>
-<p><input type=submit value=Submit name=submit><input type=reset value=Reset name=reset></p>
+Users:<textarea name="ulist" rows="12" cols="20"><?php if (isset($ulist)) { echo $ulist; } ?></textarea>
+<input type=submit value=Submit name=submit><input type=reset value=Reset name=reset>
 
 </form>
-<?php require_once("../oj-footer.php");?>
+</div>
 

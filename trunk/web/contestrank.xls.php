@@ -130,10 +130,8 @@ if ($rows_cnt>0){
 	 $row=$result[0];
 	$start_time=strtotime($row[0]);
 	$title=$row[1];
-	if(strpos($_SERVER['HTTP_USER_AGENT'],'MSIE')){
-		$title=iconv("utf8","gbk",$title);
-	}
-	header ( "content-disposition:   attachment;   filename=contest".$cid."_".$title.".xls" );
+	$ftitle=rawurlencode($title);
+	header ( "content-disposition:   attachment;   filename=contest".$cid."_".$ftitle.".xls" );
 }
 
 if ($start_time==0){
@@ -212,7 +210,7 @@ for ($i=0;$i<$user_cnt;$i++){
 	echo "<td>".$U[$i]->nick."";
 	echo "<td>$usolved";
 	echo "<td>";
-	
+        if($usolved==0) $U[$i]->mark=0;	
 	
 	echo $U[$i]->mark>0?intval($U[$i]->mark):0;
 	for ($j=0;$j<$pid_cnt;$j++){

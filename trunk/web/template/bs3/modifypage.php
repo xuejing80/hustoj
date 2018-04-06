@@ -30,7 +30,7 @@
 <center><table>
 <tr><td colspan=2 height=40 width=500>&nbsp;&nbsp;&nbsp;Update Information</tr>
 <tr><td width=25%>User ID:
-<td width=75%><?php echo $_SESSION['user_id']?>
+<td width=75%><?php echo $_SESSION[$OJ_NAME.'_'.'user_id']?>
 <?php require_once('./include/set_post_key.php');?>
 </tr>
 <tr><td>Nick Name:
@@ -47,6 +47,7 @@
 </tr>
 <tr><td>School:
 <td><input name="school" size=30 type=text value="<?php echo htmlentities($row['school'],ENT_QUOTES,"UTF-8")?>" >
+<?php if(isset($_SESSION[$OJ_NAME."_printer"])) echo "$MSG_HELP_BALLOON_SCHOOL";?>
 </tr>
 <tr><td>Email:
 <td><input name="email" size=30 type=text value="<?php echo htmlentities($row['email'],ENT_QUOTES,"UTF-8")?>" >

@@ -7,7 +7,7 @@
         $view_title= "Welcome To Online Judge";
 require_once("./include/const.inc.php");
 
-$id=intval($_GET['id']);
+if(isset($_GET['id']))$id=intval($_GET['id']);
 if (isset($_GET['page']))
         $page=strval(intval($_GET['page']));
 else $page=0;
@@ -81,10 +81,10 @@ $flag=count($rrs)==0;
 
 // check whether the problem is ACed by user
 $AC=false;
-if (isset($OJ_AUTO_SHARE)&&$OJ_AUTO_SHARE&&isset($_SESSION['user_id'])){
+if (isset($OJ_AUTO_SHARE)&&$OJ_AUTO_SHARE&&isset($_SESSION[$OJ_NAME.'_'.'user_id'])){
         $sql="SELECT 1 FROM solution where
                         result=4 and problem_id=? and user_id=?";
-        $rrs=pdo_query( $sql,$id, $_SESSION['user_id']);
+        $rrs=pdo_query( $sql,$id, $_SESSION[$OJ_NAME.'_'.'user_id']);
         $AC=(intval(count($rrs))>0);
         
 }
@@ -129,8 +129,8 @@ foreach($result as $row){
         if ($flag) $view_solution[$j][4]=  "$s_time MS";
         else $view_solution[$j][4]=  "------";
 
-        if (!(isset($_SESSION['user_id'])&&!strcasecmp($row['user_id'],$_SESSION['user_id']) ||
-                isset($_SESSION['source_browser'])||
+        if (!(isset($_SESSION[$OJ_NAME.'_'.'user_id'])&&!strcasecmp($row['user_id'],$_SESSION[$OJ_NAME.'_'.'user_id']) ||
+                isset($_SESSION[$OJ_NAME.'_'.'source_browser'])||
                 (isset($OJ_AUTO_SHARE)&&$OJ_AUTO_SHARE&&$AC))){
                 $view_solution[$j][5]= $language_name[$row['language']];
         }else{
@@ -146,18 +146,15 @@ foreach($result as $row){
 
 
 $view_recommand=Array();
-if(isset($_SESSION['user_id'])&&isset($_GET['id'])){
+if(isset($_GET['id'])){
   $id=intval($_GET['id']);
-        $user_id=($_SESSION['user_id']);
-        $sql="select problem_id,count(1) people from  (
-                                SELECT * FROM solution ORDER BY solution_id DESC LIMIT 10000 )solution
-                                 where
-                                problem_id!=? and result=4
-                                and user_id in(select distinct user_id from solution where result=4 and problem_id=? )
-                                and problem_id not in (select distinct problem_id from solution where user_id=? )
-                                group by `problem_id` order by people desc limit 12";
+        if(isset($_SESSION[$OJ_NAME.'_'.'user_id']))$user_id=($_SESSION[$OJ_NAME.'_'.'user_id']);
+	$sql="select source from problem where problem_id=?";
+	$result=pdo_query($sql,$id);
+	$source=$result[0][0];
+        $sql="select problem_id from problem where source like ? and problem_id!=? limit 10";
 
-        $result=pdo_query( $sql,$id,$id, $user_id);
+        $result=pdo_query( $sql,"%$source%",$id);
         $i=0;
          foreach($result as $row){
                 $view_recommand[$i][0]=$row['problem_id'];

@@ -2,6 +2,7 @@
 header("Expires: Mon, 26 Jul 1997 05:00:00 GMT");
 header("Cache-Control: no-cache");
 header("Pragma: no-cache");
+header("content-type:application/javascript");
 	if(isset($_SERVER['HTTP_REFERER']))$dir=basename(dirname($_SERVER['HTTP_REFERER']));
 	else $dir="";
 	if($dir=="discuss3") $path_fix="../";
@@ -13,10 +14,11 @@ header("Pragma: no-cache");
 		require_once("../../lang/en.php");
 	}
     function checkmail(){
+		global $OJ_NAME;
 			
 		$sql="SELECT count(1) FROM `mail` WHERE 
 				new_mail=1 AND `to_user`=?";
-		$result=pdo_query($sql,$_SESSION['user_id']);
+		$result=pdo_query($sql,$_SESSION[$OJ_NAME.'_'.'user_id']);
 		if(!$result) return false;
 		$row=$result[0];
 		$retmsg="<span id=red>(".$row[0].")</span>";
@@ -24,12 +26,12 @@ header("Pragma: no-cache");
 		return $retmsg;
 	}
 	$profile='';
-		if (isset($_SESSION['user_id'])){
-				$sid=$_SESSION['user_id'];
-				$profile.= "<i class=icon-user></i><li><a href=".$path_fix."modifypage.php>$MSG_USERINFO</a></li>&nbsp;<li><a href='".$path_fix."userinfo.php?user=$sid'><span id=red>$sid</span></a></li>";
+		if (isset($_SESSION[$OJ_NAME.'_'.'user_id'])){
+				$sid=$_SESSION[$OJ_NAME.'_'.'user_id'];
+				$profile.= "<li><a href=".$path_fix."modifypage.php>$MSG_USERINFO</a></li>&nbsp;<li><a href='".$path_fix."userinfo.php?user=$sid'><span id=red>$sid</span></a></li>";
 				$mail=checkmail();
 				if ($mail)
-					$profile.= "&nbsp;<i class=icon-envelope></i><li><a href=".$path_fix."mail.php>$mail</a></li>";
+					$profile.= "&nbsp;<li><a  class='glyphicon glyphicon-envelope' href=".$path_fix."mail.php>$mail</a></li>";
         			$profile.="&nbsp;<li><a href='".$path_fix."contest.php?my'><span id=red>$MSG_MY_CONTESTS</span></a></li>";
         			$profile.="&nbsp;<li><a href='".$path_fix."status.php?user_id=$sid'><span id=red>$MSG_MY_SUBMISSIONS</span></a></li>";
                                 
@@ -47,12 +49,18 @@ header("Pragma: no-cache");
                 }
 				$profile.= "<li><a href=".$path_fix."loginpage.php>$MSG_LOGIN</a></li>&nbsp;";
 				if($OJ_LOGIN_MOD=="hustoj"){
-					$profile.= "<li><a href=".$path_fix."registerpage.php>$MSG_REGISTER</a></li>&nbsp;";
+					if(isset($OJ_REGISTER)&&!$OJ_REGISTER){
+					}else{
+						$profile.= "<li><a href=".$path_fix."registerpage.php>$MSG_REGISTER</a></li>&nbsp;";
+					}
 				}
 			}
-			if (isset($_SESSION['administrator'])||isset($_SESSION['contest_creator'])||isset($_SESSION['problem_editor'])){
+			if (isset($_SESSION[$OJ_NAME.'_'.'administrator'])||isset($_SESSION[$OJ_NAME.'_'.'contest_creator'])||isset($_SESSION[$OJ_NAME.'_'.'problem_editor'])){
            $profile.= "<li><a href=".$path_fix."admin/>$MSG_ADMIN</a></li>&nbsp;";
 			
+			}
+			if (isset($_SESSION[$OJ_NAME.'_'.'balloon'])){
+           $profile.= "<li><a href='".$path_fix."balloon.php'>$MSG_BALLOON</a></li>&nbsp;";
 			}
 	 //  $profile.="</ul></li>";
 		?>

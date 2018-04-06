@@ -1,2 +1,4 @@
 trunk/onlineTest/static/videos/
 *.pyc
+trunk/core/sim/*
+trunk/web/discuss3/*

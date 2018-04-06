@@ -29,11 +29,13 @@ urlpatterns = [
     url(r'^judge/', include('judge.urls')),
     url(r'^work/', include('work.urls')),
     url(r'^faq/', include('faq.urls')),
-    url(r'^weixin/', include('weixin.urls')),
     url(r'^code_week/', include('code_week.urls')),
+    #url(r'^weixin/', include('weixin.urls')),
     url(r'get-json-(?P<model_name>\w+)/$', get_json,name='get_json'),
     url(r'^favicon\.ico$',favicon_view),
     url(r'^$', TemplateView.as_view(template_name="index.html")),
+    url(r'^qqlogin/', include('qqlogin.urls')),
+    url(r'^teetest/', include('teetest.urls')),
 ]
 
 handler403 = permission_denied

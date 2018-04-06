@@ -44,15 +44,15 @@
 // +--------------------------------------------------
 // | Header and Globals
 // +--------------------------------------------------	
-@session_start();
-if (!(isset($_SESSION['administrator'])
-      ||isset($_SESSION['problem_editor'])
+require_once("../include/db_info.inc.php");
+if (!(isset($_SESSION[$OJ_NAME.'_'.'administrator'])
+      ||isset($_SESSION[$OJ_NAME.'_'.'problem_editor'])
      )){
-	echo $_SESSION['administrator'];
+	echo $_SESSION[$OJ_NAME.'_'.'administrator'];
 	echo "<a href='../loginpage.php'>Please Login First!</a>";
 	exit(1);
 }
-require_once("../include/db_info.inc.php");
+
     $charset = "UTF-8";
     //@setlocale(LC_CTYPE, 'C');
     header("Pragma: no-cache");
@@ -360,6 +360,114 @@ function et($tag){
     $en['RenderTime'] = 'Time to render this page';
     $en['Seconds'] = 'sec';
     $en['ErrorReport'] = 'Error Reporting';
+
+    // chinese
+	$cn['Version'] = '版本';
+    $cn['DocRoot'] = '根目录';
+    $cn['FLRoot'] = '文件管理器根目录';
+    $cn['Name'] = '名字';
+    $cn['And'] = '和';
+    $cn['Enter'] = '进入';
+    $cn['Send'] = '发送';
+    $cn['Refresh'] = '刷新';
+    $cn['SaveConfig'] = '保存配置';
+    $cn['SavePass'] = '保存密码';
+    $cn['SaveFile'] = '保存文件';
+    $cn['Save'] = '保存';
+    $cn['Leave'] = '退出';
+    $cn['Edit'] = '编辑';
+    $cn['View'] = '查看';
+    $cn['Config'] = '配置';
+    $cn['Ren'] = '重命名';
+    $cn['Rem'] = '删除';
+    $cn['Compress'] = '压缩';
+    $cn['Decompress'] = '解压';
+    $cn['ResolveIDs'] = '刷新/解析ID';
+    $cn['Move'] = '移动';
+    $cn['Copy'] = '复制';
+    $cn['ServerInfo'] = '服务器信息';
+    $cn['CreateDir'] = '创建目录';
+    $cn['CreateArq'] = '创建文件';
+    $cn['ExecCmd'] = '执行命令';
+    $cn['Upload'] = '上传';
+    $cn['UploadEnd'] = '上传完成';
+    $cn['Perms'] = '权限';
+    $cn['Owner'] = '所有者';
+    $cn['Group'] = '组群';
+    $cn['Other'] = '其他';
+    $cn['Size'] = '大小';
+    $cn['Date'] = '日期';
+    $cn['Type'] = '类型';
+    $cn['Free'] = '空闲';
+    $cn['Shell'] = '控制台';
+    $cn['Read'] = '读';
+    $cn['Write'] = '写';
+    $cn['Exec'] = '执行';
+    $cn['Apply'] = '应用';
+    $cn['StickyBit'] = 'Sticky Bit';
+    $cn['Pass'] = '密码';
+    $cn['Lang'] = '语言';
+    $cn['File'] = '文件';
+    $cn['File_s'] = '文件';
+    $cn['Dir_s'] = '目录';
+    $cn['To'] = '到';
+    $cn['Destination'] = '目标';
+    $cn['Configurations'] = '配置';
+    $cn['JSError'] = 'JS脚本错误';
+    $cn['NoSel'] = '未选择文件或目录';
+    $cn['SelDir'] = '在左边的目录树中选择目标目录';
+    $cn['TypeDir'] = '请输入目录名';
+    $cn['TypeArq'] = '请输入文件名';
+    $cn['TypeCmd'] = '请输入命令';
+    $cn['TypeArqComp'] = '请输入文件名.扩展名将确定其压缩格式.\\n如:file.zip, file.tar, file.bzip, file.gzip';
+    $cn['RemSel'] = '删除选中项';
+    $cn['NoDestDir'] = '未选择目标目录';
+    $cn['DestEqOrig'] = '目标目录和原始目录相同';
+    $cn['InvalidDest'] = '目标目录错误';
+    $cn['NoNewPerm'] = '新权限未设置';
+    $cn['CopyTo'] = '复制到';
+    $cn['MoveTo'] = '移动到';
+    $cn['AlterPermTo'] = '更改权限为';
+    $cn['ConfExec'] = '确认执行';
+    $cn['ConfRem'] = '确认删除';
+    $cn['EmptyDir'] = '空目录';
+    $cn['IOError'] = 'I/O 错误';
+    $cn['FileMan'] = 'PHP 文件管理器';
+    $cn['TypePass'] = '请输入密码';
+    $cn['InvPass'] = '密码错误';
+    $cn['ReadDenied'] = '访问被拒绝';
+    $cn['FileNotFound'] = '文件不存在';
+    $cn['AutoClose'] = '完成后关闭';
+    $cn['OutDocRoot'] = '文件不在根目录中';
+    $cn['NoCmd'] = '错误: 命令不正确';
+    $cn['ConfTrySave'] = '文件不可写.\\n请尝试保存在其他地方';
+    $cn['ConfSaved'] = '配置已保存';
+    $cn['PassSaved'] = '密码已保存';
+    $cn['FileDirExists'] = '文件或目录已存在';
+    $cn['NoPhpinfo'] = '函数 phpinfo 已禁用';
+    $cn['NoReturn'] = '无返回';
+    $cn['FileSent'] = '发送文件';
+    $cn['SpaceLimReached'] = '空间限制';
+    $cn['InvExt'] = '非法扩展名';
+    $cn['FileNoOverw'] = '文件无法覆盖';
+    $cn['FileOverw'] = '覆盖';
+    $cn['FileIgnored'] = '忽略';
+    $cn['ChkVer'] = '从 sf.net 查询新版本';
+    $cn['ChkVerAvailable'] = '发现新版本, 请点击这里下载!!';
+    $cn['ChkVerNotAvailable'] = '当前无新版本可用. :(';
+    $cn['ChkVerError'] = '连接错误.';
+    $cn['Website'] = '站点';
+    $cn['SendingForm'] = '正在发送文件,请稍后';
+    $cn['NoFileSel'] = '未选择文件';
+    $cn['SelAll'] = '全选';
+    $cn['SelNone'] = '不选';
+    $cn['SelInverse'] = '反选';
+    $cn['Selected_s'] = '已选择';
+    $cn['Total'] = '总数';
+    $cn['Partition'] = '磁盘分区';
+    $cn['RenderTime'] = '页面执行时间';
+    $cn['Seconds'] = '秒';
+    $cn['ErrorReport'] = '错误报告';
 
     // Portuguese by - Fabricio Seger Kolling
     $pt['Version'] = 'Versão';
@@ -2259,6 +2367,7 @@ function total_move($orig,$dest) {
 }
 function download(){
     global $current_dir,$filename;
+    $filename = remove_special_chars($filename);
     $file = $current_dir.$filename;
     if(file_exists($file)){
         $is_denied = false;
@@ -2320,6 +2429,7 @@ function zip_extract(){
         if (zip_entry_filesize($zip_entry)) {
             $complete_path = $path.dirname(zip_entry_name($zip_entry));
             $complete_name = $path.zip_entry_name($zip_entry);
+	    $complete_path=remove_special_chars($complete_path);
             if(!file_exists($complete_path)) {
                 $tmp = '';
                 foreach(explode('/',$complete_path) AS $k) {
@@ -2330,6 +2440,7 @@ function zip_extract(){
                 }
             }
             if (zip_entry_open($zip, $zip_entry, "r")) {
+		$complete_name=remove_special_chars($complete_name);
                 if ($fd = fopen($current_dir.$complete_name, 'w')){
                     fwrite($fd, zip_entry_read($zip_entry, zip_entry_filesize($zip_entry)));
                     fclose($fd);
@@ -2376,9 +2487,12 @@ function replace_double($sub,$str){
 }
 function remove_special_chars($str){
     $str = trim($str);
-    $str = strtr($str,"¥µÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝßàáâãäåæçèéêëìíîïðñòóôõöøùúûüýÿ!@#%&*()[]{}+=?",
-                      "YuAAAAAAACEEEEIIIIDNOOOOOOUUUUYsaaaaaaaceeeeiiiionoooooouuuuyy_______________");
-    $str = str_replace("..","",str_replace("/","",str_replace("\\","",str_replace("\$","",$str))));
+    $str = strtr($str,"¥µÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝßàáâãäåæçèéêëìíîïðñòóôõöøùúûüýÿ!@#%&*()[]{}+=?/\\",
+                      "YuAAAAAAACEEEEIIIIDNOOOOOOUUUUYsaaaaaaaceeeeiiiionoooooouuuuyy_________________");
+    $str = str_replace("..","",$str);
+    $str = str_replace("\\","",$str);
+    $str = str_replace("/","",$str);
+    $str = str_replace("\$","",$str);
     return $str;
 }
 function format_path($str){
@@ -3130,8 +3244,8 @@ function dir_list_form() {
             location.href='".addslashes($path_info["basename"])."?action=3&current_dir=".addslashes($current_dir)."&filename='+escape(arg);
         }
         function upload(){
-            var w = 400;
-            var h = 250;
+            var w = 600;
+            var h = 320;
             window.open('".addslashes($path_info["basename"])."?action=10&current_dir=".addslashes($current_dir)."', '', 'width='+w+',height='+h+',fullscreen=no,scrollbars=no,resizable=yes,status=no,toolbar=no,menubar=no,location=no');
         }
         function execute_cmd(){
@@ -3548,8 +3662,11 @@ function upload_form(){
         }
         echo "
         <input type=button value=\"".et('Send')."\" onclick=\"test_upload_form()\"></nobr>
-        <tr><td> <td><input type=checkbox name=fechar value=\"1\"> <a href=\"JavaScript:troca();\">".et('AutoClose')."</a>
-        <tr><td colspan=2> </td></tr>
+        <tr><td> <td><input type=checkbox name=fechar value=\"1\" checked> <a href=\"JavaScript:troca();\">".et('AutoClose')."</a>
+        <tr><td colspan=2>zip file can be decompressed on the server later. 
+			  just don't add dirs,please<br>
+			  可以上传zip文件，之后点击decompress解压缩，但是请不要在zip文件中包含子目录。
+	</td></tr>
         </form>
         </table>
         <script language=\"Javascript\" type=\"text/javascript\">
@@ -3607,6 +3724,7 @@ function upload_form(){
             echo "
             <script language=\"Javascript\" type=\"text/javascript\">
             <!--
+		window.opener.location.reload();
                 window.close();
             //-->
             </script>
@@ -3873,6 +3991,7 @@ function get_mime_type($ext = ''){
 function view(){
     global $doc_root,$path_info,$url_info,$current_dir,$islinux,$filename,$passthru;
 	if (intval($passthru)){
+    $filename = remove_special_chars($filename);
 	    $file = $current_dir.$filename;
 	    if(file_exists($file)){
 	        $is_denied = false;
@@ -3933,9 +4052,12 @@ function view(){
 }
 function edit_file_form(){
     global $current_dir,$filename,$file_data,$save_file,$path_info;
+    $filename=remove_special_chars($filename);
+   // echo "[$filename]";
     $file = $current_dir.$filename;
     if ($save_file){
         $fh=fopen($file,"w");
+	$file_data=preg_replace("(\r\n)","\n",$file_data);
         fputs($fh,$file_data,strlen($file_data));
         fclose($fh);
     }
@@ -3950,7 +4072,7 @@ function edit_file_form(){
     <input type=hidden name=save_file value=\"1\">
     <input type=hidden name=current_dir value=\"$current_dir\">
     <input type=hidden name=filename value=\"$filename\">
-    <tr><th colspan=2>".$file."</th></tr>
+    <tr><th colspan=2>".$filename."</th></tr>
     <tr><td colspan=2><textarea name=file_data style='width:1000px;height:680px;'>".html_encode($file_data)."</textarea></td></tr>
     <tr><td><input type=button value=\"".et('Refresh')."\" onclick=\"document.edit_form_refresh.submit()\"></td><td align=right><input type=button value=\"".et('SaveFile')."\" onclick=\"go_save()\"></td></tr>
     </form>
@@ -4154,6 +4276,7 @@ function config_form(){
     echo "</body>\n</html>";
 }
 function server_info(){
+/*
     if (!@phpinfo()) echo et('NoPhpinfo')."...";
     echo "<br><br>";
 	    $a=ini_get_all();
@@ -4221,6 +4344,7 @@ function server_info(){
     //-->
     </script>";
     echo "</body>\n</html>";
+	*/
 }
 // +--------------------------------------------------
 // | Session
@@ -4452,6 +4576,7 @@ function frame3(){
                         $zipfile->extract_files();
                     }
                     unset($zipfile);
+ 		    system("/home/judge/src/install/ans2out ".$current_dir);
                     reloadframe("parent",2);
                 }
             }

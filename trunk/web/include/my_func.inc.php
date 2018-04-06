@@ -7,7 +7,7 @@ function crypto_rand_secure($min, $max) {
         $bits = (int) $log + 1; // length in bits
         $filter = (int) (1 << $bits) - 1; // set all lower bits to 1
         do {
-			if(function_exists(openssl_random_pseudo_bytes)){
+			if(function_exists("openssl_random_pseudo_bytes")){
 				$rnd = hexdec(bin2hex(openssl_random_pseudo_bytes($bytes)));
 			}else{
 				$rnd = hexdec(bin2hex(rand()."_".rand()));
@@ -40,7 +40,8 @@ function pwGen($password,$md5ed=False)
 function pwCheck($password,$saved)
 {
 	if (isOldPW($saved)){
-		$mpw = md5($password);
+		if(!isOldPW($password)) $mpw = md5($password);
+		else $mpw=$password;
 		if ($mpw==$saved) return True;
 		else return False;
 	}
@@ -94,14 +95,15 @@ function is_running($cid){
 }
 function check_ac($cid,$pid){
 	//require_once("./include/db_info.inc.php");
+	global $OJ_NAME;
 	
 	$sql="SELECT count(*) FROM `solution` WHERE `contest_id`=? AND `num`=? AND `result`='4' AND `user_id`=?";
-	$result=pdo_query($sql,$cid,$pid,$_SESSION['user_id']);
+	$result=pdo_query($sql,$cid,$pid,$_SESSION[$OJ_NAME.'_'.'user_id']);
 	 $row=$result[0];
 	$ac=intval($row[0]);
 	if ($ac>0) return "<font color=green>Y</font>";
 	$sql="SELECT count(*) FROM `solution` WHERE `contest_id`=? AND `num`=? AND `result`!=4 and `problem_id`!=0  AND `user_id`=?";
-	$result=pdo_query($sql,$cid,$pid,$_SESSION['user_id']);
+	$result=pdo_query($sql,$cid,$pid,$_SESSION[$OJ_NAME.'_'.'user_id']);
 	$row=$result[0];
 	$sub=intval($row[0]);
 	

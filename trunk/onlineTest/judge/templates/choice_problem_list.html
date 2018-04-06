@@ -62,9 +62,11 @@
             <th data-field="pk" data-sortable="true">ID</th>
             <th data-field="title" data-sortable="true">题干</th>
             <th class="nobr" data-field="knowledge_point"> 知识点</th>
-            <th data-field="update_date" data-sortable="true">最后修改日期</th>
+	    <th data-field="creator">创建者</th> 
+            <th data-field="update_date" data-sortable="true">更新日期</th>
             <th class="nobr" data-width="70" data-field="id" data-formatter="editFormatter">操作</th>
-        </tr>
+            <th data-field="isMine" data-visible="false">isMine</th>
+	</tr>
         </thead>
     </table>
     <script>
@@ -72,9 +74,14 @@
             data: {csrfmiddlewaretoken: '{{ csrf_token }}'}
         });
         var $table = $('#table');
-        function editFormatter(value) {
-            return '<a class="btn btn-primary btn-xs" href="{% url '_update_choice_problem' %}' + value + '/" title="编辑" aria-label="编辑" data-pjax="0"><span class="glyphicon glyphicon glyphicon-edit"></span></a>' + ' <a class="btn btn-success btn-xs" href="{% url '_choice_problem_detail' %}' + value + '/" title="查看" aria-label="查看" data-pjax="0"><span class="glyphicon glyphicon-eye-open"></span></a>';
-        }
+        function editFormatter(value,row,index) {
+	    if(row.isMine){
+        	return '<a class="btn btn-primary btn-xs" href="{% url '_update_choice_problem' %}' + value + '/" title="编辑" aria-label="编辑" data-pjax="0"><span class="glyphicon glyphicon glyphicon-edit"></span></a>';
+	    }
+	    else{
+		return ' <a class="btn btn-success btn-xs" href="{% url '_choice_problem_detail' %}' + value + '/" title="查看" aria-label="查看" data-pjax="0"><span class="glyphicon glyphicon-eye-open"></span></a>';
+            }
+	}
         $remove = $('#remove');
 
         $(function () {

@@ -1,5 +1,5 @@
 <?php require("admin-header.php");
-if (!(isset($_SESSION['administrator']))){
+if (!(isset($_SESSION[$OJ_NAME.'_'.'administrator']))){
 	echo "<a href='../loginpage.php'>Please Login First!</a>";
 	exit(1);
 }?>
@@ -34,9 +34,15 @@ if (!(isset($_SESSION['administrator']))){
 			$email="your_own_email@internet";
                        
 			$school="your_own_school";
+			$ip = ($_SERVER['REMOTE_ADDR']);
+			if( !empty( $_SERVER['HTTP_X_FORWARDED_FOR'] ) ){
+			    $REMOTE_ADDR = $_SERVER['HTTP_X_FORWARDED_FOR'];
+			    $tmp_ip=explode(',',$REMOTE_ADDR);
+			    $ip =(htmlentities($tmp_ip[0],ENT_QUOTES,"UTF-8"));
+			}
 			$sql="INSERT INTO `users`("."`user_id`,`email`,`ip`,`accesstime`,`password`,`reg_time`,`nick`,`school`)".
 			"VALUES(?,?,?,NOW(),?,NOW(),?,?)on DUPLICATE KEY UPDATE `email`=?,`ip`=?,`accesstime`=NOW(),`password`=?,`reg_time`=now(),nick=?,`school`=?";
-			pdo_query($sql,$user_id,$email,$_SERVER['REMOTE_ADDR'],$password,$nick,$school,$email,$_SERVER['REMOTE_ADDR'],$password,$nick,$school) ;
+			pdo_query($sql,$user_id,$email,$ip,$password,$nick,$school,$email,$ip,$password,$nick,$school) ;
 		}
 		echo  "</table>";
 		
@@ -45,14 +51,15 @@ if (!(isset($_SESSION['administrator']))){
 	
 }
 ?>
+<div class="container">
 <b>TeamGenerator:</b>
 	
 	<form action='team_generate.php' method=post>
-	    Prefix:<input type='test' name='prefix' value='team'>
-		Generate<input type=input name='teamnumber' value=50>Teams.
-		<input type=submit value=Generate><br>
-                Users:<textarea name="ulist" rows="20" cols="20"><?php if (isset($ulist)) { echo $ulist; } ?></textarea>
+	    Prefix:<input type='test' name='prefix' value='team' placeholder="Team"><br>
+		Generate<input class="input-mini" type=input name='teamnumber' value=5 size=3 >Teams.<br>
+                Users:<textarea name="ulist" rows="12" cols="40" placeholder="Preset nicknames of the teams. One name per line."></textarea>
 		<?php require_once("../include/set_post_key.php");?>
+		<input type=submit value=Generate><br>
 	</form>
 
-
+</div>

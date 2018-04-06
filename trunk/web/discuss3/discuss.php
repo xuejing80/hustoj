@@ -64,13 +64,13 @@ if (array_key_exists("pid",$_REQUEST)&&$_REQUEST['pid']!=''){
 }else{
   $level=" - ( `top_level` = 1 )";
 }
-$sql.=" GROUP BY `topic_id` ORDER BY `top_level`$level DESC, MAX(`r`.`time`) DESC";
+$sql.=" GROUP BY t.tid ORDER BY `top_level`$level DESC, MAX(`r`.`time`) DESC";
 $sql.=" LIMIT 30";
 //echo $sql;
 $result = pdo_query($sql);
 $rows_cnt = count($result);
 $cnt=0;
-$isadmin = isset($_SESSION['administrator']);
+$isadmin = isset($_SESSION[$OJ_NAME.'_'.'administrator']);
 ?>
 <table style="clear:both; width:100%">
 <tr align=center class='toprow'>

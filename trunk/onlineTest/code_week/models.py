@@ -120,3 +120,12 @@ class CodeDirHistory(models.Model):
     contribution = models.TextField("贡献度")
     submitTime = models.DateTimeField(auto_now_add=True)
     fileHash = models.CharField("文件hash", max_length=40)
+
+class ReportHistory(models.Model):
+    """
+    用来记录学生提交的所有课程报告
+    """
+    id = models.AutoField(primary_key=True)
+    uploadTime = models.DateTimeField(auto_now_add=True)
+    filename = models.CharField(verbose_name='文件名', max_length=200)
+    group = models.ForeignKey(CodeWeekClassGroup, related_name='Report_history')

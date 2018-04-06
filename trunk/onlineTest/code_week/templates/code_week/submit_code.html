@@ -38,6 +38,12 @@
     <input type="text" id="ctext" name="contribution" hidden="true">
     <button type="submit">提交</button>
 </form>
+    <form method="post" id="submit-report-form" enctype="multipart/form-data" action={% url 'upload_report' course.id %}>
+    {% csrf_token %}
+        <p>课程报告（完成了程序编写再提交）</p>
+        <input type="file" name="report" accept=".doc,.doxc">
+        <button type="submit">提交课程报告</button>
+    </form>
     {% endif %}
     <div id="selects"></div>
     <div class="content_wrap">
@@ -62,27 +68,26 @@
         var zNodes = [];
         var dirs = {};
         var dirVue;
+        var reportVue;
         var now = -1;
         $(document).ready(function(){
-
-            {#$.ajax({#}
-            {#    type:"GET",#}
-            {#    url:"{% url 'get_dir' course.id %}",#}
-            {#    dataType:"json",#}
-            {#    success:function (data) {#}
-                    {#dir = JSON.parse(data);#}
-            {#        dataToNodes(data);#}
-            {#    },#}
-            {#    error:function (jqXHR) {#}
-            {#        alert("error" + jqXHR.status);#}
-            {#    }#}
-            {#});#}
             $.ajax({
                 type:"GET",
                 url:"{% url 'get_all_code_history' course.id %}",
                 dataType:"json",
                 success:function (data) {
                     handleHistory(data);
+                },
+                error:function (jqXHR) {
+                    alert("error" + jqXHR.status);
+                }
+            });
+            $.ajax({
+                type:"GET",
+                url:"{% url 'get_all_report_history' course.id %}",
+                dataType:"json",
+                success:function (data) {
+                    handleReportHistory(data);
                 },
                 error:function (jqXHR) {
                     alert("error" + jqXHR.status);
@@ -148,6 +153,50 @@
             dirVue.selected = data[0]['id'];
             dataToNodes(JSON.parse(data[0]['text']));
         }
+        function handleReportHistory(data) // 用于处理获取到的所有课程报告
+        {
+            // 完成的任务有将最新的一次数据给zTree显示
+            // 设置下载最新代码的按钮
+            // 将以前版本的给vue用来显示
+
+            // 对数据按照id降序排序
+            data.sort(function(a, b) {
+                return b['id'] - a['id'];
+            });
+            if (data.length <= 0)
+            {
+                return;
+            }
+            else { // 添加历史代码选择
+                {% verbatim %}
+                var source = '<div id="reportSelect">\n' +
+                    '        <p>选择以前提交的课程报告</p>\n' +
+                    '        <select v-model="selected">\n' +
+                    '            <option v-for="option in options" v-bind:value="option.value">\n' +
+                    '                {{ option.text }}\n' +
+                    '            </option>\n' +
+                    '        </select>\n' +
+                    '       <button onclick="downloadReport()">下载这个课程报告</button>\n' +
+                    '    </div>';
+                {% endverbatim %}
+                $('#selects').after(source);
+                reportVue = new Vue({
+                el: '#reportSelect',
+                data: {
+                    selected: '',
+                    options: [
+                        ]
+                    }
+                });
+            }
+            var options = [];
+            for (var i = 0; i < data.length; ++i)
+            {
+                options.push({text: data[i]['time'], value: data[i]['id']});
+            }
+            reportVue.options = options;
+            reportVue.selected = data[0]['id'];
+        }
         function refreshTree() {
             var nowId = dirVue.selected;
             if (now == nowId) {
@@ -160,6 +209,9 @@
         }
         function downloadFile() {
             window.open("/code_week/get-code-zip-" + dirVue.selected.toString() + "/");
+        }
+        function downloadReport() {
+            window.open("/code_week/download-report-" + reportVue.selected.toString() + "/");
         }
         function clickFile(event, treeId, treeNode, clickFlag) {
             if (isNaN(treeNode.id))

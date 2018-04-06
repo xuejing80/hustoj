@@ -67,3 +67,6 @@ class UpdateClassForm(forms.Form):
 class SubmitCodeForm(forms.Form):
     codeFile = forms.FileField(required=True)
     contribution = forms.CharField(required=True)
+
+class UploadReportForm(forms.Form):
+    report = forms.FileField(required=True)

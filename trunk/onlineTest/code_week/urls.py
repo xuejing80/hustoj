@@ -39,4 +39,9 @@ urlpatterns = [
     # url(r'^teacher-read-code-(?P<courseId>\d+)-(?P<groupId>\d+)/$', teacher_read_code, name='teacher_read_code'),
     url(r'^teacher-check-student/$', teacher_check_student, name='teacher_check_student'),
     url(r'^teacher-download-(?P<problemId>\d+)/$', teacher_download, name='teacher_download_descfile'),
+    url(r'^get-all-report-(?P<courseId>\d+)/$', get_all_report_history, name='get_all_report_history'),
+    url(r'^upload-report-(?P<courseId>\d+)/$', handle_upload_report, name='upload_report'),
+    url(r'^download-report-(?P<historyId>\d+)/$', download_report, name='get_report'),
+    url(r'^teacher-get-all-report-history-(?P<courseId>\d+)-(?P<groupId>\d+)/$', teacher_get_all_report_history, name='teacher_get_all_report_history'),
+    url(r'^teacher-download-report-(?P<courseId>\d+)-(?P<historyId>\d+)/$', teacher_download_report, name='teacher_download_report'),
 ]

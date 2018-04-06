@@ -6,7 +6,7 @@ from django.contrib.auth.decorators import permission_required, login_required
 from django.shortcuts import redirect, get_object_or_404
 from django.core.urlresolvers import reverse
 from auth_system.models import MyUser, Group
-from django.http import HttpResponse,StreamingHttpResponse
+from django.http import HttpResponse,StreamingHttpResponse, HttpResponseRedirect
 import os, cgi, json, html, zipfile, random, string, chardet, shutil
 from django.views.generic.detail import DetailView
 from django.utils.datastructures import MultiValueDictKeyError
@@ -15,7 +15,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.db import transaction
 from onlineTest.settings import BASE_DIR
 from enum import Enum, unique
-# import pdb
+import pdb
 
 @login_required
 def course_list_for_student(request):
@@ -700,7 +700,12 @@ def singleStuState(student):
         latest = student.group.Code_history.all()[0]
         result += "最近提交代码的时间: "
         result += latest.submitTime.strftime('%Y/%m/%d %X')
-
+    if student.group.Report_history.all().count() == 0:
+        result += "<br>" + "还没有提交课程报告"
+    else:
+        latest = student.group.Report_history.all()[0]
+        result += "<br>" + "最近提交课程报告的时间: "
+        result += latest.uploadTime.strftime('%Y/%m/%d %X')
     return result
 
 # 返回多人课程的学生状态
@@ -863,6 +868,7 @@ def singleFileName(fileId):
 # 将解压的文件夹中的文件编号并且复制到指定目录，并且生成目录的序列化结果
 def copy_generage_dict_info(work_dir, group):
     result = {}
+    # pdb.set_trace()
     for root, dirs, files in os.walk(work_dir):
         testroot = root
         subdirs = []
@@ -871,13 +877,28 @@ def copy_generage_dict_info(work_dir, group):
             testroot, subdir = os.path.split(testroot)
             subdirs.append(subdir)
         while len(subdirs) > 0:
-            temp = temp[(subdirs.pop()).encode('cp437').decode('gbk')]
+            sd = subdirs[-1]
+            try:
+                temp = temp[sd.encode('cp437').decode('gbk')]
+            except UnicodeEncodeError:
+                temp = temp[sd]
+            subdirs.pop()
         for filename in files: # 单个文件，需要保存
             fileRecord = CodeFile.objects.create(group=group)
             shutil.copy(os.path.join(root, filename), singleFileName(fileRecord.id)) # 复制文件到指定目录
-            temp[filename.encode('cp437').decode('gbk')] = fileRecord.id
+            aFileName = None
+            try:
+                aFileName = filename.encode('cp437').decode('gbk')
+            except UnicodeEncodeError:
+                aFileName = filename
+            temp[aFileName] = fileRecord.id
         for dirname in dirs:
-            temp[dirname.encode('cp437').decode('gbk')] = {}
+            aDirName = None
+            try:
+                aDirName = dirname.encode('cp437').decode('gbk')
+            except UnicodeEncodeError:
+                aDirName = dirname
+            temp[aDirName] = {}
         # temp = temp[os.path.split(root)[1]]
         # for filename in files:
         #     temp[filename] = j
@@ -960,6 +981,7 @@ def submit_code(request, courseId):
                 # 保存整个压缩文件
                 newCodeZip = CodeZipFile.objects.create(fileName = file.name)
                 shutil.copy(filename, codeZipFileName(newCodeZip.id))
+                # pdb.set_trace()
                 # 保存代码版本（目录序列化结果）
                 newCodeHistory = CodeDirHistory.objects.create(zipFile=newCodeZip, dirText=dir_result,
                                                                group=student.group,
@@ -1023,7 +1045,105 @@ def get_all_code_history(request, courseId):
     for record in student.group.Code_history.all():
         result.append({'time':record.submitTime.strftime('%Y/%m/%d %X'), 'text':record.dirText,
                        'id': record.id})
-    return  HttpResponse(json.dumps(result))
+    return HttpResponse(json.dumps(result))
+
+def newReportFilename(fileId):
+    filename = os.path.join(BASE_DIR, 'reportFile/' + str(fileId))
+    return filename
+
+@login_required
+# 处理组长提交课程报告
+def handle_upload_report(request, courseId):
+    # 检查是否是组长，现在的逻辑是只有组长才能上传代码，而且需要组长手动填写贡献量
+    student = None
+    try:
+        student = CodeWeekClassStudent.objects.get(student=request.user, codeWeekClass=courseId)
+    except:  # 没有查到学生或者课程
+        return render(request, 'warning.html', {'info': '出现问题'})
+    try:
+        group = student.group
+        if not group:
+            return render(request, 'warning.html', {'info': '你还没有加入组或者成为组长'})
+    except:
+        return render(request, 'warning.html', {'info': '你还没有加入组或者成为组长'})
+    ckresult = check_time(student.codeWeekClass)
+    if ckresult == TimeResult.NOTSTART:
+        return render(request, 'warning.html', {'info': '课程还没开始，还不能提交报告'})
+    elif ckresult == TimeResult.FINISHED:
+        return render(request, 'warning.html', {'info': '课程已经结束，无法提交报告'})
+    elif ckresult == TimeResult.OK:  # 时间没问题
+        pass
+    if request.method == 'POST':
+        form = UploadReportForm(request.POST, request.FILES)
+        if not form.is_valid():
+            return render(request, 'warning.html', {"info":"表单无效"})
+        else:
+            file = request.FILES['report']
+            newReportFile = None
+            try:
+                newReportFile = ReportHistory.objects.create(filename=file.name, group=student.group)
+            except:
+                return render(request, 'warning.html', {"info":"保存文件时出现问题"})
+            saveFilename = newReportFilename(newReportFile.id)
+            with open(saveFilename, 'wb+') as destination:
+                for chunk in file.chunks():
+                    destination.write(chunk)
+            return HttpResponseRedirect(reverse('submit_code', args=(student.codeWeekClass.id,)))
+    else:
+        return render(request, 'warning.html', {"info":"不支持的HTTP方法"})
+
+@login_required
+# 返回学生提交的所有课程报告记录
+def get_all_report_history(request, courseId):
+    student = None
+    try:
+        student = CodeWeekClassStudent.objects.get(student=request.user, codeWeekClass=courseId)
+        student.group
+    except:  # 没有查到学生或者课程
+        return HttpResponse(json.dumps([]))
+    result = []
+    for record in student.group.Report_history.all():
+        result.append({'time':record.uploadTime.strftime('%Y/%m/%d %X'),'id': record.id})
+    return HttpResponse(json.dumps(result))
+
+@login_required
+# 提供学生下载自己以前提交过的课程报告
+def download_report(request, historyId):
+    report = None
+    try:
+        report = ReportHistory.objects.get(id=historyId)
+    except:
+        return render(request, 'warning.html', {'info': '找不到课程报告'})
+    if report:  # 能够匹配到课程报告，检查学生是否是这个课程报告的所有者
+        student = None
+        try:
+            student = CodeWeekClassStudent.objects.get(student=request.user, codeWeekClass=report.group.cwclass)
+        except:
+            return render(request, 'warning.html', {'info': '你不是该文件的所有者'})
+        owner = False
+        for stu in report.group.Group_member.all():
+            if student == stu:
+                owner = True
+                break
+        if not owner:
+            return render(request, 'warning.html', {'info': '你不是该文件的所有者'})
+
+        filename = newReportFilename(report.id)
+
+        def file_iterator(file_name, chunk_size=512):
+            with open(file_name, 'rb') as f:
+                while True:
+                    c = f.read(chunk_size)
+                    if c:
+                        yield c
+                    else:
+                        break
+
+        response = StreamingHttpResponse(file_iterator(filename))
+        response['Content-Disposition'] = '''attachment;filename*= UTF-8''{0}'''.format(encodeFilename(report.filename))
+        return response
+    else:
+        return render(request, 'warning.html', {'info': '找不到课程报告'})
 
 # 实现代码打包文件的下载功能
 @login_required
@@ -1087,7 +1207,7 @@ def teacher_read_code(request, courseId, groupId):
         if stu.isLeader:
             leader = stu.get_full_name()
         else:
-            memebers.append(stu.get_full_name())
+            members.append(stu.get_full_name())
     problem = None
     if group.selectedProblem:
         problem = group.selectedProblem.title
@@ -1112,6 +1232,25 @@ def teacher_get_all_code_history(request, courseId, groupId):
     for record in group.Code_history.all():
         result.append({'time': record.submitTime.strftime('%Y/%m/%d %X'), 'text': record.dirText,
                        'id': record.id})
+    return HttpResponse(json.dumps(result))
+
+# 老师查看自己课程的一个组的课程报告提交情况
+@login_required
+def teacher_get_all_report_history(request, courseId, groupId):
+    # 检查是否是该课程的老师
+    course = None
+    try:
+        course = CodeWeekClass.objects.get(teacher=request.user, id=courseId)
+    except:
+        return HttpResponse("")
+    group = None
+    try:
+        group = CodeWeekClassGroup.objects.get(id=groupId)
+    except:
+        return HttpResponse("")
+    result = []
+    for record in group.Report_history.all():
+        result.append({'time': record.uploadTime.strftime('%Y/%m/%d %X'),'id': record.id})
     return HttpResponse(json.dumps(result))
 
 # 老师下载自己课程的某个组提交的代码
@@ -1167,6 +1306,39 @@ def teacher_get_code_zip(request, courseId, historyId):
             return response
     return render(request, 'warning.html', {'info': '找不到代码文件'})
 
+# 老师下载自己课程的某个组的某个课程报告
+@login_required
+def teacher_download_report(request, courseId, historyId):
+    # 检查是否是该课程的老师
+    course = None
+    try:
+        course = CodeWeekClass.objects.get(teacher=request.user, id=courseId)
+    except:
+        return HttpResponse("", status=404)
+    report = None
+    try:
+        report = ReportHistory.objects.get(id=historyId)
+    except:
+        return render(request, 'warning.html', {'info': '找不到课程报告'})
+    if report:
+        if report.group.cwclass == course:
+            filename = newReportFilename(report.id)
+
+            def file_iterator(file_name, chunk_size=512):
+                with open(file_name, 'rb') as f:
+                    while True:
+                        c = f.read(chunk_size)
+                        if c:
+                            yield c
+                        else:
+                            break
+
+            response = StreamingHttpResponse(file_iterator(filename))
+            response['Content-Disposition'] = '''attachment;filename*= UTF-8''{0}'''.format(
+                encodeFilename(report.filename))
+            return response
+    return render(request, 'warning.html', {'info': '找不到课程报告'})
+
 # 老师检查是否可以查看学生代码
 @login_required
 def teacher_check_student(request):
@@ -1188,6 +1360,93 @@ def teacher_check_student(request):
         if student.group.selectedProblem:
             return HttpResponse(student.group.id)
     return HttpResponse(-1)
+
+# 用于教师打包所有材料
+def tarFiles(courseId, className, teacherName):
+    workDir = os.path.join(BASE_DIR, "codeWeekTarFiles", className + "_" + teacherName)
+    if os.path.exists(workDir):
+        shutil.rmtree(workDir, ignore_errors=True)
+    os.mkdir(workDir)
+    os.chdir(workDir)
+    course = None
+    try:
+        course = CodeWeekClass.objects.get(id=courseId)
+    except:
+        return
+    if course.numberEachGroup == 1:  # 单人模式
+        for student in course.students.all().order_by("id_num"):
+            cwStudent = None
+            try:
+                cwStudent = CodeWeekClassStudent.objects.get(codeWeekClass=course, student=student)
+            except:
+                return # 可以增加log异常信息
+            os.mkdir(student.id_num)
+            os.chdir(student.id_num)
+            try:
+                latestSubmit = cwStudent.group.nowCodeDir
+                fileId = latestSubmit.zipFile.id
+                problem = cwStudent.group.selectedProblem
+                if latestSubmit and problem:
+                    shutil.copy(codeZipFileName(fileId), problem.title + ".zip")
+                latestReport = cwStudent.group.Report_history.all().order_by("-id")[0]
+                if latestReport:
+                    fileSuffix = ""
+                    index = latestReport.filename.rfind('.')
+                    if not index == -1:
+                        fileSuffix = latestReport.filename[index:]
+                    shutil.copy(newReportFilename(latestReport.id), "程序设计_" + student.id_num + fileSuffix)
+            except:
+                pass # 可以增加异常信息
+            os.chdir("../")
+        return
+    else: # 多人模式
+        groups = CodeWeekClassGroup.objects.filter(cwclass=course, using=True).order_by("id")
+        index = 1
+        for group in groups:
+            NoStr = str(index)
+            if len(NoStr) == 1:
+                NoStr = "0"+NoStr
+            dirName = "第" + NoStr + "小组_"
+            if group.selectedProblem:
+                dirName = dirName + group.selectedProblem.title
+            else: # 小组没有选择题目
+                continue
+            os.mkdir(dirName)
+            os.chdir(dirName)
+            leader = None
+            mem = []
+            for member in group.Group_member.all():
+                if member.isLeader:
+                    leader = member
+                else:
+                    mem.append(member)
+            mem.sort(key = lambda x:  x.student.id_num)
+            reportFileName = "程序设计_"
+            leaderId = leader.student.id_num[-2:]
+            reportFileName += leaderId
+            for member in mem:
+                reportFileName += "_"
+                reportFileName += member.student.id_num[-2]
+            try:
+                latestReport = group.Report_history.all().order_by("-id")[0]
+                if latestReport:
+                    fileSuffix = ""
+                    index = latestReport.filename.rfind('.')
+                    if not index == -1:
+                        fileSuffix = latestReport.filename[index:]
+                    shutil.copy(newReportFilename(latestReport.id), reportFileName + fileSuffix)
+            except:
+                pass
+            try:
+                latestSubmit = group.nowCodeDir
+                fileId = latestSubmit.zipFile.id
+                problem = group.selectedProblem
+                if latestSubmit and problem:
+                    shutil.copy(codeZipFileName(fileId), problem.title + ".zip")
+            except:
+                pass
+            os.chdir("../")
+            index += 1
 
 # # 通过文件夹创建dict
 # import os, json

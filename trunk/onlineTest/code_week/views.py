@@ -16,6 +16,7 @@ from django.db import transaction
 from onlineTest.settings import BASE_DIR
 from enum import Enum, unique
 import pdb
+import docx
 
 @login_required
 def course_list_for_student(request):
@@ -164,8 +165,8 @@ def student_view_course(request, courseId):
     else:
         return render(request, 'warning.html', {'info': '查无此课'})
 
-# 用户提交文件名，把文件名修改为提交的id
-def newFileName(fileId):
+# 教师提交描述文件，把文件名修改为提交的id
+def newProblemFileName(fileId):
     filename = os.path.join(BASE_DIR, 'upload/'+str(fileId))
     return filename
 
@@ -179,7 +180,7 @@ def add_sheji(request):
             f = request.FILES.get('headImg')
             problem = form.save(user=request.user)  # 保存题目
 
-            filename = newFileName(problem.problem_id)
+            filename = newProblemFileName(problem.problem_id)
             fobj = open(filename,'wb')
             for chrunk in f.chunks():#可以设置分块上传
                 fobj.write(chrunk)
@@ -229,7 +230,7 @@ def update_sheji(request, id):
             form.save(user=request.user, problemid=id)
             f = request.FILES.get('headImg')
             if f: # 重新上传了文件
-                fobj = open(newFileName(id), 'wb')
+                fobj = open(newProblemFileName(id), 'wb')
                 for chrunk in f.chunks():
                     fobj.write(chrunk)
                 fobj.close()
@@ -322,7 +323,7 @@ def teacher_download(request, problemId):
     except:
         return render(request, 'warning.html', {'info': '找不到描述文件'})
     if problem:
-        filename = newFileName(problemId)
+        filename = newProblemFileName(problemId)
         def file_iterator(file_name, chunk_size=512):
             with open(file_name, 'rb') as f:
                 while True:
@@ -353,7 +354,7 @@ def download(request, courseId):
         if not student.group.selectedProblem:
             return render(request, 'warning.html', {'info': '您所在的小组还没有选题'})
         file = student.group.selectedProblem
-        filename = newFileName(file.problem_id)
+        filename = newProblemFileName(file.problem_id)
 
         def file_iterator(file_name, chunk_size=512):
             with open(file_name, 'rb') as f:
@@ -967,7 +968,7 @@ def submit_code(request, courseId):
                 return render(request, 'warning.html', {'info': '只支持zip压缩文件'})
             else:
                 random_name = ''.join(random.sample(string.digits + string.ascii_letters * 10, 8))
-                tempdir = newFileName(random_name)
+                tempdir = newProblemFileName(random_name)
                 os.mkdir(tempdir)
                 filename = os.path.join(tempdir, file.name)
                 with open(filename, 'wb+') as destination:
@@ -1447,7 +1448,20 @@ def tarFiles(courseId, className, teacherName):
                 pass
             os.chdir("../")
             index += 1
-
+    # 尝试合并题目word文档,python-docx只支持docx
+    docxs = []
+    for problem in course.problems.all():
+        shutil.copy(newProblemFileName(problem.problem_id), os.path.join(workDir, problem.filename))
+        docxs.append(problem.filename)
+    if len(docxs) >= 1:
+        doc1 = docx.Document(docxs[0])
+        for i in range(1, len(docxs)):
+            doc2 = docx.Document(docxs[i])
+            for element in doc2.element.body:
+                doc1.element.body.append(element)
+        doc1.save(os.path.join(workDir, "new.docx"))
+    shutil.make_archive(os.path.join("..",className+"_"+teacherName+".zip"), format="zip", root_dir=os.path.dirname(workDir), base_dir=className+"_"+teacherName)
+    os.chdir("../")
 # # 通过文件夹创建dict
 # import os, json
 #

@@ -57,7 +57,7 @@
                         <span class="text-danger pull-right">{{ form.headImg.errors }}</span>
                     {% endif %}
                 <br>
-                已经上传的文件：<a href="/code_week/download-{{ problem.problem_id }}">{{ problem.filename }}</a>
+                已经上传的文件：<a href="{% url 'teacher_download_descfile' problem.problem_id %}">{{ problem.filename }}</a>
                 <br>
                 <style>
   .fileinput-button {

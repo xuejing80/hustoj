@@ -2,3 +2,8 @@ trunk/onlineTest/static/videos/
 *.pyc
 trunk/core/sim/*
 trunk/web/discuss3/*
+trunk/onlineTest/allCode/*
+trunk/onlineTest/codeWeekTarFiles/*
+trunk/onlineTest/codeZip/*
+trunk/onlineTest/reportFile/*
+trunk/onlineTest/upload/*

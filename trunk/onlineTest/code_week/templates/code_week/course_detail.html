@@ -55,11 +55,11 @@
             <div class="settings-item-content">
                 <div>
                     <span id="max_number"></span>
-                    <a>修改</a>
                 </div>
             </div>
         </div>
     </div>
+{#    <button class="btn btn-success" id="download_tar" onclick="downloadTarFile()">下载课程打包文件</button>#}
     <p>题目列表：</p>
     <table id="table"
            data-toggle="table"
@@ -136,6 +136,38 @@
             readCode(value);
         }
     }
+    {#function downloadTarFile()#}
+    {#{#}
+    {#    $.confirm({#}
+    {#        title: '打包文件下载',#}
+    {#        content: '请输入班级名称 <input class="form-control" id="class_name" type="text" placeholder="输入班级名称"/>' +#}
+    {#                    '请输入教师姓名 <input class="form-control" id = "teacher_name" type="text" placeholder="输入教师姓名"/>',#}
+    {#        confirmButton: '确认',#}
+    {#        cancelButton: '放弃',#}
+    {#        confirm: function () {#}
+    {#            className = $('#class_name').val();#}
+    {#            teacherName = $('#teacher_name').val();#}
+    {#            $.ajax({#}
+    {#                url: '{% url 'teacher_update_course' %}',#}
+    {#                dataType: 'json',#}
+    {#                method: 'post',#}
+    {#                data: {'name': $('#new_course_name').val(), 'id': $('#course_id').text(), 'action':'update_name'}#}
+    {#            }).done(function (response) {#}
+    {#                if (response == 1) {#}
+    {#                    $.alert('修改课程名称成功！');#}
+    {#                    $('#course_name').text(newName);#}
+    {#                    return true#}
+    {#                } else {#}
+    {#                    $.alert('修改时出现问题');#}
+    {#                    return false#}
+    {#                }#}
+    {#            }).fail(function () {#}
+    {#                self.setContent('数据传输时出现问题');#}
+    {#                return false#}
+    {#            });#}
+    {#        }#}
+    {#    });#}
+    {#}#}
     $(document).ready(function(){
         $.ajax({
             type:"GET",
@@ -364,11 +396,19 @@
             url: '{% url 'teacher_check_student' %}',
             dataType: 'json',
             method: 'post',
-            data: {'courseId': $('#course_id').text(), 'studentId': value,}
+            data: {'courseId': $('#course_id').text(), 'studentId': value,},
+            async: false
         }).done(function (response) {
             if (response != -1) {
                 var url = "/code_week/teacher-read-code-" + $("#course_id").text() + "-" + response + "/";
                 window.open(url);
+                return true;
+                {#var newA = "<a href='" + url + "' target='_blank'></a>";#}
+                {#var a = $(newA).get(0);#}
+                {#a.click();#}
+                {#var e = document.createEvent('MouseEvents');#}
+                {#e.initEvent('click', true, true);#}
+                {#a.dispatchEvent(e);#}
                 return true;
             } else {
                 return false;

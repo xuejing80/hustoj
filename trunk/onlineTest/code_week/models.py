@@ -129,3 +129,12 @@ class ReportHistory(models.Model):
     uploadTime = models.DateTimeField(auto_now_add=True)
     filename = models.CharField(verbose_name='文件名', max_length=200)
     group = models.ForeignKey(CodeWeekClassGroup, related_name='Report_history')
+
+class TarHistory(models.Model):
+    """
+    用来记录教师打包记录
+    """
+    id = models.AutoField(primary_key=True)
+    tarTime = models.DateTimeField(auto_now_add=True)
+    course = models.ForeignKey(CodeWeekClass)
+    filename = models.CharField(max_length=200)

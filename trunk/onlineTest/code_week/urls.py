@@ -44,4 +44,6 @@ urlpatterns = [
     url(r'^download-report-(?P<historyId>\d+)/$', download_report, name='get_report'),
     url(r'^teacher-get-all-report-history-(?P<courseId>\d+)-(?P<groupId>\d+)/$', teacher_get_all_report_history, name='teacher_get_all_report_history'),
     url(r'^teacher-download-report-(?P<courseId>\d+)-(?P<historyId>\d+)/$', teacher_download_report, name='teacher_download_report'),
+    url(r'^teacher-tar-request-(?P<courseId>\d+)/', handelTeacherTar, name='teacher_tar_request'),
+    url(r'^teacher-download-tar-(?P<courseId>\d+)/', teacherDownloadTar, name='teacher_download_tar'),
 ]

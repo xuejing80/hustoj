@@ -59,7 +59,8 @@
             </div>
         </div>
     </div>
-{#    <button class="btn btn-success" id="download_tar" onclick="downloadTarFile()">下载课程打包文件</button>#}
+    <button class="btn btn-success" id="download_tar" onclick="downloadTarFile()">下载课程打包文件</button>
+    <a id="add_problem_student" href="{% url 'add_problem_student' course.id %}">增加选择的题目或学生</a>
     <p>题目列表：</p>
     <table id="table"
            data-toggle="table"
@@ -80,8 +81,8 @@
         </tr>
         </thead>
     </table>
-    <a id="add_problem_student" href="{% url 'add_problem_student' course.id %}">增加选择的题目或学生</a>
-    <p>学生列表：</p>
+    <label id="beforeGroups"></label>
+    <br>
     <table id="student_table"
            data-toggle="table"
            data-url="{% url 'get_student_state' course.id%}"
@@ -136,38 +137,44 @@
             readCode(value);
         }
     }
-    {#function downloadTarFile()#}
-    {#{#}
-    {#    $.confirm({#}
-    {#        title: '打包文件下载',#}
-    {#        content: '请输入班级名称 <input class="form-control" id="class_name" type="text" placeholder="输入班级名称"/>' +#}
-    {#                    '请输入教师姓名 <input class="form-control" id = "teacher_name" type="text" placeholder="输入教师姓名"/>',#}
-    {#        confirmButton: '确认',#}
-    {#        cancelButton: '放弃',#}
-    {#        confirm: function () {#}
-    {#            className = $('#class_name').val();#}
-    {#            teacherName = $('#teacher_name').val();#}
-    {#            $.ajax({#}
-    {#                url: '{% url 'teacher_update_course' %}',#}
-    {#                dataType: 'json',#}
-    {#                method: 'post',#}
-    {#                data: {'name': $('#new_course_name').val(), 'id': $('#course_id').text(), 'action':'update_name'}#}
-    {#            }).done(function (response) {#}
-    {#                if (response == 1) {#}
-    {#                    $.alert('修改课程名称成功！');#}
-    {#                    $('#course_name').text(newName);#}
-    {#                    return true#}
-    {#                } else {#}
-    {#                    $.alert('修改时出现问题');#}
-    {#                    return false#}
-    {#                }#}
-    {#            }).fail(function () {#}
-    {#                self.setContent('数据传输时出现问题');#}
-    {#                return false#}
-    {#            });#}
-    {#        }#}
-    {#    });#}
-    {#}#}
+    function downloadTarFile()
+    {
+        $.confirm({
+            title: '打包文件下载',
+            content: '请输入班级名称 <input class="form-control" id="class_name" type="text" placeholder="输入班级名称"/>' +
+                        '请输入教师姓名 <input class="form-control" id = "teacher_name" type="text" placeholder="输入教师姓名"/>',
+            confirmButton: '确认',
+            cancelButton: '放弃',
+            confirm: function () {
+                className = $('#class_name').val();
+                teacherName = $('#teacher_name').val();
+                $.ajax({
+                    url: '{% url 'teacher_tar_request' course.id%}',
+                    dataType: 'json',
+                    method: 'post',
+                    data: {'class_name': $('#class_name').val(), 'teacher_name': $('#teacher_name').val()}
+                }).done(function (response) {
+                    if (response == -1) {
+                        $.alert('非法请求！');
+                        return true;
+                    } else if (response == 1){
+                        $.alert('课程还没开始，无法打包');
+                        return false;
+                    } else if (response == 0)
+                    {
+                        $.alert('<a href="{% url 'teacher_download_tar' course.id %}">下载文件</a>');
+                    }
+                    else if (response == 2) // 无法合并题目文档
+                    {
+                        $.alert('<a href="{% url 'teacher_download_tar' course.id %}">下载文件(未合并题目文档)</a>')
+                    }
+                }).fail(function () {
+                    self.setContent('数据传输时出现问题');
+                    return false
+                });
+            }
+        });
+    }
     $(document).ready(function(){
         $.ajax({
             type:"GET",

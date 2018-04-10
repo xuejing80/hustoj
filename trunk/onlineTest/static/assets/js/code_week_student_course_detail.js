@@ -30,7 +30,7 @@ function ifInGroup(leader, members, name) { //查看自己是否在该小组内
 }
 function addGroup(groupid, leader, members, problem){ // 测试jQuery插入dom  
     var source = "\
-        <div class='container'>\
+        <div class='container col-md-4'>\
             <div class='group' id='group-groupid'>\
                 <div class='leader'>\
                     <span>{{ leader }}</span>\
@@ -62,7 +62,7 @@ function addGroup(groupid, leader, members, problem){ // 测试jQuery插入dom
             </div>\
         </div>";
     var leadersource = "\
-        <div class='container'>\
+        <div class='container col-md-4'>\
             <div class='group' id='group-groupid'>\
                 <div class='leader'>\
                     <span>{{ leader }}</span>\

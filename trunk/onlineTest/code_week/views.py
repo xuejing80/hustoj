@@ -906,7 +906,7 @@ def copy_generage_dict_info(work_dir, group):
         #     ++j
         # for dirname in dirs:
         #     temp[dirname] = {}
-    print(json.dumps(result))
+    # print(json.dumps(result))
     return json.dumps(result)
 
 # 返回保存代码压缩文件的路径
@@ -982,6 +982,8 @@ def submit_code(request, courseId):
                 # 保存整个压缩文件
                 newCodeZip = CodeZipFile.objects.create(fileName = file.name)
                 shutil.copy(filename, codeZipFileName(newCodeZip.id))
+                # 删除产生的文件
+                shutil.rmtree(tempdir)
                 # pdb.set_trace()
                 # 保存代码版本（目录序列化结果）
                 newCodeHistory = CodeDirHistory.objects.create(zipFile=newCodeZip, dirText=dir_result,
@@ -1453,15 +1455,76 @@ def tarFiles(courseId, className, teacherName):
     for problem in course.problems.all():
         shutil.copy(newProblemFileName(problem.problem_id), os.path.join(workDir, problem.filename))
         docxs.append(problem.filename)
-    if len(docxs) >= 1:
+    good = True
+    for d in docxs:
+        try:
+            doc = docx.Document(d)
+        except:  # 不支持的文件
+            good = False
+    if good and len(docxs) >= 1:
         doc1 = docx.Document(docxs[0])
         for i in range(1, len(docxs)):
             doc2 = docx.Document(docxs[i])
             for element in doc2.element.body:
                 doc1.element.body.append(element)
-        doc1.save(os.path.join(workDir, "new.docx"))
-    shutil.make_archive(os.path.join("..",className+"_"+teacherName+".zip"), format="zip", root_dir=os.path.dirname(workDir), base_dir=className+"_"+teacherName)
+        doc1.save(os.path.join(workDir, "合并的文件.docx"))
+    shutil.make_archive(os.path.join("..",className+"_"+teacherName), format="zip", root_dir=os.path.dirname(workDir), base_dir=className+"_"+teacherName)
     os.chdir("../")
+    newTar = TarHistory.objects.create(course=course,filename=className+"_"+teacherName+".zip")
+    source = os.path.join(BASE_DIR, "codeWeekTarFiles", className+"_"+teacherName+".zip")
+    target = os.path.join(BASE_DIR, "codeWeekTarFiles", str(newTar.id))
+    # pdb.set_trace()
+    shutil.move(source, target)
+    # shutil.copy(os.path.join(BASE_DIR,"codeWeekTarFiles",className+"_"+teacherName+".zip"), os.path.join(BASE_DIR,"codeWeekTarFiles",str(newTar.id)))
+    shutil.rmtree(workDir)
+    return good
+
+# 处理教师打包请求
+def handelTeacherTar(request, courseId):
+    if request.method == "POST":
+        course = None
+        className = None
+        teacherName = None
+        # pdb.set_trace()
+        try:
+            course = CodeWeekClass.objects.get(id=courseId, teacher=request.user)
+            className = request.POST['class_name']
+            teacherName = request.POST['teacher_name']
+        except:
+            return HttpResponse(-1)
+        ckResult = check_time(course)
+        if ckResult == TimeResult.NOTSTART:
+            return HttpResponse(1) # 课程还没开始，不要打包了
+        if tarFiles(courseId,str(className), str(teacherName)):
+            return HttpResponse(0) # 打包成功，并且还合并了题目文档
+        else:
+            return HttpResponse(2) # 打包成功，但是无法合并题目文档
+
+# 教师下载打包文件
+def teacherDownloadTar(request, courseId):
+    course = None
+    try:
+        course = CodeWeekClass.objects.get(id=courseId, teacher=request.user)
+    except:
+        return
+    historys = TarHistory.objects.filter(course=course).order_by("-id")
+    if historys.count() != 0:
+        latest = historys[0]
+        filename = os.path.join(BASE_DIR, "codeWeekTarFiles", str(latest.id))
+
+        def file_iterator(file_name, chunk_size=512):
+            with open(file_name, 'rb') as f:
+                while True:
+                    c = f.read(chunk_size)
+                    if c:
+                        yield c
+                    else:
+                        break
+
+        response = StreamingHttpResponse(file_iterator(filename))
+        response['Content-Disposition'] = '''attachment;filename*= UTF-8''{0}'''.format(
+            encodeFilename(latest.filename))
+        return response
 # # 通过文件夹创建dict
 # import os, json
 #

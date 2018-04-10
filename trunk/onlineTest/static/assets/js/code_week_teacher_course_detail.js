@@ -11,7 +11,7 @@ var nowid; // 用来记录消息的id，;防止中间消息没有收到
 
 function addGroup(groupid, leader, members, problem) {
     var source = "\
-    <div class='container'>\
+    <div class='container col-md-4'>\
             <div class='group' id='group-groupid'>\
                 <div class='leader'>\
                     <span>{{ leader }}</span>\
@@ -45,7 +45,7 @@ function addGroup(groupid, leader, members, problem) {
             </div>\
         </div>";
     source = source.replace("groupid", groupid);
-    $('#add_problem_student').after(source);
+    $('#beforeGroups').after(source);
     if (groupsVue.has(groupid))
     {
         alert("已经有了小组: " + groupid);

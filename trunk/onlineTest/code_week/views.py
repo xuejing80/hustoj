@@ -17,6 +17,7 @@ from onlineTest.settings import BASE_DIR
 from enum import Enum, unique
 import pdb
 import docx
+import xlwt
 
 @login_required
 def course_list_for_student(request):
@@ -1370,7 +1371,10 @@ def tarFiles(courseId, className, teacherName):
     if os.path.exists(workDir):
         shutil.rmtree(workDir, ignore_errors=True)
     os.mkdir(workDir)
-    os.chdir(workDir)
+    # os.chdir(workDir)
+    studentDir = os.path.join(workDir, className + "_学生材料")
+    os.mkdir(studentDir)
+    os.chdir(studentDir)
     course = None
     try:
         course = CodeWeekClass.objects.get(id=courseId)
@@ -1399,11 +1403,44 @@ def tarFiles(courseId, className, teacherName):
                         fileSuffix = latestReport.filename[index:]
                     shutil.copy(newReportFilename(latestReport.id), "程序设计_" + student.id_num + fileSuffix)
             except:
+                # os.chdir(BASE_DIR)
                 pass # 可以增加异常信息
             os.chdir("../")
-        return
     else: # 多人模式
         groups = CodeWeekClassGroup.objects.filter(cwclass=course, using=True).order_by("id")
+        groupNumber = 1
+        memberNumber = 1
+        f = xlwt.Workbook()
+        sheet1 = f.add_sheet('sheet1', cell_overwrite_ok=True)
+        sheet1.write(0, 0, '小组')
+        sheet1.write(0, 1, '学号')
+        sheet1.write(0, 2, '姓名')
+        sheet1.write(0, 3, '贡献度比例')
+        sheet1.write(0, 4, '贡献度详情')
+        for group in groups:
+            newMemberNumber = memberNumber + group.Group_member.count()
+            sheet1.write_merge(memberNumber, newMemberNumber-1, 0, 0, groupNumber)
+            groupNumber += 1
+            memberLineMap = {}
+            contribution_sum = {}
+            for student in group.Group_member.order_by("-isLeader"):
+                sheet1.write(memberNumber, 1, student.student.id_num)
+                sheet1.write(memberNumber, 2, student.student.username)
+                memberLineMap[student.get_full_name()] = memberNumber
+                contribution_sum[student.get_full_name()] = 0
+                memberNumber += 1
+            index = 4 # 贡献度开始的列数
+            for history in group.Code_history.all():
+                contribution_list = history.contribution.split(',')
+                for single_member_contribution in contribution_list:
+                    contribution_record = single_member_contribution.split(':')
+                    contribution_sum[contribution_record[0]] += int(contribution_record[1])
+                    sheet1.write(memberLineMap[contribution_record[0]], index, int(contribution_record[1]))
+                index += 1
+            count = group.Code_history.all().count()
+            for student in group.Group_member.all():
+                sheet1.write(memberLineMap[student.get_full_name()], 3, contribution_sum[student.get_full_name()] / count)
+        f.save(os.path.join(workDir, '贡献度.xls'))
         index = 1
         for group in groups:
             NoStr = str(index)
@@ -1450,6 +1487,7 @@ def tarFiles(courseId, className, teacherName):
                 pass
             os.chdir("../")
             index += 1
+    os.chdir("../")
     # 尝试合并题目word文档,python-docx只支持docx
     docxs = []
     for problem in course.problems.all():

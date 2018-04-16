@@ -111,7 +111,7 @@
                     </a>
                 </li>
                 {% if user.is_authenticated %}
-                   {% if 'code_week.add_codeweekclass' in perms %} {% comment %}教师用户{% endcomment %}
+                   {% if user.isTeacher %} {% comment %}教师用户{% endcomment %}
                        <li class="sub-menu">
                            <a href="javascript:;" id="code_week_list">
                                <i class="fa fa-pencil" aria-hidden="true"></i>
@@ -271,7 +271,7 @@
     $(function () {
         var position = "{{ position }}"
         switch (position) {
-        {% if 'code_week.add_codeweekclass' in perms %}
+        {% if user.isTeacher in perms %}
             case 'code_week_teacher_course_list':
                 $("#code_week_teacher_course_list").addClass("active");
                 $("#code_week_list").addClass("active");

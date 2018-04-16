@@ -1,0 +1,90 @@
+{% extends 'base.html' %}
+{% comment %}用于老师添加课程{% endcomment %}
+{% block extrahead %}
+    {% load static %}
+    <script src="{% static 'assets/js/bootstrap-table.min.js' %}"></script>
+    <link href="{% static 'assets/css/bootstrap-table.min.css' %}" rel="stylesheet">
+    <script src="{% static 'assets/js/bootstrap-table-zh-CN.min.js' %}"></script>
+{% endblock %}
+{% block content %}
+<form id="homework-add-form" method="post" onsubmit="return checkForm()">
+    {% csrf_token %}
+    <p>请增加课程题目</p>
+    <div id="toolbar">
+        <div class="form-inline" role="form">
+            <div class="form-group">
+                <select class="form-control" id="category" name="category">
+                    <option value="0" selected="selected">题目分类</option>
+                    {% for category in categorys %}
+                        <option value="{{ category.pk }}">{{ category.category}}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <button id="ok" type="submit" class="btn btn-default">筛选</button>
+        </div>
+    </div>
+    <table id="table"
+           data-toggle="table"
+           data-url="{% url 'get_json_sheji' %}"
+           data-side-pagination="server"
+           data-pagination="true"
+           data-page-list="[10]"
+           data-classes="table table-hover table-condensed"
+           data-toolbar="#toolbar"
+           data-striped="true"
+           data-query-params="queryParams"
+           data-search="true"
+    >
+        <thead>
+        <tr>
+            <th data-field="state" data-checkbox="true"></th>
+            <th data-field="pk" data-sortable="true">ID</th>
+            <th class="nobr" data-field="title" data-sortable="true">标题</th>
+            <th class="nobr" data-field="category"> 题目分类</th>
+            <th data-field="update_date" data-sortable="true">最后修改日期</th>
+            <th data-field="creator">创建者</th>
+        </tr>
+        </thead>
+    </table>
+    <input type="hidden" name="problems" id="select-problems"/>
+    <button type="button" class="btn btn-success btn-lg" id="save_problems" onclick="saveProblem()">保存选择的题目</button>
+    <h3>批量添加学生账号</h3>
+    <input type="hidden" name="banji_id" id="banji_id" value="{{ id }}">
+    <p><textarea name="students" id="students_info" class="form-control" rows="10"
+                 placeholder="学生账号信息格式为：一行一个学生，每行的前两个字段是学号和真实姓名，初始密码同用户名，初始邮箱为南邮邮箱，字段之间用空格分隔"></textarea>
+    <button type="submit" class="btn btn-success btn-lg">保存</button>
+</form>
+<script type="text/javascript">
+
+    $.ajaxSetup({
+            data: {csrfmiddlewaretoken: '{{ csrf_token }}'}
+        });
+    var $table = $('#table');
+    $ok = $('#ok');
+    $(function () {
+        $ok.click(function () {
+            $table.bootstrapTable('refresh');
+        });
+    });
+    function queryParams(params) {
+        $('#toolbar').find('select[name]').each(function () {
+            params[$(this).attr('name')] = $(this).val();
+        });
+        return params;
+    }
+    var selectSet = new Set();
+    function saveProblem() {
+         var ids = $.map($table.bootstrapTable('getSelections'), function (row) {
+            return row.id;
+        });
+        for (var i = 0; i < ids.length; ++i) {
+            selectSet.add(ids[i]);
+        }
+    }
+    function checkForm() {
+        saveProblem();
+        $('#select-problems').val(Array.from(selectSet));
+        return true;
+    }
+</script>
+{% endblock %}

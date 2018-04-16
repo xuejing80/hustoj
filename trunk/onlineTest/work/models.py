@@ -41,6 +41,7 @@ class HomeWork(models.Model):
     work_kind = models.CharField(max_length=20,verbose_name="作业类型",default='作业')
     total_score = models.IntegerField()
     allow_resubmit = models.BooleanField(default=True, verbose_name='是否允许重复提交作业>？')
+    resubmit_number = models.IntegerField(default=100, verbose_name="提交次数限制")
     allow_similarity = models.BooleanField(default=True, verbose_name='是否开启相似度判分>？')
     def __str__(self):
         return str(self.id)
@@ -69,7 +70,10 @@ class MyHomework(models.Model):
     banji = models.ManyToManyField(BanJi)
     finished_students = models.ManyToManyField(MyUser, related_name='finished_students', blank=True)
     allow_resubmit = models.BooleanField(default=True, verbose_name='是否允许重复提交作业？')
+    # 新增 null=False,blank=False,
+    resubmit_number = models.IntegerField(default=100, verbose_name="提交次数限制")
     allow_random = models.BooleanField(default=True, verbose_name='是否打乱选择题选项顺序？')
+    # resubmit_time = models.IntegerField(default=100)
     allow_similarity = models.BooleanField(default=False, verbose_name='是否开启相似度判分？')
     work_kind = models.CharField(max_length=20,verbose_name="作业类型",default='作业')
     total_score = models.IntegerField()
@@ -94,6 +98,9 @@ class HomeworkAnswer(models.Model):
     gaicuo_score = models.IntegerField(null=False, verbose_name='程序改错题成绩', default=0)
     create_time = models.DateTimeField(auto_now_add=True, verbose_name='答题时间')
     judged = models.BooleanField(default=False, verbose_name='是否已经判分？')
+    # 提交次数限制
+    # 新增
+    remained_number = models.IntegerField(default=100, verbose_name='提交次数限制')
     summary = models.TextField(null=True, verbose_name='实验小结')
     teacher_comment = models.TextField(null=True, verbose_name='教师评语')
 

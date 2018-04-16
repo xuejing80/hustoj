@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+{% block extrahead %}
+{% endblock %}
+{% block content %}
+    <div class="btn-group">
+        {% if 'code_week.add_codeweekclass' in perms %}
+        <p>
+            <a class="btn btn-primary btn-l" href="{% url 'sheji_problem_list' %}" role="button">返回列表</a>
+            <button type="button" class="btn btn-danger" id="delete" onclick="delete_item(self)">删除此题</button>
+            <a class="btn btn-success btn-l" href="{% url 'update_sheji' problem.problem_id %}"
+               role="button">重新编辑</a>
+        </p>
+        {% endif %}
+    </div>
+    <table id="w0" class="table table-striped table-bordered detail-view table-hover ">
+        <tbody>
+        {% if 'code_week.add_codeweekclass' in perms %}
+        <tr>
+            <th>ID</th>
+            <td>{{ problem.problem_id }}</td>
+        </tr>
+        {% endif %}
+        {% if problem.category %}
+        <tr>
+            <th>题目类别</th>
+            <td>{{ problem.category }}</td>
+        </tr>
+        {% endif %}
+        <tr>
+            <th>标题</th>
+            <td>{{ problem.title }}</td>
+        </tr>
+        <tr>
+            <th>题目描述</th>
+            <td>{{ problem.editorText }}</td>
+        </tr>
+        <tr>
+            <th>题目描述文件</th>
+{#            <td><a href="/code_week/download-{{ problem.problem_id }}">{{ problem.filename }}</a></td>#}
+            <td><a href="{% url 'teacher_download_descfile' problem.problem_id %}">{{ problem.filename }}</a></td>
+        </tr>
+        </tbody>
+    </table>
+{% endblock %}

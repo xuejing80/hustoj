@@ -47,7 +47,9 @@ INSTALLED_APPS = [
     'work',    #作业管理系统
     'faq',     #智能问答系统
     'process', #程序相似度计算
-    'qqlogin'  #QQ登录模块
+    'qqlogin',  #QQ登录模块
+    'channels',  # django-channels，使用websocket来实时推送消息
+    'code_week', # 程序设计课
 ]
 
 MIDDLEWARE_CLASSES = [
@@ -153,7 +155,19 @@ STATICFILES_DIRS = [os.path.join(BASE_DIR, "static"), ]
 # 需要与site.cnf 设置的静态文件路径相同
 STATIC_ROOT = '/var/www/html/static'
 
-LOGIN_URL = '/test/accounts/login/'
+LOGIN_URL = '/accounts/login/'
+
+
+# Channel settings
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "asgi_redis.RedisChannelLayer",
+        "CONFIG": {
+            "hosts": [os.environ.get('REDIS_URL', 'redis://127.0.0.1:6379')],
+        },
+        "ROUTING": "code_week.routing.code_week_routing",
+    },
+}
 
 LOGGING = {
     'version': 1,

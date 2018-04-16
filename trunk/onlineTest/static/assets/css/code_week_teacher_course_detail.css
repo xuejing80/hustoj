@@ -1,0 +1,16 @@
+.settings-section {
+    margin-top: 10px;
+}
+.settings-item {
+    padding: 12px 0;
+    width: 100%;
+    border-bottom: 1px solid #eee;
+}
+.settings-item-title {
+    width: 100px;
+    text-align: left;
+    float: left;
+}
+.settings-item-title+.settings-item-content {
+    margin-left: 90px;
+}

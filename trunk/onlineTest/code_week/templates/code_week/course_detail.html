@@ -1,0 +1,429 @@
+{% extends 'base.html' %}
+{% comment %}用于老师查看课程详细{% endcomment %}
+{% block extrahead %}
+    {% load static %}
+{#    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery-confirm/3.3.0/jquery-confirm.min.css">#}
+{#<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-confirm/3.3.0/jquery-confirm.min.js"></script>#}
+    <script src="{% static 'assets/js/jquery-confirm.min.js' %}"></script>
+    <link href="{% static 'assets/css/jquery-confirm.min.css' %}" rel="stylesheet">
+    <link href="{% static 'assets/css/code_week_teacher_course_detail.css' %}" rel="stylesheet">
+    <script src="{% static 'assets/js/moment/moment.min.js' %}"></script>
+    <script src="{% static 'assets/js/moment/zh-cn.js' %}"></script>
+    <link href="{% static 'assets/css/bootstrap-editable.css' %}" rel="stylesheet">
+    <link href="{% static 'assets/css/bootstrap-datetimepicker.min.css' %}" rel="stylesheet">
+    <script src="{% static 'assets/js/bootstrap-datetimepicker.min.js' %}"></script>
+    <script src="{% static 'assets/js/bootstrap-table.min.js' %}"></script>
+    <link href="{% static 'assets/css/bootstrap-table.min.css' %}" rel="stylesheet">
+    <script src="{% static 'assets/js/bootstrap-table-zh-CN.min.js' %}"></script>
+    <script src="{% static 'assets/js/vue.js' %}"></script>
+    <script src="{% static 'assets/js/code_week_teacher_course_detail.js' %}"></script>
+    <link href="{% static 'assets/css/group.css' %}" rel="stylesheet">
+{% endblock %}
+{% block content %}
+{% if course %}
+    <label id="course_id" hidden="true">{{ course.id }}</label>
+    <div class="settings-section container-fluid">
+        <div class="settings-item clearfix">
+            <label class="settings-item-title">课程名称:</label>
+            <div class="settings-item-content">
+                <div>
+                    <span id="course_name"></span>
+                    <a href="#" onclick="update_info()">修改</a>
+                </div>
+            </div>
+        </div>
+        <div class="settings-item clearfix">
+            <label class="settings-item-title">开始时间:</label>
+            <div class="settings-item-content">
+                <div>
+                    <span id="begin_time"></span>
+                    <a href="#" onclick="update_begin_time()">修改</a>
+                </div>
+            </div>
+        </div>
+        <div class="settings-item clearfix">
+            <label class="settings-item-title">结束时间:</label>
+            <div class="settings-item-content">
+                <div>
+                    <span id="end_time"></span>
+                    <a href="#" onclick="update_end_time()">修改</a>
+                </div>
+            </div>
+        </div>
+        <div class="settings-item clearfix">
+            <label class="settings-item-title">每组最多人数:</label>
+            <div class="settings-item-content">
+                <div>
+                    <span id="max_number"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+    <button class="btn btn-success" id="download_tar" onclick="downloadTarFile()">下载课程打包文件</button>
+    <a id="add_problem_student" href="{% url 'add_problem_student' course.id %}">增加选择的题目或学生</a>
+    <p>题目列表：</p>
+    <table id="table"
+           data-toggle="table"
+           data-url="{% url 'get_select_problem' course.id%}"
+           data-side-pagination="server"
+           data-classes="table table-hover table-condensed"
+           data-striped="true"
+           data-query-params="queryParams"
+    >
+        <thead>
+        <tr>
+            <th data-field="pk">题库中ID</th>
+            <th class="nobr" data-field="title">标题</th>
+            <th class="nobr" data-field="category"> 题目分类</th>
+            <th data-field="update_date">最后修改日期</th>
+            <th data-field="creator">创建者</th>
+            <th class="nobr" data-field="id" data-formatter="problemFormatter" data-events="actionEvents">操作</th>
+        </tr>
+        </thead>
+    </table>
+    <label id="beforeGroups"></label>
+    <br>
+    <table id="student_table"
+           data-toggle="table"
+           data-url="{% url 'get_student_state' course.id%}"
+           data-side-pagination="server"
+           data-classes="table table-hover table-condensed"
+           data-striped="true"
+           data-query-params="querystudentParams"
+    >
+        <thead>
+        <tr>
+            <th data-field="pk" data-visible="false">ID</th>
+            <th class="nobr" data-field="name">学生姓名学号</th>
+            <th class="nobr" data-field="state"> 学生状态</th>
+            <th class="nobr" data-field="id" data-formatter="studentFormatter" data-events="studentactionEvents">操作</th>
+        </tr>
+        </thead>
+    </table>
+{% endif %}
+    <script type="text/javascript">
+    function queryParams(params) {
+        $('#toolbar').find('select[name]').each(function () {
+            params[$(this).attr('name')] = $(this).val();
+        });
+        return params;
+    }
+    function querystudentParams(params) {
+        $('#toolbar').find('select[name]').each(function () {
+            params[$(this).attr('name')] = $(this).val();
+        });
+        return params;
+    }
+    function problemFormatter(value) {
+        return '<a class="btn btn-primary btn-xs remove" href="javascript:void(0)" title="删除" aria-label="删除" data-pjax="0"><span class="glyphicon glyphicon-trash"></span></a>';
+    }
+    function studentFormatter(value) {
+        return '<a class="btn btn-primary btn-xs remove" href="javascript:void(0)" title="移除" aria-label="移除" data-pjax="0"><span class="glyphicon glyphicon-trash"></span></a>'+
+                '<a class="btn btn-primary btn-xs read" href="javascript:void(0)" title="查看学生代码" aria-label="查看学生代码" data-pjax="0"><span class="glyphicon glyphicon-eye-open"></span></a>';
+    }
+    function readStudentCode(value) {
+        return '<a class="btn btn-primary btn-xs read" href="javascript:void(0)" title="查看学生代码" aria-label="查看学生代码" data-pjax="0"><span class="glyphicon glyphicon-eye-open"></span></a>';
+    }
+    window.actionEvents = {
+        'click .remove': function (e, value) {
+            removeProblem(value);
+        }
+    }
+    window.studentactionEvents = {
+        'click .remove': function (e, value) {
+            removeStudent(value);
+        },
+        'click .read': function (e, value) {
+            readCode(value);
+        }
+    }
+    function downloadTarFile()
+    {
+        $.confirm({
+            title: '打包文件下载',
+            content: '请输入班级名称 <input class="form-control" id="class_name" type="text" placeholder="输入班级名称"/>' +
+                        '请输入教师姓名 <input class="form-control" id = "teacher_name" type="text" placeholder="输入教师姓名"/>',
+            confirmButton: '确认',
+            cancelButton: '放弃',
+            confirm: function () {
+                className = $('#class_name').val();
+                teacherName = $('#teacher_name').val();
+                $.ajax({
+                    url: '{% url 'teacher_tar_request' course.id%}',
+                    dataType: 'json',
+                    method: 'post',
+                    data: {'class_name': $('#class_name').val(), 'teacher_name': $('#teacher_name').val()}
+                }).done(function (response) {
+                    if (response == -1) {
+                        $.alert('非法请求！');
+                        return true;
+                    } else if (response == 1){
+                        $.alert('课程还没开始，无法打包');
+                        return false;
+                    } else if (response == 0)
+                    {
+                        $.alert('<a href="{% url 'teacher_download_tar' course.id %}">下载文件</a>');
+                    }
+                    else if (response == 2) // 无法合并题目文档
+                    {
+                        $.alert('<a href="{% url 'teacher_download_tar' course.id %}">下载文件(未合并题目文档)</a>')
+                    }
+                }).fail(function () {
+                    self.setContent('数据传输时出现问题');
+                    return false
+                });
+            }
+        });
+    }
+    $(document).ready(function(){
+        $.ajax({
+            type:"GET",
+            url:"{% url 'teacher_course_info' course.id %}",
+            dataType:"json",
+            success:function(data){
+                showCourseInfo(data);
+            },
+            error:function(jqXHR){
+                alert("error" + jqXHR.status);
+            }
+        });
+        $.ajax({
+            type:"GET",
+            url:"{% url 'teacher_get_student_info' course.id %}",
+            dataType:"json",
+            success:function(data){
+                handleFirstMsg(data);
+            },
+            error:function(jqXHR){
+                alert("error" + jqXHR.status);
+            }
+        });
+    });
+    function update_info() {
+        $.confirm({
+            title: '修改课程名称',
+            content: '请输入新的课程名称 <input class="form-control" id="new_course_name" type="text" placeholder="输入新的课程名称"/>',
+            confirmButton: '修改',
+            cancelButton: '放弃',
+            confirm: function () {
+                newName = $('#new_course_name').val();
+                $.ajax({
+                    url: '{% url 'teacher_update_course' %}',
+                    dataType: 'json',
+                    method: 'post',
+                    data: {'name': $('#new_course_name').val(), 'id': $('#course_id').text(), 'action':'update_name'}
+                }).done(function (response) {
+                    if (response == 1) {
+                        $.alert('修改课程名称成功！');
+                        $('#course_name').text(newName);
+                        return true
+                    } else {
+                        $.alert('修改时出现问题');
+                        return false
+                    }
+                }).fail(function () {
+                    self.setContent('数据传输时出现问题');
+                    return false
+                });
+            }
+            });
+    }
+    function update_begin_time() {
+        $.confirm({
+            title: '修改课程开始时间',
+            content: "请选择新的开始时间 <div class='input-group date' id='datetimepicker1'>\n" +
+            "                    <input type='text' class=\"form-control\" name=\"new_begin_time\" required=\"required\" id=\"new_begin_time\"/>\n" +
+            "                    <span class=\"input-group-addon\">\n" +
+            "                    <span class=\"glyphicon glyphicon-calendar\"></span>\n" +
+            "                </span>" +
+            "</div>",
+            confirmButton: '修改',
+            cancelButton: '放弃',
+            onOpen: function () {
+                $('#datetimepicker1').datetimepicker(
+                {
+                    format: 'yyyy-mm-dd hh:ii',
+                    sideBySide: true,
+                    defaultDate: moment()
+                }
+                );
+            },
+            confirm: function () {
+                var end_time = timeRemoveChinese($('#end_time').text());
+                if ($('#new_begin_time').val() >= end_time) {
+                    $.alert('课程开始时间不能在结束时间之后!');
+                    return false;
+                }
+                new_time = timeAddChinese($('#new_begin_time').val());
+                $.ajax({
+                    url: '{% url 'teacher_update_course' %}',
+                    dataType: 'json',
+                    method: 'post',
+                    data: {'time': $('#new_begin_time').val(), 'id': $('#course_id').text(), 'action':'update_begin_time'}
+                }).done(function (response) {
+                    if (response == 1) {
+                        $.alert('修改开始时间成功！');
+                        $('#begin_time').text(new_time);
+                        return true
+                    } else {
+                        $.alert('修改时出现问题');
+                        return false
+                    }
+                }).fail(function () {
+                    self.setContent('数据传输时出现问题');
+                    return false
+                });
+            }
+            });
+    }
+    function update_end_time() {
+        $.confirm({
+            title: '修改课程结束时间',
+            content: "请选择新的结束时间 <div class='input-group date' id='datetimepicker2'>\n" +
+            "                    <input type='text' class=\"form-control\" name=\"new_end_time\" required=\"required\" id=\"new_end_time\"/>\n" +
+            "                    <span class=\"input-group-addon\">\n" +
+            "                    <span class=\"glyphicon glyphicon-calendar\"></span>\n" +
+            "                </span>" +
+            "</div>",
+            confirmButton: '修改',
+            cancelButton: '放弃',
+            onOpen: function () {
+                $('#datetimepicker2').datetimepicker(
+                {
+                    format: 'yyyy-mm-dd hh:ii',
+                    sideBySide: true,
+                    defaultDate: moment()
+                }
+        );
+            },
+            confirm: function () {
+                var begin_time = timeRemoveChinese($('#begin_time').text());
+                if ($('#new_end_time').val() <= end_time) {
+                    $.alert('课程结束时间不能在开始时间之前!');
+                    return false;
+                }
+                new_time = timeAddChinese($('#new_end_time').val());
+                $.ajax({
+                    url: '{% url 'teacher_update_course' %}',
+                    dataType: 'json',
+                    method: 'post',
+                    data: {'time': $('#new_end_time').val(), 'id': $('#course_id').text(), 'action':'update_end_time'}
+                }).done(function (response) {
+                    if (response == 1) {
+                        $.alert('修改结束时间成功！');
+                        $('#end_time').text(new_time);
+                        return true
+                    } else {
+                        $.alert('修改时出现问题');
+                        return false
+                    }
+                }).fail(function () {
+                    self.setContent('数据传输时出现问题');
+                    return false
+                });
+            }
+            });
+    }
+    function timeAddChinese(time) {
+        time = time.replace('-', '年');
+        time = time.replace('-', '月');
+        time = time.replace(' ', '日 ');
+        return time;
+    }
+    function timeRemoveChinese(time) {
+        time = time.replace('年', '-');
+        time = time.replace('月', '-');
+        time = time.replace('日', '');
+        return time;
+    }
+    function showCourseInfo(data) {
+        name = data.name;
+        begin_time = data.begin_time;
+        end_time = data.end_time;
+        max_number = data.number;
+        $('#course_name').text(name);
+        $('#begin_time').text(timeAddChinese(begin_time));
+        $('#end_time').text(timeAddChinese(end_time));
+        $('#max_number').text(max_number);
+    }
+    function removeProblem(value) {
+        $.ajax({
+            url: '{% url 'remove_select_problem' %}',
+            dataType: 'json',
+            method: 'post',
+            data: {'courseId': $('#course_id').text(), 'problemId': value,}
+        }).done(function (response) {
+            if (response == 1) {
+                $.alert('删除选择的题目成功！');
+                $('#table').bootstrapTable('refresh');
+                return true
+            } else if(response == 2) {
+                $.alert('删除的问题有学生已经选了');
+                $('#table').bootstrapTable('refresh');
+                return false
+            } else {
+                $.alert('删除出现问题');
+                $('#table').bootstrapTable('refresh');
+                return false
+            }
+
+        }).fail(function () {
+            self.setContent('数据传输时出现问题');
+            return false
+        });
+    }
+    function removeStudent(value) {
+        $.ajax({
+            url: '{% url 'remove_student' %}',
+            dataType: 'json',
+            method: 'post',
+            data: {'courseId': $('#course_id').text(), 'studentId': value,}
+        }).done(function (response) {
+            if (response == 1) {
+                $.alert('删除学生成功！');
+                $('#student_table').bootstrapTable('refresh');
+                return true
+            } else if(response == 2) {
+                $.alert('要删除的学生已经加入小组或者创建了小组，删除失败!');
+                $('#student_table').bootstrapTable('refresh');
+                return false
+            } else {
+                $.alert('删除出现问题');
+                $('#student_table').bootstrapTable('refresh');
+                return false
+            }
+
+        }).fail(function () {
+            self.setContent('数据传输时出现问题');
+            return false
+        });
+    }
+    function readCode(value) {
+        $.ajax({
+            url: '{% url 'teacher_check_student' %}',
+            dataType: 'json',
+            method: 'post',
+            data: {'courseId': $('#course_id').text(), 'studentId': value,},
+            async: false
+        }).done(function (response) {
+            if (response != -1) {
+                var url = "/code_week/teacher-read-code-" + $("#course_id").text() + "-" + response + "/";
+                window.open(url);
+                return true;
+                {#var newA = "<a href='" + url + "' target='_blank'></a>";#}
+                {#var a = $(newA).get(0);#}
+                {#a.click();#}
+                {#var e = document.createEvent('MouseEvents');#}
+                {#e.initEvent('click', true, true);#}
+                {#a.dispatchEvent(e);#}
+                return true;
+            } else {
+                return false;
+            }
+        }).fail(function () {
+            self.setContent('数据传输时出现问题');
+            return false
+        });
+    }
+    </script>
+{% endblock %}

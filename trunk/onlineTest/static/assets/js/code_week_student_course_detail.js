@@ -157,7 +157,7 @@ function addGroup(groupid, leader, members, problem){ // 测试jQuery插入dom
                     }
                 },
                 chooseP: function() {
-                    if (problem == "")
+                    if (this.problem == "")
                     {
                         chooseProblem();
                     }
@@ -180,7 +180,7 @@ function addGroup(groupid, leader, members, problem){ // 测试jQuery插入dom
             },
             methods: {
                 joinG: function() {
-                    if (members.length > max)
+                    if (this.members.length >= max - 1)
                     {
                         alert("小组已满");
                         return;

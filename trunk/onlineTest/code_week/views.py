@@ -13,7 +13,7 @@ from django.utils.datastructures import MultiValueDictKeyError
 from django.apps import apps
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import transaction
-from onlineTest.settings import BASE_DIR
+from onlineTest.settings import BASE_DIR, USER_FILE_DIR
 from enum import Enum, unique
 import pdb
 import docx
@@ -38,8 +38,10 @@ def course_list_for_student(request):
     return render(request, 'code_week/course_list.html',
                   {'nowCourses' : nowCourses, 'previousCourses' : previousCourses, 'futureCourses' : futureCourses, 'position': 'code_week_list'})
 
-@permission_required('code_week.add_codeweekclass')
+@login_required
 def course_list_for_teacher(request):
+    if not request.user.isTeacher:
+        return render(request, 'warning.html', {'info':'教师才可以操作'})
     nowtime = datetime.datetime.now()  # 获取当前时间用来判断有关老师的课程是否在进行
     nowCourses = CodeWeekClass.objects.filter(
         teacher=request.user).filter( # 过滤获取老师正在进行的课程
@@ -56,8 +58,10 @@ def course_list_for_teacher(request):
                   {'nowCourses': nowCourses, 'previousCourses': previousCourses, 'futureCourses': futureCourses, 'position': 'code_week_teacher_course_list'})
 
 #重点是学生的添加，这里的策略是通过学号添加，可以是学号范围，也可以是单个学号，这里设定所有合法的学号长度都是为9的
-@permission_required('code_week.add_codeweekclass')
+@login_required
 def add_course(request):
+    if not request.user.isTeacher:
+        return render(request, 'warning.html', {'info':'教师才可以操作'})
     if request.method == 'POST':
         form = AddCodeWeekForm(request.POST)
         if form.is_valid():
@@ -135,8 +139,10 @@ def add_course(request):
         return render(request, 'code_week/add_course.html', {'form': form, 'categorys': categorys})
 
 #教师查看课程主页
-@permission_required('code_week.change_codeweekclass')
+@login_required
 def view_course(request, courseId):
+    if not request.user.isTeacher:
+        return render(request, 'warning.html', {'info': '教师才可以操作'})
     course = CodeWeekClass.objects.filter(id=courseId)
     if course.count() == 0:
         return render(request, 'warning.html', {'info' : '查无此课'})
@@ -168,12 +174,14 @@ def student_view_course(request, courseId):
 
 # 教师提交描述文件，把文件名修改为提交的id
 def newProblemFileName(fileId):
-    filename = os.path.join(BASE_DIR, 'upload/'+str(fileId))
+    filename = os.path.join(USER_FILE_DIR, 'upload', str(fileId))
     return filename
 
 #增加程序设计题
-@permission_required('code_week.add_shejiproblem')
+@login_required
 def add_sheji(request):
+    if not request.user.isTeacher:
+        return render(request, 'warning.html', {'info': '教师才可以操作'})
     if request.method == 'POST':  # 当提交表单时
         form = ShejiAddForm(request.POST,request.FILES)  # form 包含提交的数据
         print(form.errors)
@@ -192,8 +200,10 @@ def add_sheji(request):
     return render(request, 'code_week/sheji_problem_add.html', {'form': form, 'title': '新建程序设计题'})
 
 #删除程序设计题(未完成)
-@permission_required("code_week.delete_shejiproblem")
+@login_required
 def delete_sheji(request):
+    if not request.user.isTeacher:
+        return render(request, 'warning.html', {'info': '教师才可以操作'})
     if request.method == 'POST':
         ids = request.POST.getlist('ids[]')
         try:
@@ -216,8 +226,10 @@ class ShejiProblemDetailView(DetailView):
             return context
 
 #更新程序设计题
-@permission_required('code_week.change_shejiproblem')
+@login_required
 def update_sheji(request, id):
+    if not request.user.isTeacher:
+        return render(request, 'warning.html', {'info': '教师才可以操作'})
     problem = get_object_or_404(ShejiProblem, pk=id)
     if problem.creator != request.user:
         return render(request, 'warning.html', {'info' : "您无法修改不是您创建的题目"})
@@ -316,8 +328,10 @@ def encodeFilename(filename):
     return returnstr
 
 # 老师下载描述文件
-@permission_required('code_week.add_shejiproblem')
+@login_required
 def teacher_download(request, problemId):
+    if not request.user.isTeacher:
+        return render(request, 'warning.html', {'info': '教师才可以操作'})
     problem = None
     try:
         problem = ShejiProblem.objects.get(problem_id=problemId)
@@ -864,7 +878,7 @@ def un_zip(file_name):
 
 # 返回保存代码单文件的路径
 def singleFileName(fileId):
-    filename = os.path.join(BASE_DIR, 'allCode/'+str(fileId))
+    filename = os.path.join(USER_FILE_DIR, 'allCode', str(fileId))
     return filename
 
 # 将解压的文件夹中的文件编号并且复制到指定目录，并且生成目录的序列化结果
@@ -912,7 +926,7 @@ def copy_generage_dict_info(work_dir, group):
 
 # 返回保存代码压缩文件的路径
 def codeZipFileName(fileId):
-    filename = os.path.join(BASE_DIR, 'codeZip/'+str(fileId))
+    filename = os.path.join(USER_FILE_DIR, 'codeZip', str(fileId))
     return filename
 
 # 用于计算文件hash
@@ -1052,7 +1066,7 @@ def get_all_code_history(request, courseId):
     return HttpResponse(json.dumps(result))
 
 def newReportFilename(fileId):
-    filename = os.path.join(BASE_DIR, 'reportFile/' + str(fileId))
+    filename = os.path.join(USER_FILE_DIR, 'reportFile', str(fileId))
     return filename
 
 @login_required
@@ -1367,7 +1381,7 @@ def teacher_check_student(request):
 
 # 用于教师打包所有材料
 def tarFiles(courseId, className, teacherName):
-    workDir = os.path.join(BASE_DIR, "codeWeekTarFiles", className + "_" + teacherName)
+    workDir = os.path.join(USER_FILE_DIR, 'codeWeekTarFiles', className + "_" + teacherName)
     if os.path.exists(workDir):
         shutil.rmtree(workDir, ignore_errors=True)
     os.mkdir(workDir)
@@ -1509,8 +1523,8 @@ def tarFiles(courseId, className, teacherName):
     shutil.make_archive(os.path.join("..",className+"_"+teacherName), format="zip", root_dir=os.path.dirname(workDir), base_dir=className+"_"+teacherName)
     os.chdir("../")
     newTar = TarHistory.objects.create(course=course,filename=className+"_"+teacherName+".zip")
-    source = os.path.join(BASE_DIR, "codeWeekTarFiles", className+"_"+teacherName+".zip")
-    target = os.path.join(BASE_DIR, "codeWeekTarFiles", str(newTar.id))
+    source = os.path.join(USER_FILE_DIR, "codeWeekTarFiles", className+"_"+teacherName+".zip")
+    target = os.path.join(USER_FILE_DIR, "codeWeekTarFiles", str(newTar.id))
     # pdb.set_trace()
     shutil.move(source, target)
     # shutil.copy(os.path.join(BASE_DIR,"codeWeekTarFiles",className+"_"+teacherName+".zip"), os.path.join(BASE_DIR,"codeWeekTarFiles",str(newTar.id)))
@@ -1548,7 +1562,7 @@ def teacherDownloadTar(request, courseId):
     historys = TarHistory.objects.filter(course=course).order_by("-id")
     if historys.count() != 0:
         latest = historys[0]
-        filename = os.path.join(BASE_DIR, "codeWeekTarFiles", str(latest.id))
+        filename = os.path.join(USER_FILE_DIR, "codeWeekTarFiles", str(latest.id))
 
         def file_iterator(file_name, chunk_size=512):
             with open(file_name, 'rb') as f:

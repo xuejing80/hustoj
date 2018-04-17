@@ -9,6 +9,10 @@ class AddCodeWeekForm(forms.Form):
     problems = forms.CharField(required=False)
     maxnumber = forms.ChoiceField(choices=MAXNUMBER_CHOICES, required=True)
 
+    def __init__(self, *args, **kwargs):
+        super(AddCodeWeekForm, self).__init__(*args, **kwargs)
+        self.initial['maxnumber'] = '3'
+
 class ShejiAddForm(forms.Form):
     title = forms.CharField(label='标题', widget=forms.TextInput(
         attrs={'class': 'form-control', 'data-validation': 'required', 'data-validation-error-msg': "请输入题目标题"}))

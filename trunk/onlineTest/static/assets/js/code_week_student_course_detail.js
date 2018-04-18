@@ -33,7 +33,7 @@ function addGroup(groupid, leader, members, problem){ // 测试jQuery插入dom
         <div class='container col-md-4'>\
             <div class='group' id='group-groupid'>\
                 <div class='leader'>\
-                    <span>{{ leader }}</span>\
+                    <span>{{ leader }}的小组</span>\
                 </div>\
                 <div class='line'></div>\
                 <div class='members'>\
@@ -65,7 +65,7 @@ function addGroup(groupid, leader, members, problem){ // 测试jQuery插入dom
         <div class='container col-md-4'>\
             <div class='group' id='group-groupid'>\
                 <div class='leader'>\
-                    <span>{{ leader }}</span>\
+                    <span>{{ leader }}的小组</span>\
                 </div>\
                 <div class='line'></div>\
                 <div class='members'>\
@@ -137,7 +137,7 @@ function addGroup(groupid, leader, members, problem){ // 测试jQuery插入dom
         groupsVue.set(groupid, new Vue({
             el: '#group-' + groupid,
             data: {
-                leader: leader + "的小组",
+                leader: leader,
                 members: members,
                 problem: problem,
             },
@@ -157,7 +157,7 @@ function addGroup(groupid, leader, members, problem){ // 测试jQuery插入dom
                     }
                 },
                 chooseP: function() {
-                    if (problem == "")
+                    if (this.problem == "")
                     {
                         chooseProblem();
                     }
@@ -174,13 +174,13 @@ function addGroup(groupid, leader, members, problem){ // 测试jQuery插入dom
         groupsVue.set(groupid, new Vue({
             el: '#group-' + groupid,
             data: {
-                leader: leader + "的小组",
+                leader: leader,
                 members: members,
                 problem: problem,
             },
             methods: {
                 joinG: function() {
-                    if (members.length > max)
+                    if (this.members.length >= max - 1)
                     {
                         alert("小组已满");
                         return;
@@ -429,6 +429,11 @@ function handleMessage(message) { // 用于处理websocket收到的消息
             globalgroupid = data['groupId'];
             // 移除成为组长按钮
             $('#leader').remove();
+            var selectedProblem = groupsVue.get(globalgroupid).problem;
+            if (selectedProblem != "")
+            {
+                addReadCodeButton();
+            }
         }
     }
     else if (data['action'] == 'd') // 收到消息删除分组

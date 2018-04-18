@@ -210,8 +210,8 @@ def ws_receive_student_detail(message, courseId):
                 if group.Group_member.count() >= CodeWeekClass.objects.get(id=courseId).numberEachGroup: #人已经满了
                     result = {'msg': 'fail', 'info': '组中人已经满了'}
                     sendMsgToStudent(message, result)
-                elif group.selectedProblem:
-                    result = {'msg': 'fail', 'info': '该小组已经选择了题目，无法加入'}
+                elif group.nowCodeDir:
+                    result = {'msg': 'fail', 'info': '该小组已经提交了代码，无法加入'}
                     sendMsgToStudent(message, result)
                 else: # 加入组并且保存这个成功的操作
                     result = None

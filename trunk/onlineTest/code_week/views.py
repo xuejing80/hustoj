@@ -829,19 +829,17 @@ def check_contribution(contribution, group):
         for stu in group.Group_member.all():
             students_list.append(stu.get_full_name())
         students_list.sort()
-        sum = 0
         to_test_students_list = [] # 从贡献度字符串中得到的学生列表
         for student_contribution in contributionDetails:
             a_student_list = student_contribution.split(':')
             if not len(a_student_list) == 2:
                 return False
             num = int(a_student_list[1])
-            if num > 100 or num < 0:
+            if not num == 100 and not num == 80 and not num == 60 and not num == 40 and not num == 20:
                 return False
             to_test_students_list.append(a_student_list[0])
-            sum += num
         to_test_students_list.sort()
-        if sum == 100 and students_list == to_test_students_list:
+        if students_list == to_test_students_list:
             return True
         else:
             return False

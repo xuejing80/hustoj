@@ -245,7 +245,8 @@
                     contributionStr += ',';
                 contributionStr += members[i].innerHTML;
                 contributionStr += ":";
-                contributionStr += val.toString();
+                var score = (6 - parseInt(val.toString())) * 20;
+                contributionStr += score.toString();
             }
             $('#ctext').val(contributionStr);
             return true;

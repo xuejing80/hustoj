@@ -835,7 +835,7 @@ def check_contribution(contribution, group):
             if not len(a_student_list) == 2:
                 return False
             num = int(a_student_list[1])
-            if num > 5 or num < 1:
+            if not num == 100 and not num == 80 and not num == 60 and not num == 40 and not num == 20:
                 return False
             to_test_students_list.append(a_student_list[0])
         to_test_students_list.sort()

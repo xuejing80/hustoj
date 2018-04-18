@@ -29,22 +29,33 @@
 <form method="post" id="submit-form" enctype="multipart/form-data" onsubmit="return checkContribution()">
     {% csrf_token %}
     <input type="file" name="codeFile" accept="application/zip">
-    <p>请填写贡献度（请确保总和为100）:</p>
+    <br>
+    <p>请选择组员的贡献度等级:</p>
     {% if members %}
         {% for member in members %}
-            <lable class="member_name">{{ member.get_full_name }}</lable> <input type="text"><br>
+            <lable class="member_name">{{ member.get_full_name }}</lable>
+            <select>
+                <option value="1">高</option>
+                <option value="2">较高</option>
+                <option value="3" selected>中等</option>
+                <option value="4">较低</option>
+                <option value="5">低</option>
+            </select>
+            <br>
         {% endfor %}
     {% endif %}
     <input type="text" id="ctext" name="contribution" hidden="true">
-    <button type="submit">提交</button>
+    <button type="submit">提交代码</button>
 </form>
     <form method="post" id="submit-report-form" enctype="multipart/form-data" action={% url 'upload_report' course.id %}>
     {% csrf_token %}
+        <br>
         <p>课程报告（完成了程序编写再提交）</p>
         <input type="file" name="report" accept=".doc,.doxc">
         <button type="submit">提交课程报告</button>
     </form>
     {% endif %}
+    <br>
     <div id="selects"></div>
     <div class="content_wrap">
 	<div class="zTreeDemoBackground left">
@@ -95,10 +106,6 @@
             });
 			{#$.fn.zTree.init($("#treeDemo"), setting, zNodes);#}
 			var members = $('.member_name');
-			if (members.length == 1)
-            {
-                members[0].nextElementSibling.value = 100;
-            }
             editor = CodeMirror.fromTextArea(document.getElementById("code-display"),{
                 lineNumbers:true,
                 mode:"text/x-c++src",
@@ -231,37 +238,17 @@
         }
         function checkContribution() {
             var members = $('.member_name');
-            var sum = 0;
             var contributionStr = "";
             for (var i = 0; i < members.length; ++i) {
                 var val = parseInt(members[i].nextElementSibling.value);
-                if (val == NaN || val < 0 || val > 100)
-                {
-                    alert("请输入有效的数字")
-                    return false;
-                }
-                sum += val;
-                if (sum > 100)
-                {
-                    alert("贡献度总和大于100");
-                    return false;
-                }
                 if (i > 0)
                     contributionStr += ',';
                 contributionStr += members[i].innerHTML;
                 contributionStr += ":";
                 contributionStr += val.toString();
             }
-            if (sum != 100)
-            {
-                alert("贡献度总和小于100");
-                return false;
-            }
-            else
-            {
-                $('#ctext').val (contributionStr);
-                return true;
-            }
+            $('#ctext').val(contributionStr);
+            return true;
         }
         function addNode2(rootId, i, dirdata, Nodes) {
             for (var item in dirdata) {

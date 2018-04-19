@@ -1429,6 +1429,10 @@ def tarFiles(courseId, className, teacherName):
         sheet1.write(0, 2, '姓名')
         sheet1.write(0, 3, '贡献度比例')
         sheet1.write(0, 4, '贡献度详情')
+        appearStudents = set()
+        allStudents = set()
+        for student in course.CodeWeekClass_student.all():
+            allStudents.add(student.get_full_name())
         for group in groups:
             newMemberNumber = memberNumber + group.Group_member.count()
             sheet1.write_merge(memberNumber, newMemberNumber-1, 0, 0, groupNumber)
@@ -1441,6 +1445,7 @@ def tarFiles(courseId, className, teacherName):
                 memberLineMap[student.get_full_name()] = memberNumber
                 contribution_sum[student.get_full_name()] = 0
                 memberNumber += 1
+                appearStudents.add(student.get_full_name())
             index = 4 # 贡献度开始的列数
             for history in group.Code_history.all():
                 contribution_list = history.contribution.split(',')
@@ -1451,7 +1456,22 @@ def tarFiles(courseId, className, teacherName):
                 index += 1
             count = group.Code_history.all().count()
             for student in group.Group_member.all():
-                sheet1.write(memberLineMap[student.get_full_name()], 3, contribution_sum[student.get_full_name()] / count)
+                contribution_average = 0
+                if not count == 0:
+                    contribution_average = contribution_sum[student.get_full_name()] / count
+                sheet1.write(memberLineMap[student.get_full_name()], 3, contribution_average)
+        # 记录未在分组中出现的学生
+        remainStudents = allStudents - appearStudents
+        if not len(remainStudents) == 0:
+            sheet1.write_merge(memberNumber, memberNumber, 0, 1, "没有加入小组的学生")
+            for student in allStudents - appearStudents:
+                memberNumber += 1
+                idAndName = student.split(' ')
+                if not len(idAndName) == 2:
+                    continue
+                sheet1.write(memberNumber, 1, idAndName[0])
+                sheet1.write(memberNumber, 2, idAndName[1])
+                sheet1.write(memberNumber, 3, 0)
         f.save(os.path.join(workDir, '贡献度.xls'))
         index = 1
         for group in groups:

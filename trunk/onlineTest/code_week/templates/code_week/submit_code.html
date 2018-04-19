@@ -51,6 +51,9 @@
     {% csrf_token %}
         <br>
         <p>课程报告（完成了程序编写再提交）</p>
+        {% load static %}
+        <a href="{% static 'file/南京邮电大学程序设计报告样稿（个体报告2018.d版）.docx' %}">南京邮电大学程序设计报告样稿（个体报告2018.d版）</a><br>
+        <a href="{% static 'file/南京邮电大学程序设计报告样稿（团体报告2018.d版）.docx' %}">南京邮电大学程序设计报告样稿（团体报告2018.d版）</a>
         <input type="file" name="report" accept=".doc,.doxc">
         <button type="submit">提交课程报告</button>
     </form>
@@ -81,6 +84,7 @@
         var dirVue;
         var reportVue;
         var now = -1;
+        var globalCodeData ="";
         $(document).ready(function(){
             $.ajax({
                 type:"GET",
@@ -229,6 +233,10 @@
                 type:"GET",
                 url:"/code_week/get-code-" + treeNode.id.toString() +"/",
                 success:function (data) {
+                    {#globalCodeData = data;#}
+                    {#var script = document.createElement('script');#}
+                    {#script.src = 'data:text/javascript;charset=gbk,(function(){console.log(globalCodeData);alert(globalCodeData);var x = new Uint8Array(globalCodeData);editor.setValue(x);})()';#}
+                    {#document.body.appendChild(script);#}
                     editor.setValue(data);
                 },
                 error:function (jqXHR) {

@@ -5,7 +5,7 @@ from .models import *
 import json
 from django.db import transaction
 from django.core.exceptions import ObjectDoesNotExist
-# import IPython, pdb
+# import pdb
 from .views import TimeResult, check_time
 
 def sendMsgToStudent(message, text):
@@ -374,6 +374,16 @@ def ws_receive_student_detail(message, courseId):
                         problem = ShejiProblem.objects.get(problem_id=problemId)
                     except:
                         return
+                    # 检查选择的题目是否已经有两个小组选择了
+                    allGroup = student.group.cwclass.CodeWeekClass_group.filter(using=True).all()
+                    number = 0
+                    for group in allGroup:
+                        if group.selectedProblem == problem:
+                            number += 1
+                    if number >= 2:
+                        result = {'msg': 'fail', 'info': '这个题目已经有两个小组选择了，请选择别的题目'}
+                        sendMsgToStudent(message, result)
+                        return
                     result = None
                     try:
                         with transaction.atomic():
@@ -432,6 +442,15 @@ def ws_receive_student_detail(message, courseId):
                         except:
                             return
                         result = None
+                        allGroup = student.group.cwclass.CodeWeekClass_group.filter(using=True).all()
+                        number = 0
+                        for group in allGroup:
+                            if group.selectedProblem == problem:
+                                number += 1
+                        if number >= 2:
+                            result = {'msg': 'fail', 'info': '这个题目已经有两个小组选择了，请选择别的题目'}
+                            sendMsgToStudent(message, result)
+                            return
                         try:
                             with transaction.atomic():
                                 # 重新选择题目的步骤

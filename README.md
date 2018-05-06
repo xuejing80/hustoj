@@ -20,10 +20,11 @@ Ubuntu14.04快速安装指南：
     2、执行如下命令
         wget https://raw.githubusercontent.com/xuejing80/hustoj/master/trunk/install/install-ubuntu14.04.sh
         sudo bash install-ubuntu14.04.sh
-    3、执行如下命令，修改90,91行的数据库账号和密码,如需配置发送邮件功能，设置131到136行中邮箱账号和密码
-        sudo vi /var/www/html/onlineTest/onlineTest/settings.py
+    3、执行如下命令，如需配置发送邮件功能，设置143到146行中邮箱账号和密码，数据库密码应该不需要自己手动修改，脚本中会自动替换，如果有问题再手动修改
+        wget https://raw.githubusercontent.com/xuejing80/hustoj/master/trunk/install/install-onlineTest.sh
+        sudo vi /home/judge/onlineTest/onlineTest/settings.py
         sudo bash install-onlineTest.sh
-    4、安装后访问服务器80端口上的web服务JudgeOnline目录
-        例如 w3m http://127.0.0.1/test/
+    4、安装后访问服务器80端口上的web服务
+        例如 w3m http://127.0.0.1/
  
 推荐用干净的Ubuntu安装，不推荐使用外挂的LAMP或LNMP打包程序，会与安装脚本冲突。

@@ -1,0 +1,15 @@
+[Unit]
+Description=Njupt Code week runworker service
+After=network.target
+
+[Service]
+User=judge
+Group=judge
+Type=forking
+WorkingDirectory=/home/judge/onlineTest
+ExecStart=/usr/bin/python3 ./manage.py runworker --threads 2
+Restart=on-failure
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

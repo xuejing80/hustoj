@@ -1,0 +1,233 @@
+{% extends 'base.html' %}
+{% comment %}用于老师查看代码{% endcomment %}
+{% block extrahead %}
+    {% load static %}
+    <script src="{% static 'assets/js/jquery.ztree.core.js' %}"></script>
+    <link href="{% static 'assets/css/zTreeStyle/zTreeStyle.css' %}" rel="stylesheet">
+    <link href="{% static 'assets/css/demo.css' %}" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'assets/css/codemirror/codemirror.css' %}">
+    <link rel="stylesheet" href="{% static 'assets/css/codemirror/material.css' %}">
+    <script src="{% static 'assets/js/codemirror/lib/codemirror.js' %}"></script>
+    <script src="{% static 'assets/js/codemirror/addon/display/autorefresh.js' %}"></script>
+    <script src="{% static 'assets/js/codemirror/mode/clike.js' %}"></script>
+    <script src="{% static 'assets/js/codemirror/mode/python.js' %}"></script>
+    <script src="{% static 'assets/js/vue.js' %}"></script>
+{% endblock %}
+{% block content %}
+    {% if leader %}
+        <p>组长：</p>
+        <label>{{ leader }}</label>
+    {% endif %}
+    {% if members %}
+        <p>组员：</p>
+        {% for member in members %}
+            <label>{{ member }}</label><br>
+        {% endfor %}
+    {% endif %}
+    {% if problem %}
+        <p>选择的题目：</p>
+        <label>{{ problem }}</label>
+    {% endif %}
+    <label id="courseId" hidden="true">{{ courseId }}</label>
+    <div id="selects"></div>
+    <div class="content_wrap">
+	<div class="zTreeDemoBackground left">
+		<ul id="treeDemo" class="ztree"></ul>
+	</div>
+        <textarea id="code-display" cols="100" rows="50"></textarea>
+    <script type="text/javascript">
+        var editor;
+        var setting = {
+            data: {
+				simpleData: {
+					enable: true
+				}
+			},
+            callback: {
+                onClick: clickFile
+            }
+	    };
+        var zNodes = [];
+        var dirs = {};
+        var dirVue;
+        var reportVue;
+        var now = -1;
+        $(document).ready(function(){
+            $.ajax({
+                type:"GET",
+                url:"{% url 'teacher_get_all_history' courseId groupId %}",
+                dataType:"json",
+                success:function (data) {
+                    handleHistory(data);
+                },
+                error:function (jqXHR) {
+                    alert("error" + jqXHR.status);
+                }
+            });
+             $.ajax({
+                type:"GET",
+                url:"{% url 'teacher_get_all_report_history' courseId groupId %}",
+                dataType:"json",
+                success:function (data) {
+                    handleReportHistory(data);
+                },
+                error:function (jqXHR) {
+                    alert("error" + jqXHR.status);
+                }
+            });
+            editor = CodeMirror.fromTextArea(document.getElementById("code-display"),{
+                lineNumbers:true,
+                mode:"text/x-c++src",
+                theme:'material',
+                readOnly: 'true',
+            });
+		});
+        function handleHistory(data) // 用于处理获取到的所有目录信息
+        {
+            // 完成的任务有将最新的一次数据给zTree显示
+            // 设置下载最新代码的按钮
+            // 将以前版本的给vue用来显示
+
+            // 对数据按照id降序排序
+            data.sort(function(a, b) {
+                return b['id'] - a['id'];
+            });
+            if (data.length <= 0)
+            {
+                $('#selects').after("<p>还没有提交代码</p>");
+                return;
+            }
+            else { // 添加历史代码选择
+                {% verbatim %}
+                var source = '<div id="historyCodeSelect">\n' +
+                    '        <p>选择以前版本代码</p>\n' +
+                    '        <select v-model="selected">\n' +
+                    '            <option v-for="option in options" v-bind:value="option.value">\n' +
+                    '                {{ option.text }}\n' +
+                    '            </option>\n' +
+                    '        </select>\n' +
+                    '        <button onclick="refreshTree()">刷新目录</button>\n' +
+                    '       <button onclick="downloadFile()">下载这个历史代码</button>\n' +
+                    '    </div>';
+                {% endverbatim %}
+                $('#selects').after(source);
+                dirVue = new Vue({
+                el: '#historyCodeSelect',
+                data: {
+                    selected: '',
+                    options: [
+                        ]
+                    }
+                });
+            }
+            var options = [];
+            for (var i = 0; i < data.length; ++i)
+            {
+                options.push({text: data[i]['time'], value: data[i]['id']});
+                dirs[data[i]['id']] = data[i]['text'];
+            }
+            dirVue.options = options;
+            dirVue.selected = data[0]['id'];
+            dataToNodes(JSON.parse(data[0]['text']));
+        }
+        function handleReportHistory(data) // 用于处理获取到的课程报告信息
+        {
+            data.sort(function(a, b) {
+                return b['id'] - a['id'];
+            });
+            if (data.length <= 0)
+            {
+                $('#selects').after("<p>还没有提交课程报告</p>");
+                return;
+            }
+            else { // 添加历史代码选择
+                {% verbatim %}
+                var source = '<div id="reportSelect">\n' +
+                    '        <p>选择以前版本的课程报告</p>\n' +
+                    '        <select v-model="selected">\n' +
+                    '            <option v-for="option in options" v-bind:value="option.value">\n' +
+                    '                {{ option.text }}\n' +
+                    '            </option>\n' +
+                    '        </select>\n' +
+                    '       <button onclick="downloadReportFile()">下载这个课程报告</button>\n' +
+                    '    </div>';
+                {% endverbatim %}
+                $('#selects').after(source);
+                reportVue = new Vue({
+                el: '#reportSelect',
+                data: {
+                    selected: '',
+                    options: [
+                        ]
+                    }
+                });
+            }
+            var options = [];
+            for (var i = 0; i < data.length; ++i)
+            {
+                options.push({text: data[i]['time'], value: data[i]['id']});
+            }
+            reportVue.options = options;
+            reportVue.selected = data[0]['id'];
+        }
+        function refreshTree() {
+            var nowId = dirVue.selected;
+            if (now == nowId) {
+                return;
+            }
+            else {
+                now = nowId;
+                dataToNodes(JSON.parse(dirs[nowId]));
+            }
+        }
+        function downloadFile() {
+            window.open("/code_week/teacher-code-zip-" + $('#courseId').text() + "-" + dirVue.selected.toString() + "/");
+        }
+        function downloadReportFile() {
+            window.open("/code_week/teacher-download-report-" + $('#courseId').text() + "-" + reportVue .selected.toString() + "/");
+        }
+        function clickFile(event, treeId, treeNode, clickFlag) {
+            if (isNaN(treeNode.id))
+            {
+                return;
+            }
+            $.ajax({
+                type:"GET",
+                url:"/code_week/teacher-single-code-" + $('#courseId').text() + "-" + treeNode.id.toString() +"/",
+                success:function (data) {
+                    editor.setValue(data);
+                },
+                error:function (jqXHR) {
+                    alert("error" + jqXHR.status);
+                }
+            });
+        }
+        function addNode(rootId, i, dirdata, Nodes) {
+            for (var item in dirdata) {
+                if (typeof(dirdata[item]) == 'number') {
+                    Nodes.push({id:dirdata[item], pId:'dir_'+rootId.toString(), name:item});
+                }
+                else { // 目录
+                    if (Object.keys(dirdata[item]).length > 0)
+                    {
+                        Nodes.push({id:'dir_'+(i++).toString(), pId:'dir_'+rootId.toString(), name:item, open:true});
+                        i = addNode(i-1, i, dirdata[item], Nodes);
+                    }
+                    else {
+                        Nodes.push({id:'dir_'+(i++).toString(), pId:'dir_'+rootId.toString(), name:item, isParent:true});
+                    }
+                }
+            }
+            return i;
+        }
+        function dataToNodes(dirdata) {
+            zNodes = [];
+            var i = 0;
+            zNodes.push({id:'dir_' + i.toString(), pId:0, name:'代码目录', open:true});
+            ++i;
+            addNode(0, i, dirdata, zNodes);
+            $.fn.zTree.init($("#treeDemo"), setting, zNodes);
+        }
+
+    </script>
+{% endblock %}

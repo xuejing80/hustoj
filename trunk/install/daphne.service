@@ -1,0 +1,15 @@
+[Unit]
+Description=Njupt Code week daphne service
+After=network.target
+
+[Service]
+User=judge
+Group=judge
+Type=forking
+WorkingDirectory=/home/judge/onlineTest
+ExecStart=/usr/local/bin/daphne -b 127.0.0.1 -p 8000 onlineTest.asgi:channel_layer
+Restart=on-failure
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

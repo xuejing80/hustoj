@@ -1,20 +1,45 @@
-sudo apt-get install make  g++ clang libmysql++-dev apache2 mysql-server mono-gmcs subversion python3 python3-pip libapache2-mod-wsgi-py3
+iptables -D OUTPUT -m owner --uid-owner 1536 -j DROP
+cd /home/judge
 
-sudo cp -r onlineTest.conf /etc/apache2/sites-available
+apt-get -y install libmysql++-dev python3 python3-pip redis-server systemd python-dev libxml2-dev libxslt1-dev zlib1g-dev
 
-sudo pip3 install -i https://pypi.douban.com/simple/ django==1.9.13
-sudo pip3 install -i https://pypi.douban.com/simple/ pymysql
+pip3 install -U pip -i https://pypi.douban.com/simple/
 
-cd /var/www/html/onlineTest
-sudo python3 manage.py makemigrations
-sudo python3 manage.py migrate
-sudo python3 manage.py loaddata init_data.json
-sudo python3 manage.py createsuperuser
-sudo python3 manage.py collectstatic
-sudo a2ensite onlineTest
-sudo a2dissite 000-default.conf
-sudo service apache2 restart
+cp src/install/onlineTestNginx.conf /etc/nginx/sites-available
+cp src/install/daphne.service /etc/systemd/system/
+cp src/install/runworker.service /etc/systemd/system/
 
-sudo rm /home/judge/log/*
-sudo pkill -9 judged
-sudo judged
+cp -r src/onlineTest /home/judge
+chown -R judge:judge /home/judge/onlineTest
+
+cd /home/judge/onlineTest
+
+# 不这样pip版本还是旧的
+echo "pip3 install -i https://pypi.douban.com/simple/ python-docx" | bash
+echo "pip3 install -i https://pypi.douban.com/simple/ xlwt" | bash
+echo "pip3 install django==1.9.9 -i https://pypi.douban.com/simple/" | bash
+echo "pip3 install pymysql -i https://pypi.douban.com/simple/" | bash
+echo "pip3 install -i https://pypi.douban.com/simple/ channels==1.1.8" | bash
+echo "pip3 install -i https://pypi.douban.com/simple/ asgi_redis" | bash
+
+mkdir -r /home/judge/log
+
+python3 manage.py makemigrations
+python3 manage.py migrate
+python3 manage.py loaddata init_data.json
+python3 manage.py createsuperuser
+python3 manage.py collectstatic
+
+chown -R judge:judge /home/judge/log
+
+ln -s /etc/nginx/sites-available/onlineTestNginx.conf /etc/nginx/sites-enabled/
+rm /etc/nginx/sites-enabled/default
+
+systemctl enable /etc/systemd/system/daphne.service
+systemctl enable /etc/systemd/system/runworker.service
+
+service systemd restart
+service nginx restart
+
+service php5-fpm stop
+service memcached stop

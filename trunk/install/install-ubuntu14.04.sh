@@ -3,7 +3,7 @@ apt-get update
 apt-get install -y subversion
 /usr/sbin/useradd -m -u 1536 judge
 cd /home/judge/
-svn co https://github.com/zhblue/hustoj/trunk/trunk/ src
+svn co https://github.com/xuejing80/hustoj/trunk/trunk/ src
 
 echo 'mysql-server-5.5 mysql-server/root_password password ""' | sudo debconf-set-selections
 echo 'mysql-server-5.5 mysql-server/root_password_again password ""' | sudo debconf-set-selections
@@ -38,8 +38,8 @@ else
 	sed -i "s:include /etc/nginx/mime.types;:client_max_body_size    80m;\n\tinclude /etc/nginx/mime.types;:g" /etc/nginx/nginx.conf
 fi
 
-mysql -h localhost -u$USER -p$PASSWORD < src/install/db.sql
-echo "insert into jol.privilege values('admin','administrator','N');"|mysql -h localhost -u$USER -p$PASSWORD 
+#mysql -h localhost -u$USER -p$PASSWORD < src/install/db.sql
+#echo "insert into jol.privilege values('admin','administrator','N');"|mysql -h localhost -u$USER -p$PASSWORD 
 
 sed -i "s:root /usr/share/nginx/html;:root /home/judge/src/web;:g" /etc/nginx/sites-enabled/default
 sed -i "s:index index.html:index index.php:g" /etc/nginx/sites-enabled/default
@@ -53,6 +53,13 @@ sed -i "s/post_max_size = 8M/post_max_size = 80M/g" /etc/php5/fpm/php.ini
 sed -i "s/upload_max_filesize = 2M/upload_max_filesize = 80M/g" /etc/php5/fpm/php.ini
 /etc/init.d/php5-fpm restart
 service php5-fpm restart
+
+sed -i "s/'USER': 'root'/'USER': '$USER'/g" src/onlineTest/onlineTest/settings.py
+sed -i "s/'PASSWORD': 'root'/'PASSWORD': '$PASSWORD'/g" src/onlineTest/onlineTest/settings.py
+sed -i "s/--threads 2/--threads $CPU/g" src/install/runworker.service
+
+mysql -h localhost -u$USER -p$PASSWORD < src/install/db1.sql
+
 cd src/core
 chmod +x ./make.sh
 ./make.sh
@@ -70,4 +77,3 @@ else
 	echo "1 0 * * * /home/judge/src/install/bak.sh" >> /var/spool/cron/crontabs/root
 fi
 /usr/bin/judged
-

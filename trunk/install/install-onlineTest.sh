@@ -22,7 +22,7 @@ echo "pip3 install pymysql -i https://pypi.douban.com/simple/" | bash
 echo "pip3 install -i https://pypi.douban.com/simple/ channels==1.1.8" | bash
 echo "pip3 install -i https://pypi.douban.com/simple/ asgi_redis" | bash
 
-mkdir -r /home/judge/log
+mkdir -p /home/judge/log
 
 python3 manage.py makemigrations
 python3 manage.py migrate

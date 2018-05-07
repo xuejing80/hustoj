@@ -1,13 +1,13 @@
 iptables -D OUTPUT -m owner --uid-owner 1536 -j DROP
 cd /home/judge
 
-apt-get -y install libmysql++-dev python3 python3-pip redis-server systemd python-dev libxml2-dev libxslt1-dev zlib1g-dev
+apt-get -y install libmysql++-dev python3 python3-pip redis-server supervisor python-dev libxml2-dev libxslt1-dev zlib1g-dev
 
 pip3 install -U pip -i https://pypi.douban.com/simple/
 
 cp src/install/onlineTestNginx.conf /etc/nginx/sites-available
-cp src/install/daphne.service /etc/systemd/system/
-cp src/install/runworker.service /etc/systemd/system/
+cp src/install/daphne.conf /etc/supervisor/conf.d/
+cp src/install/runworker.conf /etc/supervisor/conf.d/
 
 cp -r src/onlineTest /home/judge
 chown -R judge:judge /home/judge/onlineTest
@@ -35,10 +35,7 @@ chown -R judge:judge /home/judge/log
 ln -s /etc/nginx/sites-available/onlineTestNginx.conf /etc/nginx/sites-enabled/
 rm /etc/nginx/sites-enabled/default
 
-systemctl enable /etc/systemd/system/daphne.service
-systemctl enable /etc/systemd/system/runworker.service
-
-service systemd restart
+service supervisor restart
 service nginx restart
 
 service php5-fpm stop

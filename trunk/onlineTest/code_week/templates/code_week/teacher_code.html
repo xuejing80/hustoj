@@ -127,8 +127,16 @@
                 dirs[data[i]['id']] = data[i]['text'];
             }
             dirVue.options = options;
-            dirVue.selected = data[0]['id'];
-            dataToNodes(JSON.parse(data[0]['text']));
+            var historyId = window.location.pathname.substring(window.location.pathname.lastIndexOf('-')+1, window.location.pathname.length - 1);
+            if (historyId === '0' || !dirs.hasOwnProperty(historyId)) {
+                dirVue.selected = data[0]['id'];
+                dataToNodes(JSON.parse(data[0]['text']));
+            }
+            else
+            {
+                dirVue.selected = historyId;
+                dataToNodes(JSON.parse(dirs[historyId]));
+            }
         }
         function handleReportHistory(data) // 用于处理获取到的课程报告信息
         {

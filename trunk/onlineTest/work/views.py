@@ -64,7 +64,9 @@ def add_homework(request):
                             total_score=request.POST['total_score'],
                             creater=request.user,
                             work_kind=request.POST['work_kind'],
+                            resubmit_number = request.POST['resubmit_number'],
                             allow_resubmit = True if request.POST['allow_resubmit'] == '1' else False,
+                            allow_random = True if request.POST['allow_random'] == '1' else False,
                             allow_similarity = True if request.POST['allow_similarity'] == '1' else False)
         homework.save()
         return redirect(reverse("homework_detail", args=[homework.pk]))
@@ -250,7 +252,10 @@ def update_public_homework(request, pk):
         homework.total_score=request.POST['total_score']
         homework.work_kind=request.POST['work_kind']
         homework.allow_resubmit = True if request.POST['allow_resubmit'] == '1' else False
-        allow_similarity = True if request.POST['allow_similarity'] == '1' else False
+        homework.allow_random = True if request.POST['allow_random'] == '1' else False
+        homework.allow_similarity=True if request.POST['allow_similarity'] == '1' else False
+        # 新增
+        homework.resubmit_number = request.POST['resubmit_number']
         homework.save()
         return redirect(reverse("homework_detail", args=[homework.pk]))
     else:
@@ -259,6 +264,8 @@ def update_public_homework(request, pk):
                    'start_time': homework.start_time,
                    'end_time': homework.end_time, 'title': '修改公共作业" ' + homework.name + '"',
                    'work_kind': homework.work_kind,
+                   'resubmit_number': homework.resubmit_number,
+                   'allow_random': '1' if homework.allow_random else '0',
                    'allow_resubmit': '1' if homework.allow_resubmit else '0',}
     return render(request, 'homework_add.html', context=context)
 
@@ -270,6 +277,8 @@ def update_my_homework(request, pk):
     :return: 私有作业详细页面
     """
     homework = get_object_or_404(MyHomework, pk=pk)
+    if request.user != homework.creater and request.user.is_admin!=True:
+        raise PermissionDenied
     if request.method == 'POST':
         homework.name = request.POST['name']
         homework.choice_problem_ids = request.POST['choice-problem-ids']
@@ -290,14 +299,17 @@ def update_my_homework(request, pk):
         homework.allow_similarity = True if request.POST['allow_similarity'] == '1' else False
         homework.work_kind = request.POST['work_kind']
         #2017年9月新增功能
-        tiankong_problem_ids = request.POST['tiankong-problem-ids'],
-        gaicuo_problem_ids = request.POST['gaicuo-problem-ids'],
+        tiankong_problem_ids = request.POST['tiankong-problem-ids']
+        gaicuo_problem_ids = request.POST['gaicuo-problem-ids']
+        # 新增
+        homework.resubmit_number = request.POST['resubmit_number']
         homework.save()
         return redirect(reverse('my_homework_detail', args=[homework.pk]))
     else:
         context = {'languages': homework.allowed_languages, 'classnames': ClassName.objects.all(),
                    'name': homework.name, 'courser_id': homework.courser.id, 'start_time': homework.start_time,
                    'end_time': homework.end_time, 'title': '修改我的作业"' + homework.name + '"',
+                   'resubmit_number': homework.resubmit_number,
                    'allow_resubmit': '1' if homework.allow_resubmit else '0',
                    'allow_random' : '1' if homework.allow_random else '0',
                    'allow_similarity' : '1' if homework.allow_similarity else '0',
@@ -324,6 +336,13 @@ def show_homework_result(request, id=0):
     wrong_info = homework_answer.wrong_choice_problems_info.split(',')
     homework = homework_answer.homework
     homework_answers = homework.homeworkanswer_set.all().order_by('create_time')
+    banjiList = []
+    for banji in homework.banji.all():
+        students = banji.students.all()
+        if homework_answer.creator in students:
+            banjiList.append(banji.id)
+            break
+    homewoek_answers = homework_answers.filter(creator__banJi_students__in=BanJi.objects.filter(id__in=banjiList))
     choice_problems = []
     problems = []
     tiankong_problems = []
@@ -360,7 +379,7 @@ def show_homework_result(request, id=0):
                 if allow_similarity:
                     if result == 4:
                         score = total_score
-                    else:               
+-                   else:
                         score = int(get_similarity(solution.solution_id)*total_score)
                 else:
                     if result == 4:
@@ -493,7 +512,12 @@ def do_homework(request, homework_id=0):
                     homeworkAnswer.judged = False
             else:
                 homework.finished_students.add(request.user)
+                # 新增
                 homeworkAnswer = HomeworkAnswer(creator=request.user, homework=homework)
+                homeworkAnswer.remained_number = homework.resubmit_number
+                # 新增
+        homeworkAnswer.remained_number -= 1
+
         homeworkAnswer.save()
 
         # 判断选择题，保存错误选择题到目录
@@ -596,10 +620,10 @@ def do_homework(request, homework_id=0):
             'info': '对不起，本作业(ID={})中请求的程序改错题(ID={})不在题库中，请及时联系管理员：'.format(homework_id,id) + settings.CONTACT_INFO})
         logger.info(log + "，执行结果：成功")
         return render(request, 'do_homework.html',
-                      context={'homework': homework, 'problemsType': ['编程题','程序填空题','程序改错题'],
-                               'choice_problems': choice_problems,
-                               'problemsList':[problems, tiankong_problems, gaicuo_problems],
-                               'title': homework.name, 'work_kind': homework.work_kind})
+                        context={'homework': homework, 'problemsType': ['编程题','程序填空题','程序改错题'],
+                                'choice_problems': choice_problems,
+                                'problemsList':[problems, tiankong_problems, gaicuo_problems],
+                                'title': homework.name, 'work_kind': homework.work_kind, 'remained_number': remained_number})
 
 @permission_required('work.add_banji')
 def add_banji(request):
@@ -777,7 +801,10 @@ def copy_to_my_homework(request):
                                   allowed_languages=old_homework.allowed_languages,
                                   allow_resubmit=old_homework.allow_resubmit,
                                   allow_similarity=old_homework.allow_similarity,
-                                  total_score=old_homework.total_score)  # todo 有更好的方法
+                                  allow_random=old_homework.allow_random,
+                                  work_kind=old_homework.work_kind,
+                                  total_score=old_homework.total_score,  # todo 有更好的方法
+                                  resubmit_number = old_homework.resubmit_number)
             homework.save()
     except:
         logger_request.exception("Exception Logged")
@@ -1337,6 +1364,7 @@ def add_myhomework(request):
                               total_score=request.POST['total_score'],
                               creater=request.user,
                               allow_resubmit=allow_resubmit,
+                              resubmit_number = request.POST["resubmit_number"],
                               work_kind=request.POST['work_kind'])
         homework.save()
         return redirect(reverse("my_homework_detail", args=[homework.pk]))

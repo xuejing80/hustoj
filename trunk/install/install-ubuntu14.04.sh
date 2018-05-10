@@ -56,7 +56,7 @@ service php5-fpm restart
 
 sed -i "s/'USER': 'root'/'USER': '$USER'/g" src/onlineTest/onlineTest/settings.py
 sed -i "s/'PASSWORD': 'root'/'PASSWORD': '$PASSWORD'/g" src/onlineTest/onlineTest/settings.py
-sed -i "s/--threads 2/--threads $CPU/g" src/install/runworker.service
+sed -i "s/--threads 2/--threads $CPU/g" src/install/runworker.conf
 
 mysql -h localhost -u$USER -p$PASSWORD < src/install/db1.sql
 

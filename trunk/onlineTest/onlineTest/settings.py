@@ -142,7 +142,7 @@ USE_L10N = True
 # email配置#########################################
 EMAIL_HOST = 'smtp.163.com'  # SMTP地址
 EMAIL_PORT = 25  # SMTP端口
-EMAIL_HOST_USER = 'xuejing_cn@163.com'  # 我自己的邮箱
+EMAIL_HOST_USER = 'youremail@163.com'  # 我自己的邮箱
 EMAIL_HOST_PASSWORD = 'password'  # 我的邮箱密码
 EMAIL_SUBJECT_PREFIX = '程序设计类课程作业平台'  # 为邮件Subject-line前缀,默认是'[django]'
 EMAIL_USE_TLS = True  # 与SMTP服务器通信时，是否启动TLS链接(安全链接)。默认是false
@@ -215,10 +215,12 @@ LOGGING = {
             'formatter':'verbose',
             'encoding':'UTF-8',
         },
-        'all':{
+        'detail':{
             'level':'INFO',
-            'class':'logging.FileHandler',
-            'filename': os.path.join('/home/judge/log/','all.log'),
+            'class':'logging.handlers.TimedRotatingFileHandler',
+            'filename': os.path.join('/home/judge/log/','detail.log'),
+            'when': 'D',
+            'interval': 1,
             'formatter':'verbose',
             'encoding':'UTF-8',
         },
@@ -232,14 +234,14 @@ LOGGING = {
     },
     'loggers': {
         'django': {
-            'handlers': ['file','all'],
+            'handlers': ['file','detail'],
             'level': 'INFO',
             'propagate': False
         },
         'django.request':{
             'handlers':['request'],
             'level':'WARNING',
-            'propagate':True,
+            'propagate': False,
         },
     }
 }

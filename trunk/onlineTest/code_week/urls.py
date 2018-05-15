@@ -46,4 +46,5 @@ urlpatterns = [
     url(r'^teacher-download-tar-(?P<courseId>\d+)/', teacherDownloadTar, name='teacher_download_tar'),
     url(r'^course-latest-info-(?P<courseId>\d+)/', teacherViewLatestInfo, name='teacher_latest_info'),
     url(r'^teacher-get-latest-info-(?P<courseId>\d+)', teacherGetLatestInfo, name='teacher_get_latest_info'),
+    url(r'^teacher-get-contribution-(?P<groupId>\d+)', teacherGetContribution, name='teacher_get_contribution'),
 ]

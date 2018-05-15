@@ -1254,6 +1254,7 @@ def teacher_read_code(request, courseId, groupId):
     problem = None
     if group.selectedProblem:
         problem = group.selectedProblem.title
+    members.sort()
     return render(request, 'code_week/teacher_code.html', {'courseId': courseId, 'groupId': groupId,
                                                            'leader': leader, 'members': members, 'problem': problem})
 
@@ -1581,6 +1582,7 @@ def tarFiles(courseId, className, teacherName):
     return good
 
 # 处理教师打包请求
+@login_required
 def handelTeacherTar(request, courseId):
     if request.method == "POST":
         course = None
@@ -1602,6 +1604,7 @@ def handelTeacherTar(request, courseId):
             return HttpResponse(2) # 打包成功，但是无法合并题目文档
 
 # 教师下载打包文件
+@login_required
 def teacherDownloadTar(request, courseId):
     course = None
     try:
@@ -1628,6 +1631,7 @@ def teacherDownloadTar(request, courseId):
         return response
 
 # 教师查看课程最新信息
+@login_required
 def teacherViewLatestInfo(request, courseId):
     course = None
     try:
@@ -1637,6 +1641,7 @@ def teacherViewLatestInfo(request, courseId):
     return render(request, 'code_week/latest_info.html', {'course': course})
 
 # 教师Ajax获取课程的最新信息
+@login_required
 def teacherGetLatestInfo(request, courseId):
     course = None
     try:
@@ -1649,6 +1654,42 @@ def teacherGetLatestInfo(request, courseId):
         results.append({"time": record.time.strftime('%Y-%m-%d %H:%M:%S'),
                         "content": record.info})
     return HttpResponse(json.dumps(results))
+
+# 返回所有提交的贡献度情况
+@login_required
+def teacherGetContribution(request, groupId):
+    group = None
+    try:
+        group = CodeWeekClassGroup.objects.get(id=groupId)
+    except:
+        return HttpResponse()
+    if not group.cwclass.teacher == request.user:
+        return HttpResponse()
+    leader = None
+    members = []
+    for stu in group.Group_member.all():
+        if stu.isLeader:
+            leader = stu.get_full_name()
+        else:
+            members.append(stu.get_full_name())
+    members.sort()
+    student_map = {}
+    student_map[leader] = 1
+    i = 2
+    for member in members:
+        student_map[member] = i
+        i = i + 1
+    records = []
+    total = group.Code_history.all().count()
+    for history in group.Code_history.all().order_by('-id'):
+        record = {}
+        record['time'] = history.submitTime.strftime('%Y/%m/%d %X')
+        for contribution_record in history.contribution.split(','):
+            name = contribution_record.split(':')[0]
+            contribution = contribution_record.split(':')[1]
+            record[student_map.get(name)] = contribution
+        records.append(record)
+    return HttpResponse(json.dumps({'rows': records, 'total': total}))
 
 # # 通过文件夹创建dict
 # import os, json

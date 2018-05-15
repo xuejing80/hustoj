@@ -12,6 +12,9 @@
     <script src="{% static 'assets/js/codemirror/mode/clike.js' %}"></script>
     <script src="{% static 'assets/js/codemirror/mode/python.js' %}"></script>
     <script src="{% static 'assets/js/vue.js' %}"></script>
+    <script src="{% static 'assets/js/bootstrap-table.min.js' %}"></script>
+    <link href="{% static 'assets/css/bootstrap-table.min.css' %}" rel="stylesheet">
+    <script src="{% static 'assets/js/bootstrap-table-zh-CN.min.js' %}"></script>
 {% endblock %}
 {% block content %}
     {% if leader %}
@@ -27,6 +30,29 @@
     {% if problem %}
         <p>选择的题目：</p>
         <label>{{ problem }}</label>
+    {% endif %}
+    {% if members %}
+        <p>贡献度表格：</p>
+         <table id="contribution_table"
+           data-toggle="table"
+           data-url="{% url 'teacher_get_contribution' groupId%}"
+           data-side-pagination="server"
+           data-classes="table table-hover table-condensed"
+           data-striped="true"
+        >
+        <thead>
+        <tr>
+            <th data-field="time">提交时间</th>
+            <th class="nobr" data-field="1">{{ leader }}</th>
+            {% with counter=2 %}
+            {% for member in members %}
+                <th class="nobr" data-field="{{ counter }}">{{ member }}</th>
+                {{ counter|add:1 }}
+            {% endfor %}
+            {% endwith %}
+        </tr>
+        </thead>
+    </table>
     {% endif %}
     <label id="courseId" hidden="true">{{ courseId }}</label>
     <div id="selects"></div>

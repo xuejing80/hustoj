@@ -1553,9 +1553,11 @@ def tarFiles(courseId, className, teacherName):
             index += 1
     os.chdir("../")
     # 尝试合并题目word文档,python-docx只支持docx
+    docsDir = os.path.join(workDir, '程序设计题')
+    os.mkdir(docsDir)
     docxs = []
     for problem in course.problems.all():
-        shutil.copy(newProblemFileName(problem.problem_id), os.path.join(workDir, problem.filename))
+        shutil.copy(newProblemFileName(problem.problem_id), os.path.join(docsDir, problem.filename))
         docxs.append(problem.filename)
     good = True
     for d in docxs:
@@ -1569,7 +1571,7 @@ def tarFiles(courseId, className, teacherName):
             doc2 = docx.Document(docxs[i])
             for element in doc2.element.body:
                 doc1.element.body.append(element)
-        doc1.save(os.path.join(workDir, "合并的文件.docx"))
+        doc1.save(os.path.join(docsDir, "合并的文件.docx"))
     shutil.make_archive(os.path.join("..",className+"_"+teacherName), format="zip", root_dir=os.path.dirname(workDir), base_dir=className+"_"+teacherName)
     os.chdir("../")
     newTar = TarHistory.objects.create(course=course,filename=className+"_"+teacherName+".zip")

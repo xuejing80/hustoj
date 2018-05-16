@@ -101,7 +101,7 @@ class HomeworkAnswer(models.Model):
     judged = models.BooleanField(default=False, verbose_name='是否已经判分？')
     # 提交次数限制
     # 新增
-    remained_number = models.IntegerField(default=100, verbose_name='提交次数限制')
+    remained_number = models.IntegerField(default=0, verbose_name='提交次数限制')
     summary = models.TextField(null=True, verbose_name='实验小结')
     teacher_comment = models.TextField(null=True, verbose_name='教师评语')
 

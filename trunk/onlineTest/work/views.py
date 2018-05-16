@@ -267,6 +267,7 @@ def update_public_homework(request, pk):
                    'work_kind': homework.work_kind,
                    'resubmit_number': homework.resubmit_number,
                    'allow_random': '1' if homework.allow_random else '0',
+                   'allow_similarity': '1' if homework.allow_similarity else '0',
                    'allow_resubmit': '1' if homework.allow_resubmit else '0',}
     return render(request, 'homework_add.html', context=context)
 

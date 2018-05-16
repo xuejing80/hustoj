@@ -1053,8 +1053,11 @@ def returnUtf8FileStr(fileName):
             return file.readlines()
         else:  # 假设是gb2312
             allLine = ""
-            for line in file.readlines():
-                allLine += line.decode('gb2312')
+            try:
+                for line in file.readlines():
+                    allLine += line.decode('gb2312')
+            except:
+                allLine = "无法编码文件"
             return allLine
 
 @login_required
@@ -1683,13 +1686,14 @@ def teacherGetContribution(request, groupId):
         i = i + 1
     records = []
     total = group.Code_history.all().count()
+    level_map = {'100': '高', '80': '较高', '60': '中等', '40': '较低', '20': '低'}
     for history in group.Code_history.all().order_by('-id'):
         record = {}
         record['time'] = history.submitTime.strftime('%Y/%m/%d %X')
         for contribution_record in history.contribution.split(','):
             name = contribution_record.split(':')[0]
             contribution = contribution_record.split(':')[1]
-            record[student_map.get(name)] = contribution
+            record[student_map.get(name)] = level_map.get(contribution)
         records.append(record)
     return HttpResponse(json.dumps({'rows': records, 'total': total}))
 

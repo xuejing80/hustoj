@@ -2,14 +2,16 @@
 {% block extrahead %}
 {% endblock %}
 {% block content %}
+    <p>
     <div class="btn-group">
-        <p>
             <a class="btn btn-primary btn-l" href="{% url 'problem_list' %}" role="button">返回列表</a>
-            <button type="button" class="btn btn-danger" id="delete" onclick="delete_item(self)">删除此题</button>
+{% if isMine %} 
+           <button type="button" class="btn btn-danger" id="delete" onclick="delete_item(self)">删除此题</button>
             <a class="btn btn-success btn-l" href="{% url 'update_problem' problem.problem_id %}"
                role="button">重新编辑</a>
-        </p>
+{% endif %}
     </div>
+    </P>
     <table id="w0" class="table table-striped table-bordered detail-view table-hover ">
         <tbody>
         <tr>
@@ -70,7 +72,7 @@
         </tr>
         <tr>
             <th>创建者</th>
-            <td>{{ problem.creater.first_name }}</td>
+            <td>{{ problem.creater }}</td>
         </tr>
         <tr>
             <th>引用权限</th>
@@ -78,4 +80,34 @@
         </tr>
         </tbody>
     </table>
+ <script>
+        $(function () {
+            $delete=$("#delete");
+            $delete.click(function () {
+                //alert(1);return false;
+                var ids = [{{ problem.id }}];
+                if (ids.length > 0) {
+                    if (confirm("确定要删除吗？")) {
+                        $.ajax({
+                            type: 'POST',
+                            url: "/judge/del-problem",
+                            data: {'ids': ids},
+                            success: function (data) {
+                                if (data == 1) {
+                                    location.replace("{% url 'problem_list' %}");
+                                } else {
+                                    alert('删除失败');
+                                }
+                            },
+                            error: function () {
+                                alert("删除失败")
+                            }
+                        });
+                    }
+                } else {
+                    alert('您尚未选择题目')
+                }
+            });
+        });
+    </script>
 {% endblock %}

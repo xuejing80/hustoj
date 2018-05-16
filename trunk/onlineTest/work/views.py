@@ -379,7 +379,7 @@ def show_homework_result(request, id=0):
                 if allow_similarity:
                     if result == 4:
                         score = total_score
--                   else:
+                    else:
                         score = int(get_similarity(solution.solution_id)*total_score)
                 else:
                     if result == 4:

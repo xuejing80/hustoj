@@ -517,9 +517,6 @@ def do_homework(request, homework_id=0):
                 # 新增
                 homeworkAnswer = HomeworkAnswer(creator=request.user, homework=homework)
                 homeworkAnswer.remained_number = homework.resubmit_number
-                # 新增
-        homeworkAnswer.remained_number -= 1
-
         homeworkAnswer.save()
 
         # 判断选择题，保存错误选择题到目录

@@ -39,6 +39,12 @@
 
 
     <script language="javascript" type="text/javascript">
+        function geturl(name){
+            var reg = new RegExp("(^|&)"+name+"=([^&]*)(&|$)");
+            var r=window.location.search.substr(1).match(reg);
+            if(r!=null) return unescape(r[2]);
+            return "{% url 'index' %}";
+        }
         $.ajaxSetup({
             data: {csrfmiddlewaretoken: '{{ csrf_token }}'},
         });
@@ -56,7 +62,7 @@
                     var errors = data["errors"];
                     var code = eval(data["code"]);
                     if (code==0) {
-			location.href = "{% url 'index' %}";
+			location.href = geturl("next");
                     }
                     else {
                         if(code==1){
@@ -66,7 +72,7 @@
                             if(confirm("为保证您的账号安全，请修改您的邮箱和密码！")==true)
                                 location.href = "{% url 'change_email' %}";
                             else
-                                location.href = "{% url 'index' %}";;
+                                location.href = geturl("next");
                         }
                     }
 

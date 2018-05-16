@@ -43,6 +43,7 @@ class HomeWork(models.Model):
     allow_resubmit = models.BooleanField(default=True, verbose_name='是否允许重复提交作业>？')
     resubmit_number = models.IntegerField(default=100, verbose_name="提交次数限制")
     allow_similarity = models.BooleanField(default=True, verbose_name='是否开启相似度判分>？')
+    allow_random = models.BooleanField(default=True, verbose_name='是否打乱选择题选项顺序>？')
     def __str__(self):
         return str(self.id)
 

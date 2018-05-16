@@ -622,10 +622,10 @@ def do_homework(request, homework_id=0):
         # try:
         homeworkAnswers = HomeworkAnswer.objects.filter(creator=request.user, homework=homework)
         if len(homeworkAnswers) == 0:
-            remained_number = homework.resubmit_number - 1
+            remained_number = homework.resubmit_number
         else:
             last_homeworkAnswer = homeworkAnswers.order_by('-create_time') [0]
-            remained_number = last_homeworkAnswer.remained_number - 1
+            remained_number = last_homeworkAnswer.remained_number
         # 第一次请求作业
 
         if remained_number < 0:

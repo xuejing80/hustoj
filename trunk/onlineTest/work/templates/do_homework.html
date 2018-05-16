@@ -23,63 +23,111 @@
 {% csrf_token %}
 <input type="hidden" name="homework_id" size="20" value="{{ homework.id }}"/>
 
+
+<script type="text/javascript">
+/*原生的js写法*/
+var p=0;   //默认题目是0
+var len;  //题目数
+function showdiv(div_name,type)  //div_name是题目前缀，type是判断上一题还是下一题
+{
+   if(type==0){ p-=1;}
+   else { p+=1; }
+   show_t(div_name,p);
+   //console.log(p);
+   if(p==0) //当是第0题时上一题按钮禁止
+   {
+       document.getElementById("forw").disabled = true;
+   }
+   else if(p==len-1)  //同理 最后一题
+   {
+       document.getElementById("next").disabled = true;
+   }
+   else
+   {
+       document.getElementById("forw").disabled = false;
+       document.getElementById("next").disabled = false;
+   }
+
+
+}
+function show_t(div_name,id){ //只显示id所指示的题目
+     for(var i=0;i<len;i++){
+        if(i!=id){ document.getElementById(div_name+i).style.display='none' }
+        else{ document.getElementById(div_name+i).style.display='block' }
+     }
+}
+</script>
+
+
+
+
 {% if choice_problems %}
 <h2>选择题</h2>
 <div class="panel-group" id="accordion" role="tablist" aria-multiselectable="true">
+    <p id="demo">A Paragraph.</p>
+<script type="text/javascript">
+    var i=0;   //提供题目序号
+    var _id;  //组合序号
+    var code="";
     {% for choice_problem in choice_problems %}
-	<div class="panel panel-default" name='sss'>
-	    <div class="panel-heading" role="tab" id="heading{{ choice_problem.detail.id }}">
-		<h4 class="panel-title">
-		    <a style="line-height:150%" {% if not forloop.first %}class="collapsed"{% endif %} role="button"
-		       data-toggle="collapse"
-		       data-parent="#accordion"
-		       href="#collapse{{ choice_problem.detail.id }}"
-		       aria-expanded="{% if forloop.first %}true{% else %}false{% endif %}"
-		       aria-controls="collapse{{ choice_problem.detail.id }}">
-		       {{ forloop.counter }}. ({{ choice_problem.score }}分) {{ choice_problem.detail.title|myFilter|safe|linebreaksbr }}
-		    </a>
-		</h4>
-	    </div>
-	    <div id="collapse{{ choice_problem.detail.id }}"
- 		 class="panel-collapse collapse {% if forloop.first %}in{% endif %}" role="tabpanel"
-		 aria-labelledby="heading{{ choice_problem.detail.id }}">
-		<div class="panel-body" name='nhh'>
+    _id="show"+i++;  //组合id
+    code+=" "+     //合并html代码
+	"<div class='panel panel-default' name='sss' id="+_id+" style='display:none;'>"+
+	'    <div class="panel-heading" role="tab" id="heading{{ choice_problem.detail.id }}">'+
+		'<h4 class="panel-title">'+
+		  '  <a style="line-height:150%" {% if not forloop.first %}class="collapsed"{% endif %} role="button"'+
+		  '     data-toggle="collapse"'+
+		   '    href="#collapse{{ choice_problem.detail.id }}"'+
+		   '    aria-expanded="true"'+
+		   '    aria-controls="collapse{{ choice_problem.detail.id }}">'+
+		   '    {{ forloop.counter }}. ({{ choice_problem.score }}分) {{ choice_problem.detail.title|myFilter|safe|linebreaksbr }}'+
+		  '  </a>'+
+		'</h4>'+
+	   ' </div>'+
+	   ' <div id="collapse{{ choice_problem.detail.id }}"'+
+ 		' class="panel-collapse collapse in " role="tabpanel"'+
+		' aria-labelledby="heading{{ choice_problem.detail.id }}">'+
+		'<div class="panel-body" name="nhh">'+
 		    <!--<div class="row">-->
-			<div class="col-lg-6 col-md-6">
-			    <label class="radio-inline">
-				<input type="radio" id="selection-{{ choice_problem.detail.id }}" value="a"
-				       name="selection-{{ choice_problem.detail.id }}">
-				{{ choice_problem.detail.a|myFilter|safe|linebreaks }}
-			    </label>
-			</div>
-			<div class="col-lg-6 col-md-6">
-			    <label class="radio-inline">
-				<input type="radio" id="selection-{{ choice_problem.detail.id }}" value="b"
-				       name="selection-{{ choice_problem.detail.id }}">
-				{{ choice_problem.detail.b|myFilter|safe|linebreaks }}
-			    </label>
-			</div>
-		    <!--</div>
-		    <div class="row">-->
-			<div class="col-lg-6 col-md-6">
-			    <label class="radio-inline">
-				<input type="radio" id="selection-{{ choice_problem.detail.id }}" value="c"
-				       name="selection-{{ choice_problem.detail.id }}">
-				{{ choice_problem.detail.c|myFilter|safe|linebreaks }}
-			    </label>
-			</div>
-			<div class="col-lg-6 col-md-6">
-			    <label class="radio-inline">
-				<input type="radio" id="selection-{{ choice_problem.detail.id }}" value="d"
-				       name="selection-{{ choice_problem.detail.id }}">
-				{{ choice_problem.detail.d|myFilter|safe|linebreaks }}
-			    </label>
-			</div>
+		'	<div class="col-lg-6 col-md-6">'+
+		'	    <label class="radio-inline">'+
+		'		<input type="radio" id="selection-{{ choice_problem.detail.id }}" value="a"'+
+		'		       name="selection-{{ choice_problem.detail.id }}">'+
+		'		{{ choice_problem.detail.a|myFilter|safe|linebreaks }}'+
+		'	    </label>'+
+		'	</div>'+
+		'	<div class="col-lg-6 col-md-6">'+
+		'	    <label class="radio-inline">'+
+		'		<input type="radio" id="selection-{{ choice_problem.detail.id }}" value="b"'+
+		'		       name="selection-{{ choice_problem.detail.id }}">'+
+		'		{{ choice_problem.detail.b|myFilter|safe|linebreaks }}'+
+		'	    </label>'+
+		'	</div>'+
+		   
+		'	<div class="col-lg-6 col-md-6">'+
+		'	    <label class="radio-inline">'+
+		'		<input type="radio" id="selection-{{ choice_problem.detail.id }}" value="c"'+
+		'		       name="selection-{{ choice_problem.detail.id }}">'+
+		'		{{ choice_problem.detail.c|myFilter|safe|linebreaks }}'+
+		'	    </label>'+
+		'	</div>'+
+		'	<div class="col-lg-6 col-md-6">'+
+		'	    <label class="radio-inline">'+
+		'		<input type="radio" id="selection-{{ choice_problem.detail.id }}" value="d"'+
+		'		       name="selection-{{ choice_problem.detail.id }}">'+
+		'		{{ choice_problem.detail.d|myFilter|safe|linebreaks }}'+
+		'	    </label>'+
+		'	</div>'+
 		    <!--</div>-->
-		</div>
-	    </div>
-	</div>
+		'</div>'+
+	  '  </div>'+
+	'</div>'
     {% endfor %}
+    document.getElementById("demo").innerHTML=code; //html组合完毕，显示
+    len=i;
+    show_t("show",0); //默认显示第一个题目
+
+</script>
 </div>
 {% endif %}
 
@@ -194,6 +242,8 @@
         </div>
 
     </form>
+    <button class="btn btn-default" id="forw" type="button" onclick="showdiv('show',0)" disabled="disabled">上一题</button>
+    <button class="btn btn-default" id="next" type="button" onclick="showdiv('show',1)">下一题</button>
     <button class="btn btn-primary" onclick="check();return false;">提交作业</button>
     <button class="btn btn-default" onclick="save();return false;">暂存作业，不提交</button>
 
@@ -207,19 +257,16 @@
             5: 'Bash',
             6: 'Python'
         };
-
         function sync_code() {
             //使用code mirror之后用于同步输入内容到textarea
             $('.code-input').each(function (index, element) {
                 element.value = editors[element.id].getValue()
             });
         }
-
         var allowed_languages = '{{ homework.allowed_languages }}'.split(',');
         for (var i = 0; i < allowed_languages.length; i++) {
             $(".language").append("<option value=\"" + allowed_languages[i] + "\">" + languages[allowed_languages[i]] + "</option>");
         }
-
         var mylang = new Array()
         $('.language').each(function(index,element) {
             mylang[index] = element.value;
@@ -239,7 +286,6 @@
                 });
             });
         });
-
         jQuery(document).ready(function ($) {
             editors = {};
             $('.code-input').each(function (index, element) {
@@ -261,7 +307,6 @@
                 );
             });
         });
-
         function check() {
             sync_code();
             if(typeof($('#summary').val())!='undefined' && $('#summary').val().length<200){
@@ -386,7 +431,6 @@
             });
             return false;
         }
-
         //导入暂存作业数据
         $(function () {
             $.ajax({
@@ -427,7 +471,6 @@
                 }
             })
         })
-
         $('#summary').on("keyup",function(){
             $('#textNum').text($('#summary').val().length);//这句是在键盘按下时，实时的显示字数
             if($('#summary').val().length > 500){
@@ -435,13 +478,13 @@
                 $('#summary').val($('#summary').val().substring(0,500));//长度大于1000时截取钱1000个字符
             }
         })
-     
+
       {% if homework.allow_random %}
        $(document).ready(function(){　　
          var arr = new Array(1, 2, 3, 4);
          var ul = document.getElementsByName("nhh");
-         var UL = document.getElementsByName("sss"); 
-         var len1 = arr.length;  
+         var UL = document.getElementsByName("sss");
+         var len1 = arr.length;
          var len2 = UL.length;
          var len = len1;  　　　　
               for (var i = 0; i < len2; i++)
@@ -455,7 +498,7 @@
               }
       })
       {% endif %}
-
     </script>
 
 {% endblock %}
+

@@ -1,0 +1,84 @@
+{% extends 'base.html' %}
+{% comment %}用于老师查看课程的最新信息，例如小组成立，加入组员，提交代码，提交课程报告等{% endcomment %}
+{% block extrahead %}
+    {% load static %}\
+    <script src="{% static 'assets/js/bootstrap-table.min.js' %}"></script>
+    <link href="{% static 'assets/css/bootstrap-table.min.css' %}" rel="stylesheet">
+    <script src="{% static 'assets/js/bootstrap-table-zh-CN.min.js' %}"></script>
+    <script src="{% static 'assets/js/vue.js' %}"></script>
+{% endblock %}
+{% block content %}
+    <label id="course_id" hidden="true">{{ course.id }}</label>
+    <ol id="info-list">
+
+    </ol>
+
+    <script>
+        var ws_scheme = window.location.protocol == "https:" ? "wss" : "ws";
+        var chatsock = new WebSocket(ws_scheme + '://' + window.location.host  + window.location.pathname);
+
+        $(document).ready(function(){
+            $.ajax({
+                type: "GET",
+                url: '{% url 'teacher_get_latest_info' course.id %}',
+                dataType: "json",
+                success:function(data) {
+                    for (var i = 0; i < data.length; ++i)
+                    {
+                        displayInfo(data[i]);
+                    }
+                }
+            });
+        });
+        chatsock.onmessage = handleMessage;
+        function handleMessage(message) {
+            displayInfo(JSON.parse(message.data));
+        }
+        function displayInfo(data) { // 显示收到的消息
+            var content = JSON.parse(data["content"]);
+            var action = content["action"];
+            var toPrepend = "<li>" + data["time"] + "&nbsp";
+            if (action === "c") // 创建了小组
+            {
+                toPrepend += content["leader"] + " 创建了小组</li>";
+            }
+            else if (action === "j") // 某某加入了小组
+            {
+                toPrepend += content["member"] + " 加入了 " + content["leader"] + " 的小组</li>";
+            }
+            else if (action === "d") // 删除了分组
+            {
+                toPrepend += content["leader"] + " 解散了分组</li>";
+            }
+            else if (action === "r") // 移除组员
+            {
+                toPrepend += content["leader"] + " 将 " + content["member"] + "移除出小组</li>";
+            }
+            else if (action === 'choose') // 选题
+            {
+                toPrepend += content["leader"] + " 的小组选择了 " + content["title"] + " 题目</li>";
+            }
+            else if (action === "reChoose") // 重新选题
+            {
+                toPrepend += content["leader"] + " 的小组重新选择了 " + content["title"] + " 题目</li>";
+            }
+            else if (action === "noChoose") // 恢复未选题状态
+            {
+                toPrepend += content["leader"] + " 的小组恢复到未选题状态</li>";
+            }
+            else if (action === "code") // 提交代码
+            {
+                var courseId = $('#course_id').text();
+                var readUrl = "'/code_week/teacher-read-code-" + courseId.toString() + "-" + content["groupId"].toString() + "-" +content["id"].toString() + "/'";
+                toPrepend += content["leader"] + " 的小组提交了代码 <button onclick=\"javascript:window.open(" + readUrl + ")\">查看代码</li>";
+            }
+            else if (action === "report") // 提交报告
+            {
+                var courseId = $('#course_id').text();
+                var downloadUrl = "'/code_week/teacher-download-report-" + courseId.toString() + "-" + content["id"].toString() + "/'";
+                toPrepend += content["leader"] + " 的小组提交了报告 <button onclick=\"location=" + downloadUrl + "\">下载报告</li>";
+            }
+            $('#info-list').prepend(toPrepend);
+        }
+    </script>
+{% endblock %}

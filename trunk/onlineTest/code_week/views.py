@@ -18,6 +18,14 @@ from enum import Enum, unique
 import pdb
 import docx
 import xlwt
+import channels
+
+def updateLatestInfo(courseId, infoObject):
+    # 将消息发送给教师最新消息查看页面
+    channels.Group('codeweekTeacherLatestInfo-' + courseId).send(
+        {'text': json.dumps({"time": infoObject.time.strftime('%Y-%m-%d %H:%M:%S'),
+                             "content": infoObject.info})}
+    )
 
 @login_required
 def course_list_for_student(request):
@@ -1006,6 +1014,9 @@ def submit_code(request, courseId):
                 # 将现在小组的代码历史指向新建的
                 student.group.nowCodeDir = newCodeHistory
                 student.group.save()
+                infoText = {'action': 'code', 'leader': student.get_full_name(), 'id': newCodeHistory.id, 'groupId': student.group.id}
+                infoObject = LatestInfo.objects.create(course=student.codeWeekClass, info=json.dumps(infoText))
+                updateLatestInfo(courseId, infoObject)
                 return render(request, 'code_week/submit_code.html', {'members': student.group.Group_member.all(),
                                                                       'course': student.codeWeekClass})
         else:
@@ -1032,6 +1043,20 @@ def get_dir_struct(request, courseId):
     else:
         return HttpResponse(json.dumps({}))
 
+def returnUtf8FileStr(fileName):
+    chardetResult = get_encoding(fileName)
+    print(chardetResult)
+    with open(fileName, 'rb') as file:
+        if chardetResult == None:
+            return ""
+        elif chardetResult == "utf-8" or chardetResult == 'ascii' or chardetResult == 'UTF-8-SIG':
+            return file.readlines()
+        else:  # 假设是gb2312
+            allLine = ""
+            for line in file.readlines():
+                allLine += line.decode('gb2312')
+            return allLine
+
 @login_required
 # 返回代码文件
 def get_code_file(request, fileId):
@@ -1044,8 +1069,7 @@ def get_code_file(request, fileId):
     for member in file.group.Group_member.all():
         if request.user == member.student:
             fileName = singleFileName(fileId)
-            file = open(fileName, 'rb')
-            return HttpResponse(file.readlines())
+            return HttpResponse(returnUtf8FileStr(fileName))
     return HttpResponse("")
 
 @login_required
@@ -1104,6 +1128,9 @@ def handle_upload_report(request, courseId):
             with open(saveFilename, 'wb+') as destination:
                 for chunk in file.chunks():
                     destination.write(chunk)
+            infoText = {'action': 'report', 'leader': student.get_full_name(), 'id': newReportFile.id}
+            infoObject = LatestInfo.objects.create(course=student.codeWeekClass, info=json.dumps(infoText))
+            updateLatestInfo(courseId, infoObject)
             return HttpResponseRedirect(reverse('submit_code', args=(student.codeWeekClass.id,)))
     else:
         return render(request, 'warning.html', {"info":"不支持的HTTP方法"})
@@ -1227,6 +1254,7 @@ def teacher_read_code(request, courseId, groupId):
     problem = None
     if group.selectedProblem:
         problem = group.selectedProblem.title
+    members.sort()
     return render(request, 'code_week/teacher_code.html', {'courseId': courseId, 'groupId': groupId,
                                                            'leader': leader, 'members': members, 'problem': problem})
 
@@ -1269,6 +1297,11 @@ def teacher_get_all_report_history(request, courseId, groupId):
         result.append({'time': record.uploadTime.strftime('%Y/%m/%d %X'),'id': record.id})
     return HttpResponse(json.dumps(result))
 
+# 判断文件编码
+def get_encoding(file):
+    with open(file, 'rb') as f:
+        return chardet.detect(f.read())['encoding']
+
 # 老师下载自己课程的某个组提交的代码
 @login_required
 def teacher_get_single_code(request, courseId, fileId):
@@ -1285,8 +1318,7 @@ def teacher_get_single_code(request, courseId, fileId):
         return HttpResponse("", status=404)
     if file.group.cwclass == course:
         fileName = singleFileName(fileId)
-        file = open(fileName, 'rb')
-        return HttpResponse(file.readlines())
+        return HttpResponse(returnUtf8FileStr(fileName))
 
 # 老师下载自己课程的某个组的某次提交的代码打包文件
 @login_required
@@ -1521,9 +1553,11 @@ def tarFiles(courseId, className, teacherName):
             index += 1
     os.chdir("../")
     # 尝试合并题目word文档,python-docx只支持docx
+    docsDir = os.path.join(workDir, '程序设计题')
+    os.mkdir(docsDir)
     docxs = []
     for problem in course.problems.all():
-        shutil.copy(newProblemFileName(problem.problem_id), os.path.join(workDir, problem.filename))
+        shutil.copy(newProblemFileName(problem.problem_id), os.path.join(docsDir, problem.filename))
         docxs.append(problem.filename)
     good = True
     for d in docxs:
@@ -1537,7 +1571,7 @@ def tarFiles(courseId, className, teacherName):
             doc2 = docx.Document(docxs[i])
             for element in doc2.element.body:
                 doc1.element.body.append(element)
-        doc1.save(os.path.join(workDir, "合并的文件.docx"))
+        doc1.save(os.path.join(docsDir, "合并的文件.docx"))
     shutil.make_archive(os.path.join("..",className+"_"+teacherName), format="zip", root_dir=os.path.dirname(workDir), base_dir=className+"_"+teacherName)
     os.chdir("../")
     newTar = TarHistory.objects.create(course=course,filename=className+"_"+teacherName+".zip")
@@ -1550,6 +1584,7 @@ def tarFiles(courseId, className, teacherName):
     return good
 
 # 处理教师打包请求
+@login_required
 def handelTeacherTar(request, courseId):
     if request.method == "POST":
         course = None
@@ -1571,6 +1606,7 @@ def handelTeacherTar(request, courseId):
             return HttpResponse(2) # 打包成功，但是无法合并题目文档
 
 # 教师下载打包文件
+@login_required
 def teacherDownloadTar(request, courseId):
     course = None
     try:
@@ -1595,6 +1631,68 @@ def teacherDownloadTar(request, courseId):
         response['Content-Disposition'] = '''attachment;filename*= UTF-8''{0}'''.format(
             encodeFilename(latest.filename))
         return response
+
+# 教师查看课程最新信息
+@login_required
+def teacherViewLatestInfo(request, courseId):
+    course = None
+    try:
+        course = CodeWeekClass.objects.get(id=courseId, teacher=request.user)
+    except:
+        return
+    return render(request, 'code_week/latest_info.html', {'course': course})
+
+# 教师Ajax获取课程的最新信息
+@login_required
+def teacherGetLatestInfo(request, courseId):
+    course = None
+    try:
+        course = CodeWeekClass.objects.get(id=courseId, teacher=request.user)
+    except:
+        return
+    results = []
+    records = LatestInfo.objects.filter(course=course).order_by("time")
+    for record in records:
+        results.append({"time": record.time.strftime('%Y-%m-%d %H:%M:%S'),
+                        "content": record.info})
+    return HttpResponse(json.dumps(results))
+
+# 返回所有提交的贡献度情况
+@login_required
+def teacherGetContribution(request, groupId):
+    group = None
+    try:
+        group = CodeWeekClassGroup.objects.get(id=groupId)
+    except:
+        return HttpResponse()
+    if not group.cwclass.teacher == request.user:
+        return HttpResponse()
+    leader = None
+    members = []
+    for stu in group.Group_member.all():
+        if stu.isLeader:
+            leader = stu.get_full_name()
+        else:
+            members.append(stu.get_full_name())
+    members.sort()
+    student_map = {}
+    student_map[leader] = 1
+    i = 2
+    for member in members:
+        student_map[member] = i
+        i = i + 1
+    records = []
+    total = group.Code_history.all().count()
+    for history in group.Code_history.all().order_by('-id'):
+        record = {}
+        record['time'] = history.submitTime.strftime('%Y/%m/%d %X')
+        for contribution_record in history.contribution.split(','):
+            name = contribution_record.split(':')[0]
+            contribution = contribution_record.split(':')[1]
+            record[student_map.get(name)] = contribution
+        records.append(record)
+    return HttpResponse(json.dumps({'rows': records, 'total': total}))
+
 # # 通过文件夹创建dict
 # import os, json
 #

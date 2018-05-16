@@ -13,10 +13,11 @@ from .consumers import *
 # }
 
 code_week_routing = [
-    route("websocket.connect", ws_connect_teacher_detail, path=r'^/code_week/course-(?P<courseId>[^/]+)/$'),
-    route("websocket.disconnect", ws_disconnect_teacher_detail, path=r'^/code_week/course-(?P<courseId>[^/]+)/$'),
-    route("websocket.connect", ws_connect_student_detail, path=r'^/code_week/course_(?P<courseId>[^/]+)/$'),
-    route("websocket.receive", ws_receive_student_detail, path=r'^/code_week/course_(?P<courseId>[^/]+)/$'),
-    route("websocket.disconnect", ws_disconnect_student_detail, path=r'^/code_week/course_(?P<courseId>[^/]+)/$'),
-    # route('websocket.receive', consumers.)
+    route("websocket.connect", ws_connect_teacher_detail, path=r'^/code_week/course-(?P<courseId>\d+)/$'),
+    route("websocket.disconnect", ws_disconnect_teacher_detail, path=r'^/code_week/course-(?P<courseId>\d+)/$'),
+    route("websocket.connect", ws_connect_student_detail, path=r'^/code_week/course_(?P<courseId>\d+)/$'),
+    route("websocket.receive", ws_receive_student_detail, path=r'^/code_week/course_(?P<courseId>\d+)/$'),
+    route("websocket.disconnect", ws_disconnect_student_detail, path=r'^/code_week/course_(?P<courseId>\d+)/$'),
+    route("websocket.connect", ws_connect_teacher_latest_info, path=r'^/code_week/course-latest-info-(?P<courseId>\d+)/$'),
+    route("websocket.disconnect", ws_disconnect_teacher_latest_info, path=r'^/code_week/course-latest-info-(?P<courseId>\d+)/$'),
 ]

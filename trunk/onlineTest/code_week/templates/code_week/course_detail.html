@@ -58,9 +58,16 @@
                 </div>
             </div>
         </div>
+        <div class="settings-item clearfix">
+            <button class="btn btn-success" onclick="location='{% url 'teacher_latest_info' course.id %}'">查看课程最新情况</button>
+        </div>
+        <div class="settings-item clearfix">
+            <button class="btn btn-success" id="download_tar" onclick="downloadTarFile()">下载课程打包文件</button>
+        </div>
+        <div class="settings-item clearfix">
+            <a id="add_problem_student" href="{% url 'add_problem_student' course.id %}">增加选择的题目或学生</a>
+        </div>
     </div>
-    <button class="btn btn-success" id="download_tar" onclick="downloadTarFile()">下载课程打包文件</button>
-    <a id="add_problem_student" href="{% url 'add_problem_student' course.id %}">增加选择的题目或学生</a>
     <p>题目列表：</p>
     <table id="table"
            data-toggle="table"

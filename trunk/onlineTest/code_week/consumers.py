@@ -5,8 +5,8 @@ from .models import *
 import json
 from django.db import transaction
 from django.core.exceptions import ObjectDoesNotExist
-# import pdb
-from .views import TimeResult, check_time
+import pdb
+from .views import TimeResult, check_time, updateLatestInfo
 
 def sendMsgToStudent(message, text):
     # 将消息发给学生一个人，一般用于命令的反馈
@@ -151,6 +151,7 @@ def ws_receive_student_detail(message, courseId):
                 return
             else: #还没有在组中
                 result = None
+                infoObject = None
                 try:
                     with transaction.atomic():
                         # 下面创建小组并且存储操作
@@ -170,6 +171,8 @@ def ws_receive_student_detail(message, courseId):
                         result = {'action': 'c', 'groupId': newGroup.id, 'leader': student.get_full_name(), 'operationId': course.counter}
                         ClassOperation.objects.create(cwclass=course, operation_id=(course.counter),
                                                       operation=json.dumps(result))
+                        infoText = {'action': 'c', 'leader': student.get_full_name()}
+                        infoObject = LatestInfo.objects.create(course=course, info=json.dumps(infoText))
                 except:
                     #发生异常了，事务回滚，建立组的操作并没有完成
                     sendMsgToStudent(message, {'msg': 'fail'})
@@ -177,6 +180,7 @@ def ws_receive_student_detail(message, courseId):
                 # msg = {'action': 'c', 'id': newGroup.id, 'leader': student.get_full_name()}
                 sendMsgToStudent(message, {'msg': 'success'})
                 sendMsgToClass(courseId, message, result)
+                updateLatestInfo(courseId, infoObject)
 
         elif action == 'j':  # 加入分组
             #获取分组号
@@ -215,6 +219,7 @@ def ws_receive_student_detail(message, courseId):
                     sendMsgToStudent(message, result)
                 else: # 加入组并且保存这个成功的操作
                     result = None
+                    infoObject = None
                     try:
                         with transaction.atomic():
                             # 加入分组的步骤
@@ -235,11 +240,19 @@ def ws_receive_student_detail(message, courseId):
                                    'operationId': course.counter}
                             ClassOperation.objects.create(cwclass=course, operation_id=(course.counter),
                                                           operation=json.dumps(result))
+                            leaderName = None
+                            for member in group.Group_member.all():
+                                if member.isLeader:
+                                    leaderName = member.get_full_name()
+                                    break
+                            infoText = {'action': 'j', 'leader': leaderName, 'member': student.get_full_name()}
+                            infoObject = LatestInfo.objects.create(course=course, info=json.dumps(infoText))
                     except:
                         sendMsgToStudent(message, {'msg': 'fail'})
                         return
                     sendMsgToStudent(message, {'msg': 'success'})
                     sendMsgToClass(courseId, message, result)
+                    updateLatestInfo(courseId, infoObject)
 
         elif action == 'd':  # 删除分组
             # 检查是否是组长
@@ -265,6 +278,7 @@ def ws_receive_student_detail(message, courseId):
                 else: #可以删除
                     groupid = None
                     result = None
+                    infoObject = None
                     try:
                         with transaction.atomic():
                             # 删除分组的操作
@@ -273,6 +287,7 @@ def ws_receive_student_detail(message, courseId):
                             # 将学生的group属性设为None，isLeader设为False，存储
                             # 自增课程的计数值，存储
                             # 存储这次操作
+                            # pdb.set_trace()
                             courses = CodeWeekClass.objects.select_for_update().filter(
                                 id=courseId)  # 显式要求update锁，在事务结束时会自动释放
                             course = courses[0]
@@ -288,11 +303,14 @@ def ws_receive_student_detail(message, courseId):
                                    'operationId': course.counter}
                             ClassOperation.objects.create(cwclass=course, operation_id=(course.counter),
                                                           operation=json.dumps(result))
+                            infoText = {'action': 'd', 'leader': student.get_full_name()}
+                            infoObject = LatestInfo.objects.create(course=course, info=json.dumps(infoText))
                     except:
                         sendMsgToStudent(message, {'msg': 'fail'})
                         return
                     sendMsgToStudent(message, {'msg': 'success'})
                     sendMsgToClass(courseId, message, result)
+                    updateLatestInfo(courseId, infoObject)
             else:
                 result = {'msg': 'fail', 'info': '您还没有创建组'}
                 sendMsgToStudent(message, result)
@@ -319,6 +337,7 @@ def ws_receive_student_detail(message, courseId):
                     except:
                         return
                     result = None
+                    infoObject = None
                     try:
                         with transaction.atomic():
                             # 移除组员的步骤
@@ -340,6 +359,8 @@ def ws_receive_student_detail(message, courseId):
                                            'operationId': course.counter}
                                     ClassOperation.objects.create(cwclass=course, operation_id=(course.counter),
                                                                   operation=json.dumps(result))
+                                    infoText = {'action': 'r', 'member': member.get_full_name(), 'leader': student.get_full_name()}
+                                    infoObject = LatestInfo.objects.create(course=course, info=json.dumps(infoText))
                                     break
                     except:
                         result = {'msg': 'fail'}
@@ -347,6 +368,7 @@ def ws_receive_student_detail(message, courseId):
                         return
                     sendMsgToStudent(message, {'msg':'success'})
                     sendMsgToClass(courseId, message, result)
+                    updateLatestInfo(courseId, infoObject)
 
             else: # 都没有小组
                 result = {'msg' : 'fail', 'info': '您还没有加入小组'}
@@ -385,6 +407,7 @@ def ws_receive_student_detail(message, courseId):
                         sendMsgToStudent(message, result)
                         return
                     result = None
+                    infoObject = None
                     try:
                         with transaction.atomic():
                             # 选择题目的步骤
@@ -402,12 +425,15 @@ def ws_receive_student_detail(message, courseId):
                                       'groupId': student.group.id, 'operationId': course.counter}
                             ClassOperation.objects.create(cwclass=course, operation_id=(course.counter),
                                                           operation=json.dumps(result))
+                            infoText = {'action': 'choose', 'leader': student.get_full_name(), 'title': problem.title}
+                            infoObject = LatestInfo.objects.create(course=course, info=json.dumps(infoText))
                     except:
                         result = {'msg': 'fail'}
                         sendMsgToStudent(message, result)
                         return
                     sendMsgToStudent(message, {'msg':'success'})
                     sendMsgToClass(courseId, message, result)
+                    updateLatestInfo(courseId, infoObject)
 
             else: # 都没有小组
                 result = {'msg' : 'fail', 'info': '您还没有加入小组'}
@@ -430,6 +456,7 @@ def ws_receive_student_detail(message, courseId):
                     sendMsgToStudent(message, result)
                     return
                 else:
+                    infoObject = None
                     if student.group.nowCodeDir: # 已经提交过代码
                         result = {'msg': 'fail', 'info': '您已经提交过代码，无法修改题目'}
                         sendMsgToStudent(message, result)
@@ -468,12 +495,15 @@ def ws_receive_student_detail(message, courseId):
                                           'groupId': student.group.id, 'operationId': course.counter}
                                 ClassOperation.objects.create(cwclass=course, operation_id=(course.counter),
                                                               operation=json.dumps(result))
+                                infoText = {'action': 'reChoose', 'leader': student.get_full_name(), 'title': problem.title}
+                                infoObject = LatestInfo.objects.create(course=course, info=json.dumps(infoText))
                         except:
                             result = {'msg': 'fail'}
                             sendMsgToStudent(message, result)
                             return
                     sendMsgToStudent(message, {'msg': 'success'})
                     sendMsgToClass(courseId, message, result)
+                    updateLatestInfo(courseId, infoObject)
 
             else:  # 都没有小组
                 result = {'msg': 'fail', 'info': '您还没有加入小组'}
@@ -496,6 +526,7 @@ def ws_receive_student_detail(message, courseId):
                     sendMsgToStudent(message, result)
                     return
                 else:
+                    infoObject = None
                     if student.group.nowCodeDir: # 已经提交过代码
                         result = {'msg': 'fail', 'info': '您已经提交过代码，无法修改题目'}
                         sendMsgToStudent(message, result)
@@ -519,12 +550,15 @@ def ws_receive_student_detail(message, courseId):
                                           'groupId': student.group.id, 'operationId': course.counter}
                                 ClassOperation.objects.create(cwclass=course, operation_id=(course.counter),
                                                               operation=json.dumps(result))
+                                infoText = {'action': 'noChoose', 'leader': student.get_full_name()}
+                                infoObject = LatestInfo.objects.create(course=course, info=json.dumps(infoText))
                         except:
                             result = {'msg': 'fail'}
                             sendMsgToStudent(message, result)
                             return
                     sendMsgToStudent(message, {'msg': 'success'})
                     sendMsgToClass(courseId, message, result)
+                    updateLatestInfo(courseId, infoObject)
 
             else:  # 都没有小组
                 result = {'msg': 'fail', 'info': '您还没有加入小组'}
@@ -544,3 +578,47 @@ def ws_disconnect_student_detail(message, courseId):
             Group(str(message.user.id), channel_layer=message.channel_layer).discard(message.reply_channel)
     else:
         pass
+
+@channel_session_user_from_http
+def ws_connect_teacher_latest_info(message, courseId):
+    """
+    :param message: websocket的消息
+    :param courseId: 通过router正则匹配到的课程id
+    如果通过数据库查找判断了连接的用户是这个课程的教师，会允许这个连接
+    将这个wb放到channel的一个组内来实时发送消息
+    """
+    # 核查是否是该用户的课程
+    if not message.user.is_authenticated:
+        message.reply_channel.send({"accept": False})  # 断开这个wb连接
+        return
+    course = None
+    try:
+        course = CodeWeekClass.objects.get(id=courseId)  # 查询id为courseId的程序设计课
+    except ObjectDoesNotExist:
+        message.reply_channel.send({"accept": False})  # 断开这个wb连接
+        return
+    if course and course.teacher == message.user:
+        message.reply_channel.send({"accept": True})  # 允许连接
+        # 将连接加入到Group中
+        Group('codeweekTeacherLatestInfo-' + courseId, channel_layer=message.channel_layer).add(message.reply_channel)
+    else:
+        message.reply_channel.send({"accept": False})
+
+@channel_session_user
+def ws_disconnect_teacher_latest_info(message, courseId):
+    """
+    :param message: websocket的消息
+    :param courseId: 通过router正则匹配到的课程id
+    接收wb的断开连接消息，将wb从channel的老师课程组中移除
+    """
+    course = None
+    try:
+        course = CodeWeekClass.objects.get(id=courseId)
+    except ObjectDoesNotExist:
+        return
+    if course.teacher == message.user:
+        # 将连接从Group中移除
+        Group('codeweekTeacherLatestInfo-' + courseId, channel_layer=message.channel_layer).discard(message.reply_channel)
+    else:
+        pass
+

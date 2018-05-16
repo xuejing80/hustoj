@@ -60,7 +60,7 @@ function addGroup(groupid, leader, members, problem) {
         },
         methods: {
             readCode: function() {
-                var url = "/code_week/teacher-read-code-" + $("#course_id").text() + "-" + groupid + "/";
+                var url = "/code_week/teacher-read-code-" + $("#course_id").text() + "-" + groupid + "-0/";
                 window.open(url);
             }
         }

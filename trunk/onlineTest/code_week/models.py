@@ -138,3 +138,12 @@ class TarHistory(models.Model):
     tarTime = models.DateTimeField(auto_now_add=True)
     course = models.ForeignKey(CodeWeekClass)
     filename = models.CharField(max_length=200)
+
+class LatestInfo(models.Model):
+    """
+    记录某个课程的所有消息
+    """
+    id = models.AutoField(primary_key=True)
+    time = models.DateTimeField(auto_now_add=True)
+    course = models.ForeignKey(CodeWeekClass)
+    info = models.TextField("消息的详细信息")

@@ -205,9 +205,6 @@
     </form>
     <button class="btn btn-primary" onclick="check();return false;">提交作业</button>
     <button class="btn btn-default" onclick="save();return false;">暂存作业，不提交</button>
-    {% if homework.resubmit_number != 100 %}
-    <div class="alert alert-danger" role="alert"><strong>注意！</strong>此作业还能提交{{ remained_number }}次</div>
-    {% endif %}
 
     <script>
         var languages = {

@@ -271,7 +271,7 @@
     $(function () {
         var position = "{{ position }}"
         switch (position) {
-        {% if user.isTeacher in perms %}
+        {% if user.isTeacher %}
             case 'code_week_teacher_course_list':
                 $("#code_week_teacher_course_list").addClass("active");
                 $("#code_week_list").addClass("active");

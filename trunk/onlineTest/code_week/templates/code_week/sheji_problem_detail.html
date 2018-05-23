@@ -36,7 +36,6 @@
         </tr>
         <tr>
             <th>题目描述文件</th>
-{#            <td><a href="/code_week/download-{{ problem.problem_id }}">{{ problem.filename }}</a></td>#}
             <td><a href="{% url 'teacher_download_descfile' problem.problem_id %}">{{ problem.filename }}</a></td>
         </tr>
         </tbody>

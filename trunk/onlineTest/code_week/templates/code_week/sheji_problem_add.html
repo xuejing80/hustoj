@@ -47,13 +47,13 @@
                     {% endif %}
                     {{ form.editorText }}
                 </div>
-                <div class="form-group {% if form.headImg.errors %} has-error {% endif %}">
+                <div class="form-group {% if form.describeFile.errors %} has-error {% endif %}">
                     <label class="control-label"
-                               for="{% if form.headImg.errors %} inputError1 {% endif %}">{{ form.headImg.label }}</label>
-                    {% if form.headImg.errors %}
-                        <span class="text-danger pull-right">{{ form.headImg.errors }}</span>
+                               for="{% if form.describeFile.errors %} inputError1 {% endif %}">{{ form.describeFile.label }}</label>
+                    {% if form.describeFile.errors %}
+                        <span class="text-danger pull-right">{{ form.describeFile.errors }}</span>
                     {% endif %}
-                    <input type="file" name="headImg">
+                    {{ form.describeFile }}
                 </div>
                 <button type="submit" class="btn btn-success btn-lg">保存题目</button>
             </form>

@@ -18,22 +18,22 @@ class ShejiAddForm(forms.Form):
         attrs={'class': 'form-control', 'data-validation': 'required', 'data-validation-error-msg': "请输入题目标题"}))
     editorText = forms.CharField(label='题目描述',widget=forms.Textarea(
         attrs={'class': 'form-control', 'required':  'required', 'rows': '10'}))
-    headImg = forms.FileField(label='描述文件', widget=forms.FileInput(
+    describeFile = forms.FileField(label='描述文件', widget=forms.FileInput(
         attrs={'data-validation': 'required', 'data-validation-error-msg': "请上传文件"}))
     category = forms.ModelChoiceField(label='题目类别', queryset=ProblemCategory.objects.all(),
-                                       widget=forms.Select(attrs={'class': 'form-control'}), required=False)
+                                       widget=forms.Select(attrs={'class': 'form-control'}), required=True)
     def save(self, user):
         cd = self.cleaned_data
         title = cd['title']
         editorText=cd['editorText']
-        headImg=cd['headImg']
+        describeFile=cd['describeFile']
         category=cd['category']
         problem =ShejiProblem(
             creator=user,
             title=title,
             editorText=editorText,
-            filename=headImg.name,
-            content_type=headImg.content_type,
+            filename=describeFile.name,
+            content_type=describeFile.content_type,
             category=category
         )
         problem.save()
@@ -44,21 +44,21 @@ class ShejiUpdateForm(forms.Form):
         attrs={'class': 'form-control', 'data-validation': 'required', 'data-validation-error-msg': "请输入题目标题"}))
     editorText = forms.CharField(label='题目描述',widget=forms.Textarea(
         attrs={'class': 'form-control', 'required':  'required', 'rows': '10'}))
-    headImg = forms.FileField(label='更新文件', required=False)
+    newDescribeFile = forms.FileField(label='更新文件', required=False)
     category = forms.ModelChoiceField(label='题目类别', queryset=ProblemCategory.objects.all(),
                                       widget=forms.Select(attrs={'class': 'form-control'}), required=False)
     def save(self, user, problemid):
         cd = self.cleaned_data
         title = cd['title']
         editorText=cd['editorText']
-        headImg=cd['headImg']
+        newDescribeFile=cd['newDescribeFile']
         category=cd['category']
         problem = ShejiProblem.objects.get(pk=problemid)
         problem.title = title
         problem.editorText=editorText
-        if headImg:
-            problem.filename=headImg.name
-            problem.content_type = headImg.content_type
+        if newDescribeFile:
+            problem.filename=newDescribeFile.name
+            problem.content_type = newDescribeFile.content_type
         if category:
             problem.category = category
         problem.save()

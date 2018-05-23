@@ -194,7 +194,7 @@ def add_sheji(request):
         form = ShejiAddForm(request.POST,request.FILES)  # form 包含提交的数据
         print(form.errors)
         if form.is_valid():  # 如果提交的数据合法
-            f = request.FILES.get('headImg')
+            f = request.FILES.get('describeFile')
             problem = form.save(user=request.user)  # 保存题目
 
             filename = newProblemFileName(problem.problem_id)
@@ -249,7 +249,7 @@ def update_sheji(request, id):
         form = ShejiUpdateForm(request.POST,request.FILES)
         if form.is_valid():
             form.save(user=request.user, problemid=id)
-            f = request.FILES.get('headImg')
+            f = request.FILES.get('newDescribeFile')
             if f: # 重新上传了文件
                 fobj = open(newProblemFileName(id), 'wb')
                 for chrunk in f.chunks():

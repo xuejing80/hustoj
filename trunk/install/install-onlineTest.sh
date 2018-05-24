@@ -31,6 +31,7 @@ python3 manage.py createsuperuser
 python3 manage.py collectstatic
 
 chown -R judge:judge /home/judge/log
+chown -R judge:judge /home/judge/user_file
 
 ln -s /etc/nginx/sites-available/onlineTestNginx.conf /etc/nginx/sites-enabled/
 rm /etc/nginx/sites-enabled/default

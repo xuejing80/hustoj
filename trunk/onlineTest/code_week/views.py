@@ -365,7 +365,6 @@ def teacher_download(request, problemId):
         return render(request, 'warning.html', {'info': '没有此文件'})
 
 # 实现根据选题情况描述文件的下载功能
-# 实现描述文件的下载功能
 @login_required()
 def download(request, courseId):
     student = None
@@ -582,8 +581,12 @@ def teacher_update_info(request):
 # 用于教师课程界面获取已经选取的题目
 def get_select_problem(request, courseId):
     course = None
+    offset = None
+    limit = None
     try:
         course = CodeWeekClass.objects.get(id=courseId, teacher=request.user)
+        offset = int(request.GET['offset'])
+        limit = int(request.GET['limit'])
     except:
         return HttpResponse(0)
     json_data = {}
@@ -593,7 +596,7 @@ def get_select_problem(request, courseId):
 
     json_data['total'] = problems.count()
 
-    for problem in problems.all():
+    for problem in problems.all()[offset:offset + limit]:
         title = html.escape(problem.title)
         recode = {'pk': problem.pk, 'title': title, 'category': str(problem.category),
                   'update_date': problem.update_date.strftime('%Y-%m-%d %H:%M:%S'), 'creator': str(problem.creator),

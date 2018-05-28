@@ -182,7 +182,7 @@ def student_view_course(request, courseId):
 
 # 教师提交描述文件，把文件名修改为提交的id
 def newProblemFileName(fileId):
-    filename = os.path.join(USER_FILE_DIR, 'upload', os.path.basename(str(fileId)))
+    filename = os.path.join(USER_FILE_DIR, 'upload', str(fileId))
     return filename
 
 #增加程序设计题
@@ -907,7 +907,7 @@ def un_zip(file_name):
 
 # 返回保存代码单文件的路径
 def singleFileName(fileId):
-    filename = os.path.join(USER_FILE_DIR, 'allCode', os.path.basename(str(fileId)))
+    filename = os.path.join(USER_FILE_DIR, 'allCode', str(fileId))
     return filename
 
 # 将解压的文件夹中的文件编号并且复制到指定目录，并且生成目录的序列化结果
@@ -955,7 +955,7 @@ def copy_generage_dict_info(work_dir, group):
 
 # 返回保存代码压缩文件的路径
 def codeZipFileName(fileId):
-    filename = os.path.join(USER_FILE_DIR, 'codeZip', os.path.basename(str(fileId)))
+    filename = os.path.join(USER_FILE_DIR, 'codeZip', str(fileId))
     return filename
 
 # 用于计算文件hash
@@ -1014,7 +1014,7 @@ def submit_code(request, courseId):
                 random_name = ''.join(random.sample(string.digits + string.ascii_letters * 10, 8))
                 tempdir = codeZipFileName(random_name)
                 os.mkdir(tempdir)
-                filename = os.path.join(tempdir, os.path.basename(file.name))
+                filename = os.path.join(tempdir, file.name)
                 with open(filename, 'wb+') as destination:
                     for chunk in file.chunks():
                         destination.write(chunk)
@@ -1117,7 +1117,7 @@ def get_all_code_history(request, courseId):
     return HttpResponse(json.dumps(result))
 
 def newReportFilename(fileId):
-    filename = os.path.join(USER_FILE_DIR, 'reportFile', os.path.basename(str(fileId)))
+    filename = os.path.join(USER_FILE_DIR, 'reportFile', str(fileId))
     return filename
 
 @login_required
@@ -1440,12 +1440,12 @@ def teacher_check_student(request):
 
 # 用于教师打包所有材料
 def tarFiles(courseId, className, teacherName):
-    workDir = os.path.join(USER_FILE_DIR, 'codeWeekTarFiles', os.path.basename(className) + "_" + os.path.basename(teacherName))
+    workDir = os.path.join(USER_FILE_DIR, 'codeWeekTarFiles', className + "_" + teacherName)
     if os.path.exists(workDir):
         shutil.rmtree(workDir, ignore_errors=True)
     os.mkdir(workDir)
     # os.chdir(workDir)
-    studentDir = os.path.join(workDir, os.path.basename(className) + "_学生材料")
+    studentDir = os.path.join(workDir, className + "_学生材料")
     os.mkdir(studentDir)
     os.chdir(studentDir)
     course = None
@@ -1586,7 +1586,7 @@ def tarFiles(courseId, className, teacherName):
     os.mkdir(docsDir)
     docxs = []
     for problem in course.problems.all():
-        shutil.copy(newProblemFileName(problem.problem_id), os.path.join(docsDir, os.path.basename(problem.filename)))
+        shutil.copy(newProblemFileName(problem.problem_id), os.path.join(docsDir, problem.filename))
         docxs.append(problem.filename)
     good = True
     for d in docxs:
@@ -1601,10 +1601,10 @@ def tarFiles(courseId, className, teacherName):
             for element in doc2.element.body:
                 doc1.element.body.append(element)
         doc1.save(os.path.join(docsDir, "合并的文件.docx"))
-    shutil.make_archive(os.path.join("..",os.path.basename(className)+"_"+os.path.basename(teacherName)), format="zip", root_dir=os.path.dirname(workDir), base_dir=os.path.basename(className)+"_"+os.path.basename(teacherName))
+    shutil.make_archive(os.path.join("..",className+"_"+teacherName), format="zip", root_dir=os.path.dirname(workDir), base_dir=className+"_"+teacherName)
     os.chdir("../")
-    newTar = TarHistory.objects.create(course=course,filename=os.path.basename(className)+"_"+os.path.basename(teacherName)+".zip")
-    source = os.path.join(USER_FILE_DIR, "codeWeekTarFiles", os.path.basename(className)+"_"+os.path.basename(teacherName)+".zip")
+    newTar = TarHistory.objects.create(course=course,filename=className+"_"+teacherName+".zip")
+    source = os.path.join(USER_FILE_DIR, "codeWeekTarFiles", className+"_"+teacherName+".zip")
     target = os.path.join(USER_FILE_DIR, "codeWeekTarFiles", str(newTar.id))
     shutil.move(source, target)
     shutil.rmtree(workDir)

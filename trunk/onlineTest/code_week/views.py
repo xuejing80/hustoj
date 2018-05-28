@@ -182,7 +182,7 @@ def student_view_course(request, courseId):
 
 # 教师提交描述文件，把文件名修改为提交的id
 def newProblemFileName(fileId):
-    filename = os.path.join(USER_FILE_DIR, 'upload', str(fileId))
+    filename = os.path.join(USER_FILE_DIR, 'upload', os.path.basename(str(fileId)))
     return filename
 
 #增加程序设计题
@@ -307,12 +307,13 @@ def get_problem_student(request, id):
     i = 1
     for problem in problems.all():
         title = html.escape(problem.title)
-        outline = ""
-        for aline in problem.editorText.splitlines():
-            outline += aline
-            outline += '<br/>'
+        # outline = ""
+        # for aline in problem.editorText.splitlines():
+        #     outline += aline
+        #     outline += '<br/>'
+        url = "<a href='" + reverse('download_problem_file', args=(problem.problem_id,)) + "'>下载题目</a>"
         recode = {'pk': problem.pk, 'title': title, 'category': str(problem.category),
-                 'outline' : outline,
+                 'download': url,
                   'id': i}
         recodes.append(recode)
         i = i + 1
@@ -363,7 +364,7 @@ def teacher_download(request, problemId):
     else:
         return render(request, 'warning.html', {'info': '没有此文件'})
 
-# 实现描述文件的下载功能
+# 实现根据选题情况描述文件的下载功能
 @login_required()
 def download(request, courseId):
     student = None
@@ -393,6 +394,28 @@ def download(request, courseId):
         response['Content-Disposition'] = '''attachment;filename*= UTF-8''{0}'''.format(encodeFilename(file.filename))
         return response
     else:
+        return render(request, 'warning.html' ,{'info' : '没有此文件'})
+
+# 实现根据编号描述文件的下载功能
+@login_required()
+def download_problem(request, problemId):
+    problem = None
+    try:
+        problem = ShejiProblem.objects.get(problem_id=problemId)
+        def file_iterator(file_name, chunk_size=512):
+            with open(file_name, 'rb') as f:
+                while True:
+                    c = f.read(chunk_size)
+                    if c:
+                        yield c
+                    else:
+                        break
+
+        response = StreamingHttpResponse(file_iterator(newProblemFileName(problem.problem_id)))
+        response['Content-Type'] = problem.content_type
+        response['Content-Disposition'] = '''attachment;filename*= UTF-8''{0}'''.format(encodeFilename(problem.filename))
+        return response
+    except:
         return render(request, 'warning.html' ,{'info' : '没有此文件'})
 
 # 用于学生课程界面有关分组信息的初始化操作
@@ -558,8 +581,12 @@ def teacher_update_info(request):
 # 用于教师课程界面获取已经选取的题目
 def get_select_problem(request, courseId):
     course = None
+    offset = None
+    limit = None
     try:
         course = CodeWeekClass.objects.get(id=courseId, teacher=request.user)
+        offset = int(request.GET['offset'])
+        limit = int(request.GET['limit'])
     except:
         return HttpResponse(0)
     json_data = {}
@@ -569,7 +596,7 @@ def get_select_problem(request, courseId):
 
     json_data['total'] = problems.count()
 
-    for problem in problems.all():
+    for problem in problems.all()[offset:offset + limit]:
         title = html.escape(problem.title)
         recode = {'pk': problem.pk, 'title': title, 'category': str(problem.category),
                   'update_date': problem.update_date.strftime('%Y-%m-%d %H:%M:%S'), 'creator': str(problem.creator),
@@ -621,15 +648,11 @@ def add_problem_student(request, courseId):
             # 增加题目
             if form.cleaned_data['problems']:
                 ids = form.cleaned_data['problems'].split(',')
-                try:
-                    with transaction.atomic():
-                        for pk in ids:
-                            try:
-                                course.problems.add(pk)
-                            except:
-                                continue
-                except:
-                    return HttpResponse(0)
+                for pk in ids:
+                    try:
+                        course.problems.add(pk)
+                    except:
+                        continue
             # 添加学生
             for stu_detail in request.POST['students'].splitlines():
                 if len(stu_detail.split()) > 1:
@@ -884,7 +907,7 @@ def un_zip(file_name):
 
 # 返回保存代码单文件的路径
 def singleFileName(fileId):
-    filename = os.path.join(USER_FILE_DIR, 'allCode', str(fileId))
+    filename = os.path.join(USER_FILE_DIR, 'allCode', os.path.basename(str(fileId)))
     return filename
 
 # 将解压的文件夹中的文件编号并且复制到指定目录，并且生成目录的序列化结果
@@ -932,7 +955,7 @@ def copy_generage_dict_info(work_dir, group):
 
 # 返回保存代码压缩文件的路径
 def codeZipFileName(fileId):
-    filename = os.path.join(USER_FILE_DIR, 'codeZip', str(fileId))
+    filename = os.path.join(USER_FILE_DIR, 'codeZip', os.path.basename(str(fileId)))
     return filename
 
 # 用于计算文件hash
@@ -989,16 +1012,19 @@ def submit_code(request, courseId):
                 return render(request, 'warning.html', {'info': '只支持zip压缩文件'})
             else:
                 random_name = ''.join(random.sample(string.digits + string.ascii_letters * 10, 8))
-                tempdir = newProblemFileName(random_name)
+                tempdir = codeZipFileName(random_name)
                 os.mkdir(tempdir)
-                filename = os.path.join(tempdir, file.name)
+                filename = os.path.join(tempdir, os.path.basename(file.name))
                 with open(filename, 'wb+') as destination:
                     for chunk in file.chunks():
                         destination.write(chunk)
-                # un_zip(filename)
+                try:
+                    un_zip(filename)
+                except:
+                    shutil.rmtree(tempdir)
+                    return render(request, 'warning.html', {'info': '只支持zip压缩文件'})
                 sha1result = sha1(filename)
                 # 这边可以利用文件hash做一些额外工作，例如比较和以前版本是否一样
-                un_zip(filename)
                 dir_result = copy_generage_dict_info(filename + '_files/', student.group)
                 # 保存整个压缩文件
                 newCodeZip = CodeZipFile.objects.create(fileName = file.name)
@@ -1091,7 +1117,7 @@ def get_all_code_history(request, courseId):
     return HttpResponse(json.dumps(result))
 
 def newReportFilename(fileId):
-    filename = os.path.join(USER_FILE_DIR, 'reportFile', str(fileId))
+    filename = os.path.join(USER_FILE_DIR, 'reportFile', os.path.basename(str(fileId)))
     return filename
 
 @login_required
@@ -1414,12 +1440,12 @@ def teacher_check_student(request):
 
 # 用于教师打包所有材料
 def tarFiles(courseId, className, teacherName):
-    workDir = os.path.join(USER_FILE_DIR, 'codeWeekTarFiles', className + "_" + teacherName)
+    workDir = os.path.join(USER_FILE_DIR, 'codeWeekTarFiles', os.path.basename(className) + "_" + os.path.basename(teacherName))
     if os.path.exists(workDir):
         shutil.rmtree(workDir, ignore_errors=True)
     os.mkdir(workDir)
     # os.chdir(workDir)
-    studentDir = os.path.join(workDir, className + "_学生材料")
+    studentDir = os.path.join(workDir, os.path.basename(className) + "_学生材料")
     os.mkdir(studentDir)
     os.chdir(studentDir)
     course = None
@@ -1533,7 +1559,7 @@ def tarFiles(courseId, className, teacherName):
             reportFileName += leaderId
             for member in mem:
                 reportFileName += "_"
-                reportFileName += member.student.id_num[-2]
+                reportFileName += member.student.id_num[-2:]
             try:
                 latestReport = group.Report_history.all().order_by("-id")[0]
                 if latestReport:
@@ -1560,7 +1586,7 @@ def tarFiles(courseId, className, teacherName):
     os.mkdir(docsDir)
     docxs = []
     for problem in course.problems.all():
-        shutil.copy(newProblemFileName(problem.problem_id), os.path.join(docsDir, problem.filename))
+        shutil.copy(newProblemFileName(problem.problem_id), os.path.join(docsDir, os.path.basename(problem.filename)))
         docxs.append(problem.filename)
     good = True
     for d in docxs:
@@ -1575,14 +1601,12 @@ def tarFiles(courseId, className, teacherName):
             for element in doc2.element.body:
                 doc1.element.body.append(element)
         doc1.save(os.path.join(docsDir, "合并的文件.docx"))
-    shutil.make_archive(os.path.join("..",className+"_"+teacherName), format="zip", root_dir=os.path.dirname(workDir), base_dir=className+"_"+teacherName)
+    shutil.make_archive(os.path.join("..",os.path.basename(className)+"_"+os.path.basename(teacherName)), format="zip", root_dir=os.path.dirname(workDir), base_dir=os.path.basename(className)+"_"+os.path.basename(teacherName))
     os.chdir("../")
-    newTar = TarHistory.objects.create(course=course,filename=className+"_"+teacherName+".zip")
-    source = os.path.join(USER_FILE_DIR, "codeWeekTarFiles", className+"_"+teacherName+".zip")
+    newTar = TarHistory.objects.create(course=course,filename=os.path.basename(className)+"_"+os.path.basename(teacherName)+".zip")
+    source = os.path.join(USER_FILE_DIR, "codeWeekTarFiles", os.path.basename(className)+"_"+os.path.basename(teacherName)+".zip")
     target = os.path.join(USER_FILE_DIR, "codeWeekTarFiles", str(newTar.id))
-    # pdb.set_trace()
     shutil.move(source, target)
-    # shutil.copy(os.path.join(BASE_DIR,"codeWeekTarFiles",className+"_"+teacherName+".zip"), os.path.join(BASE_DIR,"codeWeekTarFiles",str(newTar.id)))
     shutil.rmtree(workDir)
     return good
 

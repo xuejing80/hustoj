@@ -1581,7 +1581,7 @@ def tarFiles(courseId, className, teacherName):
                     fileSuffix = ""
                     findindex = latestReport.filename.rfind('.')
                     if not findindex == -1:
-                        fileSuffix = latestReport.filename[index:]
+                        fileSuffix = latestReport.filename[findindex:]
                     shutil.copy(newReportFilename(latestReport.id), reportFileName + fileSuffix)
             except:
                 pass

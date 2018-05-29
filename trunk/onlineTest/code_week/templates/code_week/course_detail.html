@@ -167,8 +167,8 @@
                         return false;
                     } else if (response == 0)
                     {
-                        $.alert('<a href="{% url 'teacher_download_tar' course.id %}">下载文件</a>\n友情提醒，您还需要做以下工作：\n' +
-                        "1.审阅每组程序设计报告并填入最终成绩\n2.在实验指导文件夹中添加课程安排文档\n3.在教务系统中登录成绩并将pdf版本保存至压缩包内");
+                        $.alert('<a href="{% url 'teacher_download_tar' course.id %}">下载文件</a><br>友情提醒，您还需要完成以下工作：<br>' +
+                        "1.审阅每组程序设计报告并填入最终成绩<br>2.在实验指导文件夹中添加课程安排文档<br>3.在教务系统中登录成绩后，将pdf版本保存至压缩包内");
                     }
                 }).fail(function () {
                     self.setContent('数据传输时出现问题');

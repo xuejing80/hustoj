@@ -84,7 +84,7 @@
         </tr>
         </thead>
     </table>
-    <button type="button" class="btn btn-success btn-lg" id="save_problems" onclick="saveProblem()">保存选择的题目</button><br><br>
+    <button type="button" class="btn btn-success btn-lg" id="save_problems" onclick="saveProblem()">添加选择的题目</button><br><br>
     <label class="control-lable">选择的题目</label><br>
     <input type="text" id="tags" class="form-control" name="problems"><br>
     <p>每组最多人数</p>
@@ -93,7 +93,7 @@
     <input type="hidden" name="banji_id" id="banji_id" value="{{ id }}">
     <p><textarea name="students" id="students_info" class="form-control" rows="10"
                  placeholder="学生账号信息格式为：一行一个学生，每行的前两个字段是学号和真实姓名，初始密码同用户名，初始邮箱为南邮邮箱，字段之间用空格分隔"></textarea>
-    <button type="submit" class="btn btn-success btn-lg">保存</button>
+    <p><button type="submit" class="btn btn-success btn-lg">保存</button></p>
 </form>
 <script type="text/javascript">
 
@@ -102,7 +102,8 @@
                 {
                     format: 'yyyy-mm-dd hh:ii',
                     sideBySide: true,
-                    defaultDate: moment()
+                    defaultDate: moment(),
+                    autoclose: true,
                 }
         );
     });
@@ -110,7 +111,8 @@
         $('#datetimepicker2').datetimepicker(
                 {
                     format: 'yyyy-mm-dd hh:ii', sideBySide: true,
-                    defaultDate: moment()
+                    defaultDate: moment(),
+                    autoclose: true,
                 }
         )
         ;

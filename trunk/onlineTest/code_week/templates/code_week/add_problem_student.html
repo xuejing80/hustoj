@@ -50,7 +50,7 @@
         </thead>
     </table>
     <button type="button" class="btn btn-success btn-lg" id="save_problems" onclick="saveProblem()">保存选择的题目</button><br><br>
-    <label class="control-lable">选择的题目（本页面无法删除以前已经选择的题目)</label><br>
+    <label class="control-lable">已选择的题目（本页面只能添加题目，欲移除已选择的题目请至课程详细页面进行：<a href="{% url 'view_course_for_teacher' courseId%}">移步至课程详细页面</a>)</label><br>
     <input type="text" id="tags" class="form-control" name="problems"><br>
     <h3>批量添加学生账号</h3>
     <input type="hidden" name="banji_id" id="banji_id" value="{{ id }}">

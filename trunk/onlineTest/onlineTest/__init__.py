@@ -15,3 +15,5 @@ if not os.path.exists(os.path.join(USER_FILE_DIR,"reportFile")):
     os.mkdir(os.path.join(USER_FILE_DIR,"reportFile"))
 if not os.path.exists(os.path.join(USER_FILE_DIR,"upload")):
     os.mkdir(os.path.join(USER_FILE_DIR,"upload"))
+if not os.path.exists(os.path.join(USER_FILE_DIR, "documents")):
+    os.mkdir(os.path.join(USER_FILE_DIR, "documents"))

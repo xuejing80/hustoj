@@ -59,13 +59,9 @@
             </div>
         </div>
         <div class="settings-item clearfix">
-            <button class="btn btn-success" onclick="location='{% url 'teacher_latest_info' course.id %}'">查看课程最新情况</button>
-        </div>
-        <div class="settings-item clearfix">
-            <button class="btn btn-success" id="download_tar" onclick="downloadTarFile()">下载课程打包文件</button>
-        </div>
-        <div class="settings-item clearfix">
-            <a id="add_problem_student" href="{% url 'add_problem_student' course.id %}">增加选择的题目或学生</a>
+            <button class="btn btn-success" onclick="location='{% url 'teacher_latest_info' course.id %}'">查看课程最新情况</button>&nbsp;
+            <button class="btn btn-success" id="download_tar" onclick="downloadTarFile()">下载课程打包文件</button>&nbsp;
+            <button class="btn btn-success" id="add_problem_student" onclick="location='{% url 'add_problem_student' course.id %}'">增加选择的题目或学生</button>
         </div>
     </div>
     <p>题目列表：</p>
@@ -127,7 +123,7 @@
         return '<a class="btn btn-primary btn-xs remove" href="javascript:void(0)" title="删除" aria-label="删除" data-pjax="0"><span class="glyphicon glyphicon-trash"></span></a>';
     }
     function studentFormatter(value) {
-        return '<a class="btn btn-primary btn-xs remove" href="javascript:void(0)" title="移除" aria-label="移除" data-pjax="0"><span class="glyphicon glyphicon-trash"></span></a>'+
+        return '<a class="btn btn-primary btn-xs remove" href="javascript:void(0)" title="移除" aria-label="移除" data-pjax="0"><span class="glyphicon glyphicon-trash"></span></a>&nbsp;'+
                 '<a class="btn btn-primary btn-xs read" href="javascript:void(0)" title="查看学生代码" aria-label="查看学生代码" data-pjax="0"><span class="glyphicon glyphicon-eye-open"></span></a>';
     }
     function readStudentCode(value) {
@@ -171,11 +167,8 @@
                         return false;
                     } else if (response == 0)
                     {
-                        $.alert('<a href="{% url 'teacher_download_tar' course.id %}">下载文件</a>');
-                    }
-                    else if (response == 2) // 无法合并题目文档
-                    {
-                        $.alert('<a href="{% url 'teacher_download_tar' course.id %}">下载文件(未合并题目文档)</a>')
+                        $.alert('<a href="{% url 'teacher_download_tar' course.id %}">下载文件</a>\n友情提醒，您还需要做以下工作：\n' +
+                        "1.审阅每组程序设计报告并填入最终成绩\n2.在实验指导文件夹中添加课程安排文档\n3.在教务系统中登录成绩并将pdf版本保存至压缩包内");
                     }
                 }).fail(function () {
                     self.setContent('数据传输时出现问题');
@@ -253,7 +246,8 @@
                 {
                     format: 'yyyy-mm-dd hh:ii',
                     sideBySide: true,
-                    defaultDate: moment()
+                    defaultDate: moment(),
+                    autoclose: true,
                 }
                 );
             },
@@ -301,7 +295,8 @@
                 {
                     format: 'yyyy-mm-dd hh:ii',
                     sideBySide: true,
-                    defaultDate: moment()
+                    defaultDate: moment(),
+                    autoclose: true,
                 }
         );
             },

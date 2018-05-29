@@ -28,8 +28,6 @@
     {% if members %}
 <form method="post" id="submit-form" enctype="multipart/form-data" onsubmit="return checkContribution()">
     {% csrf_token %}
-    <input type="file" name="codeFile" accept="application/zip">
-    <br>
     <p>请选择组员的贡献度等级:</p>
     {% if members %}
         {% for member in members %}
@@ -44,6 +42,8 @@
             <br>
         {% endfor %}
     {% endif %}
+    <input type="file" name="codeFile" accept="application/zip">
+    <br>
     <input type="text" id="ctext" name="contribution" hidden="true">
     <button type="submit">提交代码</button>
 </form>

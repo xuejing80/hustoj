@@ -11,6 +11,9 @@
     <script src="{% static 'assets/js/bootstrap-table.min.js' %}"></script>
     <link href="{% static 'assets/css/bootstrap-table.min.css' %}" rel="stylesheet">
     <script src="{% static 'assets/js/bootstrap-table-zh-CN.min.js' %}"></script>
+    <script src="{% static 'assets/js/bootstrap-tagsinput.min.js' %}"></script>
+    <link href="{% static 'assets/css/bootstrap-tagsinput-typeahead.css' %}" rel="stylesheet">
+    <link href="{% static 'assets/css/bootstrap-tagsinput.css' %}" rel="stylesheet">
 {% endblock %}
 {% block content %}
 <form id="homework-add-form" method="post" onsubmit="return checkForm()">
@@ -81,15 +84,16 @@
         </tr>
         </thead>
     </table>
-    <input type="hidden" name="problems" id="select-problems"/>
-    <button type="button" class="btn btn-success btn-lg" id="save_problems" onclick="saveProblem()">保存选择的题目</button>
+    <button type="button" class="btn btn-success btn-lg" id="save_problems" onclick="saveProblem()">添加选择的题目</button><br><br>
+    <label class="control-lable">选择的题目</label><br>
+    <input type="text" id="tags" class="form-control" name="problems"><br>
     <p>每组最多人数</p>
     {{ form.maxnumber }}
     <h3>批量添加学生账号</h3>
     <input type="hidden" name="banji_id" id="banji_id" value="{{ id }}">
     <p><textarea name="students" id="students_info" class="form-control" rows="10"
                  placeholder="学生账号信息格式为：一行一个学生，每行的前两个字段是学号和真实姓名，初始密码同用户名，初始邮箱为南邮邮箱，字段之间用空格分隔"></textarea>
-    <button type="submit" class="btn btn-success btn-lg">保存</button>
+    <p><button type="submit" class="btn btn-success btn-lg">保存</button></p>
 </form>
 <script type="text/javascript">
 
@@ -98,7 +102,8 @@
                 {
                     format: 'yyyy-mm-dd hh:ii',
                     sideBySide: true,
-                    defaultDate: moment()
+                    defaultDate: moment(),
+                    autoclose: true,
                 }
         );
     });
@@ -106,7 +111,8 @@
         $('#datetimepicker2').datetimepicker(
                 {
                     format: 'yyyy-mm-dd hh:ii', sideBySide: true,
-                    defaultDate: moment()
+                    defaultDate: moment(),
+                    autoclose: true,
                 }
         )
         ;
@@ -127,23 +133,20 @@
         });
         return params;
     }
-    var selectSet = new Set();
+    var elt = $('#tags');
+    elt.tagsinput({
+       itemValue: 'value',
+       itemText: 'text'
+    });
     function saveProblem() {
          var ids = $.map($table.bootstrapTable('getSelections'), function (row) {
             return row.id;
         });
         for (var i = 0; i < ids.length; ++i) {
-            selectSet.add(ids[i]);
+            elt.tagsinput('add', {'value': ids[i], 'text': ids[i] + "." + $table.bootstrapTable('getSelections')[i].title});
         }
     }
-{#    $('#select-problems').click(saveProblem());#}
     function checkForm() {
-{#        var ids = $.map($table.bootstrapTable('getSelections'), function (row) {#}
-{#            return row.id;#}
-{#        });#}
-        saveProblem();
-        $('#select-problems').val(Array.from(selectSet));
-       // console.log(ids);
         var begin_time = $('#datetimepicker1').find("input").val();
         var end_time = $('#datetimepicker2').find("input").val();
         if (begin_time >= end_time) {

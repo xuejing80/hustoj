@@ -573,7 +573,7 @@ def ws_disconnect_student_detail(message, courseId):
     if course.count() != 0:
         thiscourse = course[0]
         if thiscourse.students.all().filter(codeweekclassstudent__student=message.user).count() != 0:
-            print("student out")
+            #print("student out")
             Group('codeweekStudent-' + courseId, channel_layer=message.channel_layer).discard(message.reply_channel)
             Group(str(message.user.id), channel_layer=message.channel_layer).discard(message.reply_channel)
     else:

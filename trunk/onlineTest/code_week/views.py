@@ -15,8 +15,8 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.db import transaction
 from onlineTest.settings import BASE_DIR, USER_FILE_DIR
 from enum import Enum, unique
-import pdb
-import docx
+# import pdb
+# import docx
 import xlwt
 import channels
 
@@ -73,11 +73,11 @@ def add_course(request):
     if request.method == 'POST':
         form = AddCodeWeekForm(request.POST)
         if form.is_valid():
-            print("form correct")
-            print(form.cleaned_data['course_name'])
-            print(form.cleaned_data['begin_time'])
-            print(form.cleaned_data['end_time'])
-            print(form.cleaned_data['problems'])
+            #print("form correct")
+            #print(form.cleaned_data['course_name'])
+            #print(form.cleaned_data['begin_time'])
+            #print(form.cleaned_data['end_time'])
+            #print(form.cleaned_data['problems'])
             begin_time = form.cleaned_data['begin_time']
             end_time = form.cleaned_data['end_time']
             if end_time <= begin_time:
@@ -140,7 +140,8 @@ def add_course(request):
         #    return HttpResponse(1)
 
         else:
-            print(form.errors)
+            #print(form.errors)
+            return render(request, 'warning.html', {'info': '表单有误'})
     else:
         form = AddCodeWeekForm()
         categorys = ProblemCategory.objects.all()
@@ -192,7 +193,7 @@ def add_sheji(request):
         return render(request, 'warning.html', {'info': '教师才可以操作'})
     if request.method == 'POST':  # 当提交表单时
         form = ShejiAddForm(request.POST,request.FILES)  # form 包含提交的数据
-        print(form.errors)
+        #print(form.errors)
         if form.is_valid():  # 如果提交的数据合法
             f = request.FILES.get('describeFile')
             problem = form.save(user=request.user)  # 保存题目
@@ -330,9 +331,9 @@ def encodeFilename(filename):
     这个函数就是将含有中文的文件名转换一下
     """
     originStr = str(filename.encode("utf-8"))
-    print(originStr)
+    #print(originStr)
     originStr = originStr.replace("\\x","%")
-    print(originStr)
+    #print(originStr)
     returnstr = originStr[2:len(originStr)-1]
     return returnstr
 
@@ -605,6 +606,19 @@ def get_select_problem(request, courseId):
     json_data['rows'] = recodes
     return HttpResponse(json.dumps(json_data))
 
+@login_required()
+#用于教师获取班级中所有选择的题目的序号和标题
+def get_select_problem_title(request, courseId):
+    course = None
+    try:
+        course = CodeWeekClass.objects.get(id=courseId, teacher=request.user)
+    except:
+        return HttpResponse(0)
+    json_data = {}
+    for problem in course.problems.all():
+        json_data[problem.problem_id] = html.escape(problem.title)
+    return HttpResponse(json.dumps(json_data))
+
 @login_required
 # 用于教师移除已经选好的题目
 def remove_select_problem(request):
@@ -637,12 +651,12 @@ def remove_select_problem(request):
 @login_required
 # 用于教师给课程增加题目和学生
 def add_problem_student(request, courseId):
+    course = None
+    try:
+        course = CodeWeekClass.objects.get(id=courseId, teacher=request.user)
+    except:
+        return HttpResponse(0)
     if request.method == 'POST':
-        course = None
-        try:
-            course = CodeWeekClass.objects.get(id=courseId, teacher=request.user)
-        except:
-            return HttpResponse(0)
         form = UpdateClassForm(request.POST)
         if form.is_valid():
             # 增加题目
@@ -698,7 +712,8 @@ def add_problem_student(request, courseId):
     else:
         form = UpdateClassForm()
         categorys = ProblemCategory.objects.all()
-        return render(request, 'code_week/add_problem_student.html', {'form': form, 'categorys': categorys})
+        return render(request, 'code_week/add_problem_student.html', {'form': form, 'categorys': categorys,
+                                                                      'courseId': course.id})
 
 @login_required
 # 用于教师获取学生的信息表格
@@ -1046,7 +1061,7 @@ def submit_code(request, courseId):
                 return render(request, 'code_week/submit_code.html', {'members': student.group.Group_member.all(),
                                                                       'course': student.codeWeekClass})
         else:
-            print(form.errors)
+            #print(form.errors)
             return render(request, 'warning.html', {'info': '提交的信息有误'})
     else:
         if student.isLeader:
@@ -1071,7 +1086,7 @@ def get_dir_struct(request, courseId):
 
 def returnUtf8FileStr(fileName):
     chardetResult = get_encoding(fileName)
-    print(chardetResult)
+    #print(chardetResult)
     with open(fileName, 'rb') as file:
         if chardetResult == None:
             return ""
@@ -1564,8 +1579,8 @@ def tarFiles(courseId, className, teacherName):
                 latestReport = group.Report_history.all().order_by("-id")[0]
                 if latestReport:
                     fileSuffix = ""
-                    index = latestReport.filename.rfind('.')
-                    if not index == -1:
+                    findindex = latestReport.filename.rfind('.')
+                    if not findindex == -1:
                         fileSuffix = latestReport.filename[index:]
                     shutil.copy(newReportFilename(latestReport.id), reportFileName + fileSuffix)
             except:
@@ -1582,25 +1597,29 @@ def tarFiles(courseId, className, teacherName):
             index += 1
     os.chdir("../")
     # 尝试合并题目word文档,python-docx只支持docx
-    docsDir = os.path.join(workDir, '程序设计题')
+    # 改为复制指定user_file/documents下的文件
+    docsDir = os.path.join(workDir, '实验指导')
     os.mkdir(docsDir)
-    docxs = []
-    for problem in course.problems.all():
-        shutil.copy(newProblemFileName(problem.problem_id), os.path.join(docsDir, problem.filename))
-        docxs.append(problem.filename)
-    good = True
-    for d in docxs:
-        try:
-            doc = docx.Document(d)
-        except:  # 不支持的文件
-            good = False
-    if good and len(docxs) >= 1:
-        doc1 = docx.Document(docxs[0])
-        for i in range(1, len(docxs)):
-            doc2 = docx.Document(docxs[i])
-            for element in doc2.element.body:
-                doc1.element.body.append(element)
-        doc1.save(os.path.join(docsDir, "合并的文件.docx"))
+    toCopyFiles = os.listdir(os.path.join(USER_FILE_DIR, 'documents'))
+    for file in toCopyFiles:
+        shutil.copy(os.path.join(USER_FILE_DIR, 'documents', file), os.path.join(docsDir, file))
+    # docxs = []
+    # for problem in course.problems.all():
+    #     shutil.copy(newProblemFileName(problem.problem_id), os.path.join(docsDir, problem.filename))
+    #     docxs.append(problem.filename)
+    # good = True
+    # for d in docxs:
+    #     try:
+    #         doc = docx.Document(d)
+    #     except:  # 不支持的文件
+    #         good = False
+    # if good and len(docxs) >= 1:
+    #     doc1 = docx.Document(docxs[0])
+    #     for i in range(1, len(docxs)):
+    #         doc2 = docx.Document(docxs[i])
+    #         for element in doc2.element.body:
+    #             doc1.element.body.append(element)
+    #     doc1.save(os.path.join(docsDir, "合并的文件.docx"))
     shutil.make_archive(os.path.join("..",className+"_"+teacherName), format="zip", root_dir=os.path.dirname(workDir), base_dir=className+"_"+teacherName)
     os.chdir("../")
     newTar = TarHistory.objects.create(course=course,filename=className+"_"+teacherName+".zip")
@@ -1608,7 +1627,7 @@ def tarFiles(courseId, className, teacherName):
     target = os.path.join(USER_FILE_DIR, "codeWeekTarFiles", str(newTar.id))
     shutil.move(source, target)
     shutil.rmtree(workDir)
-    return good
+    return True
 
 # 处理教师打包请求
 @login_required

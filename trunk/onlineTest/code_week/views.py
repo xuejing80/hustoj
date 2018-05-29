@@ -605,6 +605,19 @@ def get_select_problem(request, courseId):
     json_data['rows'] = recodes
     return HttpResponse(json.dumps(json_data))
 
+@login_required()
+#用于教师获取班级中所有选择的题目的序号和标题
+def get_select_problem_title(request, courseId):
+    course = None
+    try:
+        course = CodeWeekClass.objects.get(id=courseId, teacher=request.user)
+    except:
+        return HttpResponse(0)
+    json_data = {}
+    for problem in course.problems.all():
+        json_data[problem.problem_id] = html.escape(problem.title)
+    return HttpResponse(json.dumps(json_data))
+
 @login_required
 # 用于教师移除已经选好的题目
 def remove_select_problem(request):
@@ -637,12 +650,12 @@ def remove_select_problem(request):
 @login_required
 # 用于教师给课程增加题目和学生
 def add_problem_student(request, courseId):
+    course = None
+    try:
+        course = CodeWeekClass.objects.get(id=courseId, teacher=request.user)
+    except:
+        return HttpResponse(0)
     if request.method == 'POST':
-        course = None
-        try:
-            course = CodeWeekClass.objects.get(id=courseId, teacher=request.user)
-        except:
-            return HttpResponse(0)
         form = UpdateClassForm(request.POST)
         if form.is_valid():
             # 增加题目
@@ -698,7 +711,8 @@ def add_problem_student(request, courseId):
     else:
         form = UpdateClassForm()
         categorys = ProblemCategory.objects.all()
-        return render(request, 'code_week/add_problem_student.html', {'form': form, 'categorys': categorys})
+        return render(request, 'code_week/add_problem_student.html', {'form': form, 'categorys': categorys,
+                                                                      'courseId': course.id})
 
 @login_required
 # 用于教师获取学生的信息表格
@@ -1582,7 +1596,7 @@ def tarFiles(courseId, className, teacherName):
             index += 1
     os.chdir("../")
     # 尝试合并题目word文档,python-docx只支持docx
-    docsDir = os.path.join(workDir, '程序设计题')
+    docsDir = os.path.join(workDir, '实验指导')
     os.mkdir(docsDir)
     docxs = []
     for problem in course.problems.all():

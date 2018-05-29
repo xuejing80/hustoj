@@ -5,6 +5,9 @@
     <script src="{% static 'assets/js/bootstrap-table.min.js' %}"></script>
     <link href="{% static 'assets/css/bootstrap-table.min.css' %}" rel="stylesheet">
     <script src="{% static 'assets/js/bootstrap-table-zh-CN.min.js' %}"></script>
+    <script src="{% static 'assets/js/bootstrap-tagsinput.min.js' %}"></script>
+    <link href="{% static 'assets/css/bootstrap-tagsinput-typeahead.css' %}" rel="stylesheet">
+    <link href="{% static 'assets/css/bootstrap-tagsinput.css' %}" rel="stylesheet">
 {% endblock %}
 {% block content %}
 <form id="homework-add-form" method="post" onsubmit="return checkForm()">
@@ -46,8 +49,9 @@
         </tr>
         </thead>
     </table>
-    <input type="hidden" name="problems" id="select-problems"/>
-    <button type="button" class="btn btn-success btn-lg" id="save_problems" onclick="saveProblem()">保存选择的题目</button>
+    <button type="button" class="btn btn-success btn-lg" id="save_problems" onclick="saveProblem()">保存选择的题目</button><br><br>
+    <label class="control-lable">选择的题目（本页面无法删除以前已经选择的题目)</label><br>
+    <input type="text" id="tags" class="form-control" name="problems"><br>
     <h3>批量添加学生账号</h3>
     <input type="hidden" name="banji_id" id="banji_id" value="{{ id }}">
     <p><textarea name="students" id="students_info" class="form-control" rows="10"
@@ -55,7 +59,11 @@
     <button type="submit" class="btn btn-success btn-lg">保存</button>
 </form>
 <script type="text/javascript">
-
+    var elt = $('#tags');
+    elt.tagsinput({
+       itemValue: 'value',
+       itemText: 'text'
+    });
     $.ajaxSetup({
             data: {csrfmiddlewaretoken: '{{ csrf_token }}'}
         });
@@ -72,17 +80,30 @@
         });
         return params;
     }
-    var selectSet = new Set();
+    $(document).ready(function(){
+        $.ajax({
+            type:"GET",
+            url:"{% url 'get_select_problem_title' courseId %}",
+            dataType:"json",
+            success:function(data){
+                for (var key in data) {
+                    elt.tagsinput('add', {'value': parseInt(key), 'text': key + '.' + data[key]});
+                }
+            },
+            error:function(jqXHR){
+                alert("error" + jqXHR.status);
+            }
+        });
+    });
     function saveProblem() {
          var ids = $.map($table.bootstrapTable('getSelections'), function (row) {
             return row.id;
         });
         for (var i = 0; i < ids.length; ++i) {
-            selectSet.add(ids[i]);
+            elt.tagsinput('add', {'value': ids[i], 'text': ids[i] + "." + $table.bootstrapTable('getSelections')[i].title});
         }
     }
     function checkForm() {
-        saveProblem();
         $('#select-problems').val(Array.from(selectSet));
         return true;
     }

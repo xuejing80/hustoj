@@ -1,19 +1,20 @@
 {% extends 'base.html' %}
 {% block extrahead %}
-    <script src="//cdn.bootcss.com/bootstrap-table/1.11.0/bootstrap-table.min.js"></script>
-    <link href="//cdn.bootcss.com/bootstrap-table/1.11.0/bootstrap-table.min.css" rel="stylesheet">
-    <script src="//cdn.bootcss.com/bootstrap-table/1.11.0/locale/bootstrap-table-zh-CN.min.js"></script>
+    {% load static %}
+    <script src="{% static 'assets/js/bootstrap-table.min.js' %}"></script>
+    <link href="{% static 'assets/css/bootstrap-table.min.css' %}" rel="stylesheet">
+    <script src="{% static 'assets/js/bootstrap-table-zh-CN.min.js' %}"></script>
 {% endblock %}
 {% block content %}
     <ol class="breadcrumb">
         <li><a href="{% url 'index' %}">主页</a></li>
         <li class="active">题库管理</li>
-        <li class="active">程序填空题列表</li>
+        <li class="active">阅读程序题列表</li>
     </ol>
-    <h1>程序填空题题库</h1>
+    <h1>阅读程序题题库</h1>
     <div class="btn-group">
         <button type="button" id="remove" class="btn btn-danger"><i class="glyphicon glyphicon-remove">删除选中</i></button>
-        <a class="btn btn-primary btn-l" href="{% url 'add_tiankong' %}" role="button"><i class="glyphicon glyphicon-plus">添加题目</i></a>
+        <a class="btn btn-primary btn-l" href="{% url 'add_ducheng' %}" role="button"><i class="glyphicon glyphicon-plus">添加题目</i></a>
     </div>
     <div id="toolbar">
         <div class="form-inline" role="form">
@@ -39,15 +40,14 @@
                 </select>
             </div>
             <button id="ok" type="submit" class="btn btn-default">筛选</button>
-
         </div>
     </div>
     <table id="table"
            data-toggle="table"
-           data-url="{% url 'get_json' 'TiankongProblem' %}"
+           data-url="{% url 'get_json' 'DuchengProblem' %}"
            data-side-pagination="server"
            data-pagination="true"
-           data-page-list="[10, 20, 50, 100, 200]"
+           data-page-list="[1, 20, 50, 100, 200]"
            data-classes="table table-hover table-condensed"
            data-toolbar="#toolbar"
            data-striped="true"
@@ -57,28 +57,28 @@
         <thead>
         <tr>
             <th data-field="state" data-checkbox="true"></th>
-            <th data-field="pk" data-sortable="true" data-valign="middle">ID</th>
-            <th data-field="title" data-sortable="true" data-valign="middle">标题</th>
-            <th data-field="knowledge_point" data-valign="middle"> 知识点</th>
+            <th data-field="pk" data-sortable="true">ID</th>
+            <th data-field="title" data-sortable="true">题干</th>
+            <th class="nobr" data-field="knowledge_point"> 知识点</th>
             <th data-field="creator">创建者</th>
-	    <th data-field="update_date" data-sortable="true" data-valign="middle">最后修改日期</th>
-            <th data-field="total_score">总分</th>
-            <th data-field="id" data-formatter="editFormatter" data-valign="middle">操作</th>
-	    <th data-field="isMine" data-visible="false">isMine</th>
-        </tr>
+            <th data-field="update_date" data-sortable="true">最后修改日期</th>
+            <th class="nobr" data-width="70" data-field="id" data-formatter="editFormatter">操作</th>
         </thead>
     </table>
     <script>
-        $.ajaxSetup({
+     $.ajaxSetup({
             data: {csrfmiddlewaretoken: '{{ csrf_token }}'}
         });
         var $table = $('#table');
         function editFormatter(value,row,index) {
-	    if(row.isMine){
-            return '<a class="btn btn-primary btn-xs" href="{% url '_update_tiankong'  %}' + value + '/" title="编辑" aria-label="编辑" data-pjax="0"><span class="glyphicon glyphicon glyphicon-edit"></span></a>' ;}
-	    else{
-	    return '<a class="btn btn-success btn-xs" href="{% url '_tiankong_detail'  %}' + value + '/" title="查看" aria-label="查看" data-pjax="0"><span class="glyphicon glyphicon-eye-open"></span></a>';
-        }}
+            if(row.isMine){
+                return ' <a class="btn btn-primary btn-xs" href="{% url '_update_ducheng' %}'+ value + '/" title="编辑" aria-label="编辑" data-pjax="0"><span class="glyphicon glyphicon glyphicon-edit"></span></a>'
+            }
+            else{
+                return ' <a class="btn btn-success btn-xs" href="{% url '_ducheng_detail' %}'+ value + '/" title="查看" aria-label="查看" data-pjax="0"><span class="glyphicon glyphicon-eye-open"></span></a>'
+            }
+        }
+
         $remove = $('#remove');
 
         $(function () {
@@ -90,7 +90,7 @@
                     if (confirm("确定要删除吗？")) {
                         $.ajax({
                             type: 'POST',
-                            url: "{% url 'del_tiankong' %}",
+                            url: "{% url 'del_ducheng_problem' %}",
                             data: {'ids': ids},
                             success: function (data) {
                                 if (data == 1) {
@@ -110,6 +110,7 @@
                 }
             });
         });
+
         $ok = $('#ok');
         $(function () {
             $ok.click(function () {
@@ -122,7 +123,6 @@
             });
             return params;
         }
-
     </script>
     <script>
         jQuery(document).ready(function () {
@@ -158,8 +158,9 @@
                     }
                 });
             });
-        });
-
+        })
     </script>
+
 {% endblock %}
+
 

@@ -1,0 +1,88 @@
+{% extends 'base.html' %}
+{% block extrahead %}
+{% endblock %}
+{% block content %}
+    <div class="btn-group">
+        <p>
+            <a class="btn btn-primary btn-l" href="{% url 'ducheng_problem_list' %}" role="button">返回列表</a>
+            {% if isMine %}
+            <button type="button" class="btn btn-danger" id="delete">删除此题</button>
+            <a class="btn btn-success btn-l" href="{% url 'update_ducheng' problem.ducheng_id %}"
+i               role="button">重新编辑</a>
+            {% endif %}
+       </p>
+    </div>
+    <table id="w0" class="table table-striped table-bordered detail-view table-hover ">
+        <tbody>
+        <tr>
+            <th>题目ID</th>
+            <td>{{ problem.ducheng_id }}</td>
+        </tr>
+        <tr>
+            <th>题干</th>
+            <td>{{ problem.title }}</td>
+        </tr>
+        <tr>
+            <th>知识点</th>
+            <td>{{ knowledge_point }}</td>
+        </tr>
+        </tr>
+            <th>程序代码</th>
+            <td>{{ problem.program }}</td>
+        </tr>
+        <tr>
+            <th>正确结果</th>
+            <td>{{ problem.answer }}</td>
+        </tr>
+        <tr>
+            <th>修改时间</th>
+            <td>{{ problem.in_date }}</td>
+        </tr>
+        <tr>
+            <th>创建者</th>
+            <td>{{ problem.creater }}</td>
+        </tr>
+        <tr>
+            <th>引用权限</th>
+            <td>共享</td>
+        </tr>
+        </tbody>
+    </table>
+    <script>
+         $(function () {
+            $delete = $('#delete');
+            $delete.click(function () {
+                return false;
+                var ids = $.map($table.bootstrapTable('getSelections'), function (row) {
+                    return row.id;
+                });
+                if (ids.length > 0) {
+                    if (confirm("确定要删除吗？")) {
+                        $.ajax({
+                            type: 'POST',
+                            url: "judge/del_ducheng_problem",
+                            data: {'ids': ids},
+                            success: function (data) {
+                                if (data == 1) {
+                                    $table.bootstrapTable('refresh');
+                                    return false
+                                } else {
+                                    alert('删除失败');
+                                }
+                            },
+                            error: function () {
+                                alert("删除失败")
+                            }
+                        });
+                    }
+                } else {
+                    alert('您尚未选择题目')
+                }
+            });
+        });
+
+
+</script>
+{% endblock %}
+
+

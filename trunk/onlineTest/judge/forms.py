@@ -2,7 +2,7 @@ from django import forms
 from django.db import transaction
 from django.core.exceptions import ObjectDoesNotExist
 
-from judge.models import Problem, ClassName, KnowledgePoint2, ChoiceProblem
+from judge.models import Problem, ClassName, KnowledgePoint2, ChoiceProblem, DuchengProblem
 
 
 class ProblemAddForm(forms.Form):
@@ -216,6 +216,52 @@ class GaicuoProblemAddForm(forms.Form):
                 creater=user,
 		problem_type="改错",
                 sample_code=sample_code
+            )
+        problem.save()
+        for point in keypoint:
+            problem.knowledgePoint2.add(KnowledgePoint2.objects.get(pk=point))
+        for point in problem.knowledgePoint2.all():
+            problem.knowledgePoint1.add(point.upperPoint)
+        for point in problem.knowledgePoint1.all():
+            problem.classname.add(point.classname)
+        problem.save()
+        return problem
+
+class DuchengProblemAddForm(forms.Form):
+    title = forms.CharField(label='题干', widget=forms.Textarea(attrs={'class': 'form-control', 'rows': '3'}),
+                             required=False)
+    program = forms.CharField(label='程序代码', widget=forms.Textarea(
+        attrs={'class': 'form-control', 'rows': '20',"spellcheck":"false",
+               }),
+                              required=False)
+    answer = forms.CharField(label='正确结果', widget=forms.Textarea(attrs={'class': 'form-control', 'rows': '3'}),
+                             required=False)
+    classname = forms.ModelChoiceField(label='所属课程', queryset=ClassName.objects.all(),
+                                       widget=forms.Select(attrs={'class': 'form-control'}), required=False)
+    keypoint = forms.CharField(label='知识点，请从下面的下拉菜单中选择添加', widget=forms.TextInput(
+        attrs={'type': 'hidden', 'data-validation': 'required', 'data-validation-error-msg': "请输入题目标题"}))
+
+    def save(self, user, problemid=None):
+        cd = self.cleaned_data
+        title = cd['title']
+        program = cd['program']
+        answer = cd['answer']
+        keypoint = cd['keypoint'].split(',')
+        print(answer)
+        if problemid:
+            problem = DuchengProblem.objects.get(pk=problemid)
+            problem.title = title
+            problem.answer = answer
+            problem.creater = user
+            problem.knowledgePoint1.clear()
+            problem.classname.clear()
+            problem.program = program
+        else:
+            problem = DuchengProblem(
+                title=title,
+                answer=answer,
+                creater=user,
+                program=program
             )
         problem.save()
         for point in keypoint:

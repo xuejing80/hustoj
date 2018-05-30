@@ -18,18 +18,16 @@
 {% endblock %}
 {% block content %}
     {% if leader %}
-        <p>组长：</p>
-        <label>{{ leader }}</label>
+        <p>组长： <label>{{ leader }}</label></p>
     {% endif %}
     {% if members %}
-        <p>组员：</p>
+        <p>组员：
         {% for member in members %}
-            <label>{{ member }}</label><br>
-        {% endfor %}
+            <label>{{ member }}</label>&nbsp;
+        {% endfor %}</p>
     {% endif %}
     {% if problem %}
-        <p>选择的题目：</p>
-        <label>{{ problem }}</label>
+        <p>选择的题目： <label>{{ problem }}</label></p>
     {% endif %}
     {% if members %}
         <p>贡献度表格：</p>
@@ -44,10 +42,9 @@
         <tr>
             <th data-field="time">提交时间</th>
             <th class="nobr" data-field="1">{{ leader }}</th>
-            {% with counter=2 %}
+            {% with counter=1 %}
             {% for member in members %}
-                <th class="nobr" data-field="{{ counter }}">{{ member }}</th>
-                {{ counter|add:1 }}
+                <th class="nobr" data-field="{{ counter|add:1 }}">{{ member }}</th>
             {% endfor %}
             {% endwith %}
         </tr>

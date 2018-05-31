@@ -1,0 +1,8 @@
+from django.conf.urls import url
+from warning.views import warning
+
+urlpatterns = [
+    url(r'^$', warning),
+url(r'^worksolution/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<umailb64>[0-9A-Za-z_\-]+)/(?P<token>.+)/$',
+        TemplateView.as_view(template_name="aaa.html")),
+]

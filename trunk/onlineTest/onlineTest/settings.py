@@ -30,6 +30,7 @@ DEBUG = False
 SITE_NAME = "程序设计类课程作业平台"
 CONTACT_INFO = "薛景老师（QQ群：230689474）"
 ADMINS = [('XueJing', 'xuejing_cn@163.com'),]
+SITE_DOMAIN = "c.njupt.edu.cn"
 
 ALLOWED_HOSTS = ['*']
 
@@ -51,7 +52,13 @@ INSTALLED_APPS = [
     'process', #程序相似度计算
     'qqlogin',  #QQ登录模块
     'channels',  # django-channels，使用websocket来实时推送消息
-    'code_week', # 程序设计课
+    'code_week', # 程序设计课i
+    'warning', #成绩预警
+    'django_crontab', #定时发送邮件
+]
+
+CRONJOBS = [
+    ('0 3 * * 1', 'warning.m.warning', '>> /home/judge/log/warning.log'),
 ]
 
 MIDDLEWARE_CLASSES = [

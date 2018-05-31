@@ -82,8 +82,8 @@ def warning():
 	mydict = getDict()
 	teacherList = getAllTeachers()
 	for teacher in teacherList:
-		# if teacher.username != '薛景老师':
-		# 	continue
+		#if teacher.username != '薛景老师':
+			#continue
 		msgteacher = "%s 老师您好:\n"%teacher.username
 		banjiList = getBanjiofTeacher(teacher.id)
 		msgbanji = ''
@@ -136,29 +136,29 @@ def warning():
 					goodstu,badstu = getGoodAndBadStu(stuids,homework.id)
 					copydict = gcp.getCopyGroups(homework.id,stuids)
 				
-				msghomework = "\n  %s 班级的作业《%s》(起止时间：%s--%s) 完成情况如下：\n      全班共有%d人，已交作业%d份。"%(banji.name,homework.name,homework.start_time.strftime("%Y-%m-%d"),homework.end_time.strftime("%Y-%m-%d"),len(studentList),total)
+				msghomework = "\n%s 班级的作业《%s》(起止时间：%s--%s) 完成情况如下：\n  全班共有%d人，已交作业%d份。"%(banji.name,homework.name,homework.start_time.strftime("%Y-%m-%d"),homework.end_time.strftime("%Y-%m-%d"),len(studentList),total)
 				msghomework = msghomework + " 详情请点击链接查看： http://"+ domain + "/work/my-homework-detail-" + str(homework.id) + "\n"
 				if goodstu:
-					msghomework = msghomework + "      成绩较好的同学有:" + goodstu + "\n"
+					msghomework = msghomework + "  成绩较好的同学有:" + goodstu + "\n"
 				if badstu:
-					msghomework = msghomework + "      成绩较差的同学有:" + badstu + "\n"
+					msghomework = msghomework + "  成绩较差的同学有:" + badstu + "\n"
 				if chwresult:
 					jsdata = json.dumps(chwresult)
 					w = WarningData(data = jsdata,tid = teacher.id)
 					w.save()					
-					msghomework = msghomework + "      错误的选择题请点击链接查看（按错误率排序）： http://" + domain + "/warning?id="+ str(w.id) +"\n"
+					msghomework = msghomework + "  错误的选择题请点击链接查看（按错误率排序）： http://" + domain + "/warning?id="+ str(w.id) +"\n"
 				
 				if copydict:
-					msghomework = msghomework + '      依据程序相似度匹配算法，我们发现以下同学的作业相似度较高，请您及时关注是否存在作业抄袭现象：\n'
+					msghomework = msghomework + '  依据程序相似度匹配算法，我们发现以下同学的作业相似度较高，请您及时关注是否存在作业抄袭现象：\n'
 					for key in copydict:
-						msghomework = msghomework + '        (' + key + ' ' + copydict[key] + ')\n'
+						msghomework = msghomework + '    (' + key + ' ' + copydict[key] + ')\n'
 
 			if msghomework:
 				msgbanji = msgbanji + msghomework
 		if msgbanji:
 			msgteacher = msgteacher + msgbanji
 			sendMailToTeacher(msgteacher,teacher.email)
-			#print(msgteacher)
+			print(msgteacher)
 	print(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')+"end")
 			
 

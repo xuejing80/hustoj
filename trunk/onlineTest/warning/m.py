@@ -25,7 +25,7 @@ def getMyHomeworkList(id):
 	return MyHomework.objects.filter(start_time__gte = homeworkstarttime).filter(end_time__lte = homeworkendtime).filter(banji__id=id)
 
 def getStudentsList(banjiid,teacherid):
-	return BanJi.objects.filter(id=banjiid).first().students.all().exclude(id_num=teacherid)
+	return BanJi.objects.filter(id=banjiid).first().students.all().exclude(id=teacherid)
 
 def getChoiceInfoListByIds(ids):
 	return ChoiceProblem.objects.in_bulk(ids)

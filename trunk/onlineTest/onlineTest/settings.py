@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     'judge',   #题库管理系统
     'work',    #作业管理系统
     'faq',     #智能问答系统
+    'mooc',
     'process', #程序相似度计算
     'qqlogin',  #QQ登录模块
     'channels',  # django-channels，使用websocket来实时推送消息

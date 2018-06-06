@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+{% block title %}添加资源类型{% endblock %}
+{% block extrahead %}
+    {% load static %}
+    <script src="{% static 'assets/js/moment/moment.min.js' %}"></script>
+    <script src="{% static 'assets/js/moment/zh-cn.js' %}"></script>
+    <link href="{% static 'assets/css/bootstrap-editable.css' %}" rel="stylesheet">
+    <link href="{% static 'assets/css/bootstrap-datetimepicker.min.css' %}"
+          rel="stylesheet">
+    <script src="{% static 'assets/js/bootstrap-datetimepicker.min.js' %}"></script>
+{% endblock %}
+{% block content %}
+    <ol class="breadcrumb">
+        <li><a href="{% url 'index' %}">主页</a></li>
+        <li class="active">资源类型管理</li>
+        <li class="active">添加资源类型</li>
+    </ol>
+    <h1>添加周次</h1>
+    <form id="homework-add-form" method="post">
+        {% csrf_token %}
+        <div class="form-group">
+            <label for="name">资源类型</label>
+            <input type="text" class="form-control" id="name" placeholder="作业名称" required="required" name="name">
+        </div>
+        <button type="submit" class="btn btn-default" onclick="check()">保存</button>
+    </form>
+{% endblock %}

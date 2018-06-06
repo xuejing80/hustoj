@@ -1,0 +1,186 @@
+{% extends 'base.html' %}
+{% block extrahead %}
+    {% load static %}
+    <script src="{% static 'assets/js/bootstrap-tagsinput.min.js' %}"></script>
+    <link href="{% static 'assets/css/bootstrap-tagsinput-typeahead.css' %}" rel="stylesheet">
+    <link href="{% static 'assets/css/bootstrap-tagsinput.css' %}" rel="stylesheet">
+    <script src="{% static 'assets/js/jquery.form-validator.min.js' %}"></script>
+    <link href="{% static 'assets/css/fileinput.min.css' %}" rel="stylesheet">
+    <script src="{% static 'assets/js/file_input/fileinput.min.js' %}"></script>
+    <script src="{% static 'assets/js/file_input/zh.js' %}"></script>
+{% endblock %}
+{% block content %}
+    <ol class="breadcrumb">
+        <li><a href="{% url 'index' %}">主页</a></li>
+        <li class="active"><a href="{% url 'choice_problem_list' %}"></a>资源管理</li>
+        <li class="active">{{ title }}</li>
+    </ol>
+    <div class="panel panel-default">
+        <div class="panel-body">
+            <form action="" method="post" enctype="multipart/form-data" onsubmit="return submitTest();"
+                  id="problem-form">{% csrf_token %}
+
+                <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+                    <div class="modal-dialog" role="document">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <button type="button" class="close" data-dismiss="modal" aria-hidden="true"
+                                        onclick="$('#result').html('');">×
+                                </button>
+                                <h4 class="modal-title">上传教学资源文件</h4>
+                            </div>
+                            <div class="modal-body">
+                                <div id="help" name="help">教学资源文件格式说明：
+                                    <ol>
+
+                                        <li>只支持上传课件和压缩包，视频文件直接填入资源链接即可</li>
+                                        <li>压缩格式只支持zip</li>
+                                        <li>课件格式只支持pdf</li>
+                                    </ol>
+                                    {% load staticfiles %}
+                                    </div>
+                                <label class="control-label">选择文件</label>
+                                <input id="input-43" name="file_upload" accept=".zip,.pdf" type="file" multiple
+                                       class="file-loading">
+                                {% csrf_token %}
+                                <div id="successBlock" class="help-block"></div>
+                                <div id="alert-info" class="alert alert-success hidden" role="alert">
+                                    文件有效！
+                                </div>
+                                <input type="hidden" id="id_valid">
+                                <div id="result" name="result"></div>
+                            </div>
+                            <div class="modal-footer">
+                                <button id="close" name="close" type="button" class="btn btn-default"
+                                        data-dismiss="modal">完成
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <input type="text" name="random_name" id="random-name" hidden>
+                <input type="text" name="file_name" id="file-name" hidden>
+    <div class="panel panel-default">
+        <div class="panel-body">
+            <form action="" method="post" enctype="multipart/form-data">{% csrf_token %}
+                <div class="form-group {% if form.title.errors %} has-error {% endif %}">
+                    <label class="control-label"
+                           for="{% if form.title.errors %} inputError1 {% endif %}">{{ form.title.label }}</label>
+                    {% if form.title.errors %}
+                        <span class="text-danger pull-right">{{ form.title.errors }}</span>
+                    {% endif %}
+                    {{ form.title }}
+                    <p class="text-muted">{{ form.title.help_text }}</p>
+                </div>
+                <div class="form-group {% if form.output.errors %} has-error {% endif %}">
+                    <label class="control-label"
+                           for="{% if form.output.errors %} inputError1 {% endif %}">{{ form.type.label }}</label>
+                    {% if form.type.errors %}
+                        <span class="text-danger pull-right">{{ form.output.errors }}</span>
+                    {% endif %}
+                    {{ form.type }}
+                    <p class="text-muted">{{ form.type.help_text }}</p>
+                </div>
+                <div class="form-group {% if form.output.errors %} has-error {% endif %}">
+                    <label class="control-label"
+                           for="{% if form.output.errors %} inputError1 {% endif %}">{{ form.num.label }}</label>
+                    {% if form.num.errors %}
+                        <span class="text-danger pull-right">{{ form.num.errors }}</span>
+                    {% endif %}
+                    {{ form.num }}
+                    <p class="text-muted">{{ form.num.help_text }}</p>
+                </div> 
+                <div class="form-group {% if form.output.errors %} has-error {% endif %}">
+                    <label class="control-label"
+                           for="{% if form.output.errors %} inputError1 {% endif %}">{{ form.link.label }}</label>
+                    {% if form.link.errors %}
+                        <span class="text-danger pull-right">{{ form.link.errors }}</span>
+                    {% endif %}
+                    {{ form.link }}
+                    <p class="text-muted">{{ form.link.help_text }}</p>
+                </div> 
+    
+            <div>   
+                <div class="form-group row">
+                    <div class="form-group {% if form.courser.errors %} has-error {% endif %}  col-xs-3 col-md-3">
+                        <label class="control-label"
+                               for="{% if form.courser.errors %} inputError1 {% endif %}">{{ form.courser.label }}</label>
+                        {% if form.courser.errors %}
+                            <span class="text-danger pull-right">{{ form.courser.errors }}</span>
+                        {% endif %}
+                        {{ form.courser }}
+                        <p class="text-muted">{{ form.courser.help_text }}</p>
+                    </div>   
+                <div class="form-group row">
+                    <div class="form-group {% if form.week.errors %} has-error {% endif %}  col-xs-3 col-md-3">
+                        <label class="control-label"
+                               for="{% if form.week.errors %} inputError1 {% endif %}">{{ form.week.label }}</label>
+                        {% if form.week.errors %}
+                            <span class="text-danger pull-right">{{ form.week.errors }}</span>
+                        {% endif %}
+                        {{ form.week }}
+                        <p class="text-muted">{{ form.week.help_text }}</p>
+                    </div>   
+                </div> 
+            </div>    
+                <br>
+                <p>
+                    <button type="button" class="btn btn-primary btn-lg" data-toggle="modal" data-target="#myModal">
+                                上传教学资源文件
+                     </button>
+                    <button type="submit" class="btn btn-success btn-lg">保存资源</button>
+                </p>
+            </form>
+        </div>
+    </div>
+    <script>
+            var valid = false
+            $(document).on('ready', function () {
+                $("#input-43").fileinput({
+                    uploadUrl: '{% url 'uploud_file' %}',
+                    showPreview: false,
+                    browseLabel: "选择文件",
+                    removeLabel: "移除",
+                    uploadLabel: "上传文件",
+                    cancelLable: "取消",
+                    elErrorContainer: "#errorBlock",
+                    uploadAsync: true,
+                    maxFileCount: 5,
+                    allowedFileExtensions: ['zip','pdf'],
+                    uploadExtraData: {
+                        csrfmiddlewaretoken: '{{ csrf_token }}'
+                    }
+                });
+    
+                $("#input-43").on("fileuploaded", function (event, data, previewId, index) {
+                    var info = $("#alert-info")
+                    var result = data.response.result;
+                    if (result == 1) {
+                        info.html("文件有效！");
+                        $("#random-name").val(data.response.info);
+                        $("#file-name").val(data.response.filename);
+                        $("#id_link").val(data.response.filename);
+                        info.attr("class", "alert alert-success");
+                        valid = true
+                    }
+                    else {
+                        info.html("<strong>错误！</strong>" + data.response.info);
+                        info.attr("class", "alert alert-danger");
+                        valid = false
+                    }
+                });
+            });
+            function submitTest() {
+                if (window.location.href.indexOf('add-problem') != -1) {
+                    if (valid) {
+                        return true
+                    } else {
+                        alert("您未上传测试用例或测试用例格式不正确，请检查后重试");
+                        return false
+                    }
+                }else{
+                    return true
+                }
+            }
+        </script>
+{% endblock %}

@@ -17,6 +17,7 @@ from django.conf.urls import url, include
 from django.contrib import admin
 from django.views.generic import TemplateView
 from judge.views import get_json
+from mooc.views import get_Resource
 from django.views.generic.base import RedirectView
 from auth_system.views import page_not_found, page_error, permission_denied
 
@@ -36,6 +37,8 @@ urlpatterns = [
     url(r'^$', TemplateView.as_view(template_name="index.html")),
     url(r'^qqlogin/', include('qqlogin.urls')),
     url(r'^teetest/', include('teetest.urls')),
+    url(r'get-Resource/', get_Resource,name='get_Resource'),
+    url(r'^mooc/', include('mooc.urls')),
 ]
 
 handler403 = permission_denied

@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+{% block extrahead %}
+{% load static %}
+<script src="{% static 'assets/js/jquery-confirm.min.js' %}"></script>
+<link href="{% static 'assets/css/jquery-confirm.min.css' %}" rel="stylesheet">
+<link rel="stylesheet" href="{% static 'assets/css/codemirror/codemirror.css' %}">
+<link rel="stylesheet" href="{% static 'assets/css/codemirror/material.css' %}">
+<script src="{% static 'assets/js/codemirror/lib/codemirror.js' %}"></script>
+<script src="{% static 'assets/js/codemirror/addon/display/autorefresh.js' %}"></script>
+<script src="{% static 'assets/js/codemirror/mode/clike.js' %}"></script>
+<script src="{% static 'assets/js/codemirror/mode/python.js' %}"></script>
+<script src="{% static 'assets/js/jquery.form-validator.min.js' %}"></script>
+{% endblock %}
+{% block content %}
+     
+    <!--sidebar end-->
+
+    <!-- **********************************************************************************************************************************************************
+    MAIN CONTENT
+    *********************************************************************************************************************************************************** -->
+    <!--main content start-->
+            <h3>
+            <i class="fa fa-angle-right">
+            {{ resource.title }}
+            </i>
+            </h3>          
+            
+                {% if resource.type.name == 'video' %}
+                    <iframe height=600 width=1000 src='{{ resource.link }}' frameborder=0 'allowfullscreen'></iframe>
+                {% endif %}
+                {% if resource.type.name == 'rar' %}
+                    <a href='{{ resource.link }}'>点击此处下载</a>
+                {% endif %}
+                {% if resource.type.name == 'ppt' %}
+                    <a href='{{ resource.link }}'>点击此处下载</a>
+                {% endif %}
+                
+            </div>
+                      
+{% endblock %}
+    
+    

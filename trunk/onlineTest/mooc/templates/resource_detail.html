@@ -1,0 +1,85 @@
+{% extends 'base.html' %}
+{% block extrahead %}
+{% endblock %}
+{% block content %}
+
+    <p>
+    <div class="btn-group">
+        <a class="btn btn-primary btn-l" href="{% url 'list_resource' %}" role="button">返回列表</a>
+        <button type="button" class="btn btn-danger" id="delete">删除此题</button>
+        
+    </div>
+    </p>
+    <table id="w0" class="table table-striped table-bordered detail-view table-hover ">
+        <tbody>
+        <tr>
+            <th>ID</th>
+            <td>{{ resource.id }}</td>
+        </tr>
+        <tr>
+            <th>序号</th>
+            <td>{{ resource.num }}</td>
+        </tr>
+        <tr>
+            <th>资源标题</th>
+            <td>{{ resource.title }}</td>
+        </tr>
+        <tr>
+            <th>资源类型</th>
+            <td>{{ resource.type }}</td>
+        </tr>
+        <tr>
+            <th>所属课程</th>
+            <td>{{ resource.courser }}</td>
+        </tr>
+        <tr>
+            <th>所属周次</th>
+            <td>{{ resource.week }}</td>
+        </tr>
+        <tr>
+            <th>资源链接</th>
+            <td>{{ resource.link }}</td>
+        </tr>
+        <tr>
+            <th>创建者</th>
+            <td>{{ resource.creater }}</td>
+        </tr>
+        <tr>
+            <th>引用权限</th>
+            <td>共享</td>
+        </tr>
+        </tbody>
+    </table>
+    <script>
+        $(function () {
+            $delete=$("#delete");
+            $delete.click(function () {
+                var ids = new Array();
+                ids[0] = '{{ resource.id }}';
+                if (ids.length > 0) {
+                    if (confirm("确定要删除吗？")) {
+                        $.ajax({
+                            type: 'POST',
+                            url: "{% url 'del_resource' %}",
+                            data: {'ids': ids},
+                            success: function (data) {
+                                if (data == 1) {
+                                    location.href = "{% url 'list_resource' %}";
+                                    return false
+                                } else {
+                                    alert('删除失败');
+                                }
+                            },
+                            error: function () {
+                                alert("删除失败")
+                            }
+                        });
+                    }
+                } else {
+                    alert('您尚未选择题目')
+                }
+            });
+        });
+</script>
+
+{% endblock %}

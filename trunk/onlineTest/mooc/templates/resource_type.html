@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+{% block extrahead %}
+    {% load static %}
+    <script src="{% static 'assets/js/jquery-confirm.min.js' %}"></script>
+    <link href="{% static 'assets/css/jquery-confirm.min.css' %}" rel="stylesheet">
+{% endblock %}
+{% block content %}
+    <ol class="breadcrumb">
+        <li><a href="{% url 'index' %}">主页</a></li>
+        <li class="active">资源管理</li>
+        <li class="active">资源类型</li>
+    </ol>
+    <button onclick="add_type()" type="button" class="btn btn-success">新建资源类型</button>
+    <br>
+    <table class="table">
+        <thead>
+        <tr>
+            <th>名称</th>
+            <th>操作</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for type in types %}
+            <tr>
+                <th>{{ type.name }}</a></th>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    <script>
+        function add_type() {
+            $.confirm({
+                title: '新建资源类型',
+                content: '请输入课程名称 <input class="form-control" id="type_name" type="text" placeholder="输入资源类型"/>',
+                confirm: function () {
+                    $.ajax({
+                        url: '{% url 'add_type' %}',
+                        dataType: 'json',
+                        method: 'post',
+                        data: {'name': $('#type_name').val()}
+                    }).done(function (response) {
+                        if (response == 1) {
+                            $.alert('创建成功！');
+                            location.reload();
+                            return true
+                        } else {
+                            self.setContent('创建时出现问题');
+                            return false
+                        }
+                    }).fail(function () {
+                        self.setContent('数据传输时出现问题');
+                        return false
+                    });
+                }
+            });
+        }
+    </script>
+{% endblock %}

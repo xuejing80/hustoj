@@ -114,6 +114,15 @@
                      <li><a href="{% url 'list_do_homework' %}" id="unfinished">
                         <i class="fa fa-edit" aria-hidden="true"></i>
                         <span>我的作业列表</span></a></li>
+		     <li class="sub-menu">
+                        <a href="javascript:;" id="course_list">
+                            <i class="fa fa-graduation-cap" aria-hidden="true"></i>
+                            <span>我的课程列表</span>
+                        </a>
+                        <ul class="sub" id="courser_name">
+                            
+                        </ul>
+                     </li>
                     {% if user.isTeacher %} {% comment %}教师用户{% endcomment %}
                        <li class="sub-menu">
                            <a href="javascript:;" id="code_week_list">
@@ -161,6 +170,8 @@
                             <ul class="sub" id="extend_manage">
                                 <li id="courser_manage"><a href="{% url 'list_coursers' %}">课程管理</a></li>
                                 <li id="banji_manage"><a href="{% url 'banji_list' %}">班级管理</a></li>
+				<li id="resource_list"><a href="{% url 'list_resource' %}">教学资源管理</a></li>
+				<li id="resource_type"><a href="{% url 'type_resource' %}">资源类型</a></li>
                             </ul>
                         </li>
                         <li class="sub-menu">
@@ -200,6 +211,32 @@
                     <li><a href="{% url 'admin:index' %}" target="_blank"><i class="fa fa-key" aria-hidden="true"></i>
                     <span>系统管理</span></a></li>
                 {% endif %}
+		{% if user.is_authenticated %}
+                <script>
+                    jQuery(document).ready(function () {
+                
+                        $.ajax({
+                            type: "get",
+                            dataType: 'json',
+                            url: "{% url 'get_courser_name' %}",
+                            success: function (data) {
+                                var lh = data.length
+                                var nhh = new Array()
+                                var x = document.getElementById('courser_name')
+                                for(var k in data)
+                                {    
+                                    nhh.push("<li><a href='{% url '_list_course'  %}"+k+"'>"+data[k]+"</a></li>")
+                                }
+                                x.innerHTML = nhh
+                            },
+                            error: function (XMLHttpRequest, textStatus, errorThrown) {
+                                alert(XMLHttpRequest.responseText);
+                            }
+                        }); 
+                    });
+                </script>
+                {% endif %}
+
 
             </ul>
             <!-- sidebar menu end-->

@@ -409,6 +409,7 @@ def show_homework_result(request, id=0):
         problem = Problem.objects.get(pk=pid)
         problems.append({'code': sourceCode, 'desc': problem.description,
                          'title': problem.title, 'result': result,'score': score,
+                         'total_score':total_score, 'p_id':pid,
                          'similar_code_owners': similar_code_owners})
     #获得程序填空题
     try:
@@ -1021,7 +1022,7 @@ def get_problem_score(homework_answer, judged_score=0):
             # 根据测试用例获取编程题总分
             total_score = int(info['total_score'])
             for case in info['testcases']:  # 获取题目的测试分数
-                if solution.result == 11 or solution.result == 6:  # 如果题目出现编译错误或答案错误，可以根据相似度判分
+                if solution.result == 11 or solution.result == 6 or solution.result == 10:  # 如果题目出现编译错误或答案错误，可以根据相似度判分
                     if homework.allow_similarity == True:
                         id = solution.solution_id
                         score += int(total_score*get_similarity(id))
@@ -1032,8 +1033,9 @@ def get_problem_score(homework_answer, judged_score=0):
                     break
                 if json.loads(solution.oi_info)[str(case['desc']) + '.in']['result'] == 4:  # 参照测试点，依次加测试点分数
                     score += int(case['score'])
-                    id = solution.solution_id # 更新答案库 
-                    update_ansdb(id)
+            if solution.result == 4:
+                id = solution.solution_id # 更新答案库
+                update_ansdb(id)
         except ObjectDoesNotExist:
             user = homework_answer.creator;
             logger_request.exception("获取编程题得分失败{{homework_id:{},answer_id:{},problem_id:{},user:{}({},{})}}".format(homework.pk,homework_answer.pk,info['id'],user.username,user.id_num,user.email))

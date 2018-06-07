@@ -42,5 +42,5 @@ urlpatterns = [
 ]
 
 handler403 = permission_denied
-handler404 = page_not_found
-handler500 = page_error
+#handler404 = page_not_found
+#handler500 = page_error

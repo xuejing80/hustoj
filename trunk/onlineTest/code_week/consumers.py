@@ -395,6 +395,18 @@ def ws_receive_student_detail(message, courseId):
                         problemId = msg['id']
                         problem = ShejiProblem.objects.get(problem_id=problemId)
                     except:
+                        result = {'msg': 'fail', 'info': '您选择的题目不存在'}
+                        sendMsgToStudent(message, result)
+                        return
+                    # 检查这个题目是否是班级中的
+                    problemInClass = False
+                    for p in student.codeWeekClass.problems.all():
+                        if p == problem:
+                            problemInClass = True
+                            break
+                    if not problemInClass:
+                        result = {'msg': 'fail', 'info': '您选择的题目不存在'}
+                        sendMsgToStudent(message, result)
                         return
                     # 检查选择的题目是否已经有两个小组选择了
                     allGroup = student.group.cwclass.CodeWeekClass_group.filter(using=True).all()
@@ -469,6 +481,16 @@ def ws_receive_student_detail(message, courseId):
                         except:
                             return
                         result = None
+                        # 检查这个题目是否是班级中的
+                        problemInClass = False
+                        for p in student.codeWeekClass.problems.all():
+                            if p == problem:
+                                problemInClass = True
+                                break
+                        if not problemInClass:
+                            result = {'msg': 'fail', 'info': '您选择的题目不存在'}
+                            sendMsgToStudent(message, result)
+                            return
                         allGroup = student.group.cwclass.CodeWeekClass_group.filter(using=True).all()
                         number = 0
                         for group in allGroup:

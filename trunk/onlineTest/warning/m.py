@@ -8,6 +8,7 @@ import datetime
 import os
 import json
 from django.conf import settings
+from django.core.mail import send_mail
 from warning import gcp
 
 now = datetime.datetime.now()
@@ -164,7 +165,8 @@ def warning():
 
 def sendMailToTeacher(msg,emailaddress):
 	title = "作业完成情况反馈"
-	from_email = settings.EMAIL_HOST_USER
+	#from_email = settings.EMAIL_HOST_USER
 
 	os.system("echo '%s' | mail -s %s %s -aFrom:%s\<%s\>" % (msg,title,emailaddress,settings.ADMINS[0][0],settings.ADMINS[0][1]))
-
+	#from_email = settings.EMAIL_HOST_USER
+	#send_mail(title,msg,from_email,[emailaddress])

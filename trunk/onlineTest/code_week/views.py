@@ -20,6 +20,8 @@ from enum import Enum, unique
 import xlwt
 import channels
 
+MAX_CODE_TAR_SIZE = 5 * 1024 * 1024
+
 def updateLatestInfo(courseId, infoObject):
     # 将消息发送给教师最新消息查看页面
     channels.Group('codeweekTeacherLatestInfo-' + courseId).send(
@@ -1041,6 +1043,8 @@ def submit_code(request, courseId):
             # 保存序列化结果到数据库
             # 保存这个压缩文件，来方便打包文件的下载
             file = request.FILES['codeFile']
+            if file.size > MAX_CODE_TAR_SIZE:
+                return render(request, 'warning.html', {'info': '只支持小于5M大小的文件'})
             if not file.name.endswith(".zip"):
                 return render(request, 'warning.html', {'info': '只支持zip压缩文件'})
             else:

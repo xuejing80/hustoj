@@ -87,21 +87,16 @@ class ResourceDetailView(DetailView):
 def add_resource(request):
     if request.method == 'POST':
         form = ResourceAddForm(request.POST)
-        print(request.POST.dict())
         if form.is_valid():
             resource = form.save(user=request.user)
             old_path = '/home/judge/resource/' + request.POST['random_name'] + request.POST['file_name']
-            print('a')
-            print(old_path)
             #shutil.move(old_path, '/home/judge/resource/')
-            print('b')
             #os.rename(old_path,
                       #'/home/judge/resource/' + str(resource.id) +'-'+ str(resource.creation_time) + request.POST['file_name'])
             #shutil.rmtree('/tmp/' + request.POST['random_name'])
             return redirect(reverse("resource_detail", args=[resource.id]))
     else:
         form = ResourceAddForm()
-        print('ccc')
     return render(request, 'resource_add.html', {'form': form, 'title': '添加资源'})
 
 def update_resource(request, id):
@@ -142,12 +137,15 @@ def get_Resource(request):
     limit = int(request.GET['limit'])
     classname = request.GET['classname']
     if request.GET['my'] == 'true' and not request.user.is_superuser:
-        kwargs['teacher'] = request.user
+        kwargs['creater'] = request.user
     if classname != '0':
         kwargs['courser__id'] = classname
     if 'search' in request.GET:
         kwargs['name__icontains'] = request.GET['search']
-    resources = Resource.objects.filter(**kwargs)  #筛选
+    try:
+        resources = Resource.objects.filter(**kwargs)  #筛选
+    except Exception as err:
+        print(err)
     json_data['total'] = resources.count()
     try:
         sort = request.GET['sort']                 

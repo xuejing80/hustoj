@@ -120,7 +120,6 @@
                             <span>我的课程列表</span>
                         </a>
                         <ul class="sub" id="courser_name">
-                            
                         </ul>
                      </li>
                     {% if user.isTeacher %} {% comment %}教师用户{% endcomment %}
@@ -171,7 +170,9 @@
                                 <li id="courser_manage"><a href="{% url 'list_coursers' %}">课程管理</a></li>
                                 <li id="banji_manage"><a href="{% url 'banji_list' %}">班级管理</a></li>
 				<li id="resource_list"><a href="{% url 'list_resource' %}">教学资源管理</a></li>
+                           {% if user.is_superuser %}
 				<li id="resource_type"><a href="{% url 'type_resource' %}">资源类型</a></li>
+                           {% endif %}
                             </ul>
                         </li>
                         <li class="sub-menu">
@@ -221,11 +222,11 @@
                             url: "{% url 'get_courser_name' %}",
                             success: function (data) {
                                 var lh = data.length
-                                var nhh = new Array()
+                                var nhh = ""
                                 var x = document.getElementById('courser_name')
                                 for(var k in data)
                                 {    
-                                    nhh.push("<li><a href='{% url '_list_course'  %}"+k+"'>"+data[k]+"</a></li>")
+                                    nhh = nhh +"<li><a href='{% url '_list_course'  %}"+k+"'>"+data[k]+"</a></li>";
                                 }
                                 x.innerHTML = nhh
                             },

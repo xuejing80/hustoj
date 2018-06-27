@@ -1114,11 +1114,11 @@ def returnUtf8FileStr(fileName):
             return ""
         elif chardetResult == "utf-8" or chardetResult == 'ascii' or chardetResult == 'UTF-8-SIG':
             return file.readlines()
-        else:  # 假设是gb2312
+        else:  # 假设是gb2312或者gbk
             allLine = ""
             try:
                 for line in file.readlines():
-                    allLine += line.decode('gb2312')
+                    allLine += line.decode('gbk')
             except:
                 allLine = "无法编码文件"
             return allLine

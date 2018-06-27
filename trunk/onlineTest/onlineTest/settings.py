@@ -225,7 +225,7 @@ LOGGING = {
             'level':'INFO',
             'class':'logging.handlers.TimedRotatingFileHandler',
             'filename': os.path.join('/home/judge/log/','detail.log'),
-            'when': 'D',
+            'when': 'MIDNIGHT',
             'interval': 1,
             'formatter':'verbose',
             'encoding':'UTF-8',

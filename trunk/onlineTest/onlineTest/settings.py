@@ -45,21 +45,21 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'auth_system',
-    'teetest', #验证码
-    'judge',   #题库管理系统
-    'work',    #作业管理系统
-    'faq',     #智能问答系统
-    'mooc',
-    'process', #程序相似度计算
-    'qqlogin',  #QQ登录模块
-    'channels',  # django-channels，使用websocket来实时推送消息
-    'code_week', # 程序设计课i
-    'warning', #成绩预警
-    'django_crontab', #定时发送邮件
+    'teetest',          #验证码
+    'judge',            #题库管理系统
+    'work',             #作业管理系统
+    'faq',              #智能问答系统
+    'mooc',             #慕课资源管理系统
+    'process',          #程序相似度计算
+    'qqlogin',          #QQ登录模块
+    'channels',         #django-channels，使用websocket来实时推送消息
+    'code_week',        #程序设计课过程管理系统
+    'warning',          #成绩预警模块
+    'django_crontab',   #定时发送邮件
 ]
 
 CRONJOBS = [
-    ('0 3 * * 1', 'warning.m.warning', '>> /home/judge/log/warning.log'),
+    ('0 20 * * 7', 'warning.m.warning', '>> /home/judge/log/warning.log'),
 ]
 
 MIDDLEWARE_CLASSES = [
@@ -137,7 +137,6 @@ AUTH_PASSWORD_VALIDATORS = [
 # https://docs.djangoproject.com/en/1.9/topics/i18n/
 
 LANGUAGE_CODE = 'en-us'
-
 TIME_ZONE = 'Asia/Shanghai'
 
 # If you set this to False, Django will not use timezone-aware datetimes.
@@ -166,7 +165,6 @@ STATICFILES_DIRS = [os.path.join(BASE_DIR, "static"), ]
 STATIC_ROOT = '/var/www/html/static'
 
 LOGIN_URL = '/accounts/login/'
-
 
 # Channel settings
 CHANNEL_LAYERS = {
@@ -227,7 +225,7 @@ LOGGING = {
             'level':'INFO',
             'class':'logging.handlers.TimedRotatingFileHandler',
             'filename': os.path.join('/home/judge/log/','detail.log'),
-            'when': 'D',
+            'when': 'MIDNIGHT',
             'interval': 1,
             'formatter':'verbose',
             'encoding':'UTF-8',

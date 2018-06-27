@@ -1118,7 +1118,7 @@ def returnUtf8FileStr(fileName):
             allLine = ""
             try:
                 for line in file.readlines():
-                    allLine += line.decode('gbk')
+                    allLine += line.decode('gb18030')
             except:
                 allLine = "无法编码文件"
             return allLine

@@ -25,18 +25,34 @@
             </i>
             </h3>          
             
-                {% if resource.type.name == 'video' %}
-                    <iframe height=600 width=1000 src='{{ resource.link }}' frameborder=0 'allowfullscreen'></iframe>
+                {% if resource.type.name == '在线视频' %}
+                    {{ resource.link|safe }}
+<script>
+window.onload = window.onresize = function () {
+    resizeIframe();
+}
+var resizeIframe=function(){
+    var bodyw=document.body.clientWidth;
+    for(var ilength=0;ilength<=document.getElementsByTagName("iframe").length;ilength++){
+      if(bodyw>768){
+        document.getElementsByTagName("iframe")[ilength].width = (bodyw - 270) * 0.8;
+        document.getElementsByTagName("iframe")[ilength].height = (bodyw - 270) * 0.8/ 16 * 9;
+      }
+      else{
+        document.getElementsByTagName("iframe")[ilength].width = bodyw * 0.8;
+        document.getElementsByTagName("iframe")[ilength].height = (bodyw * 0.8) / 16 * 9;
+      }
+    }
+}
+</script>
                 {% endif %}
-                {% if resource.type.name == 'rar' %}
-                    <a href='{{ resource.link }}'>点击此处下载</a>
+                {% if resource.type.name == '在线作业' %}
+                    <a href='{{ resource.link }}'>点这里去做作业</a>
                 {% endif %}
-                {% if resource.type.name == 'ppt' %}
-                    <a href='{{ resource.link }}'>点击此处下载</a>
+                {% if resource.type.name == '电子课件' %}
+                    <a target="_blank" href='{{ resource.link }}'>点击此处查看</a>
                 {% endif %}
                 
-            </div>
-                      
 {% endblock %}
     
     

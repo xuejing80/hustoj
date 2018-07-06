@@ -56,7 +56,7 @@ def list_course(request,id):
     for resource in resources:
         array.append(resource)
         array.sort(key = attrgetter('num'))
-    return render(request,'course_list.html', {'courser':courser,'weeks':weeks,'resources':array})
+    return render(request,'course_list.html', {'courser':courser,'weeks':weeks,'resources':array,'title':courser.name})
 
 def resource_show(request,id):
     resource = Resource.objects.get(pk=id)
@@ -194,7 +194,7 @@ def uploud_file(request):
         print(random_name)
         print(filename)
     except Exception as e:
-        logger.exception("保存测试用例失败：用户信息：{}({}:{})，POST数据：{}".format(request.user.username,request.user.pk,request.user.id_num,request.POST.dict()))
+        logger.exception("保存用户资源失败：用户信息：{}({}:{})，POST数据：{}".format(request.user.username,request.user.pk,request.user.id_num,request.POST.dict()))
         return HttpResponse(
-            json.dumps({'result': 0, 'info': '上传测试用例文件时遇到错误，请稍后再试，或联系管理员老师'}))
+            json.dumps({'result': 0, 'info': '上传用户资源文件时遇到错误，请稍后再试，或联系管理员老师'}))
     return HttpResponse(json.dumps({"result": 1, 'info': random_name, 'filename': link}))

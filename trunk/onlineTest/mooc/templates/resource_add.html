@@ -38,7 +38,7 @@
                                         <li>课件格式只支持pdf</li>
                                     </ol>
                                     {% load staticfiles %}
-                                    </div>
+                                </div>
                                 <label class="control-label">选择文件</label>
                                 <input id="input-43" name="file_upload" accept=".zip,.pdf" type="file" multiple
                                        class="file-loading">
@@ -60,8 +60,6 @@
                 </div>
                 <input type="text" name="random_name" id="random-name" hidden>
                 <input type="text" name="file_name" id="file-name" hidden>
-    <div class="panel panel-default">
-        <div class="panel-body">
             <form action="" method="post" enctype="multipart/form-data">{% csrf_token %}
                 <div class="form-group {% if form.title.errors %} has-error {% endif %}">
                     <label class="control-label"
@@ -99,8 +97,6 @@
                     {{ form.link }}
                     <p class="text-muted">{{ form.link.help_text }}</p>
                 </div> 
-    
-            <div>   
                 <div class="form-group row">
                     <div class="form-group {% if form.courser.errors %} has-error {% endif %}  col-xs-3 col-md-3">
                         <label class="control-label"
@@ -111,7 +107,6 @@
                         {{ form.courser }}
                         <p class="text-muted">{{ form.courser.help_text }}</p>
                     </div>   
-                <div class="form-group row">
                     <div class="form-group {% if form.week.errors %} has-error {% endif %}  col-xs-3 col-md-3">
                         <label class="control-label"
                                for="{% if form.week.errors %} inputError1 {% endif %}">{{ form.week.label }}</label>
@@ -122,14 +117,10 @@
                         <p class="text-muted">{{ form.week.help_text }}</p>
                     </div>   
                 </div> 
-            </div>    
-                <br>
-                <p>
-                    <button type="button" class="btn btn-primary btn-lg" data-toggle="modal" data-target="#myModal">
-                                上传教学资源文件
-                     </button>
-                    <button type="submit" class="btn btn-success btn-lg">保存资源</button>
-                </p>
+                <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#myModal">
+                    上传教学资源文件
+                </button>
+                <button type="submit" class="btn btn-success">保存资源</button>
             </form>
         </div>
     </div>

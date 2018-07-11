@@ -17,7 +17,6 @@ from django.conf.urls import url, include
 from django.contrib import admin
 from django.views.generic import TemplateView
 from judge.views import get_json
-from mooc.views import get_Resource
 from django.views.generic.base import RedirectView
 from auth_system.views import page_not_found, page_error, permission_denied
 
@@ -30,17 +29,15 @@ urlpatterns = [
     url(r'^judge/', include('judge.urls')),
     url(r'^work/', include('work.urls')),
     url(r'^faq/', include('faq.urls')),
-    url(r'^code_week/', include('code_week.urls')),
     #url(r'^weixin/', include('weixin.urls')),
     url(r'get-json-(?P<model_name>\w+)/$', get_json,name='get_json'),
     url(r'^favicon\.ico$',favicon_view),
     url(r'^$', TemplateView.as_view(template_name="index.html")),
     url(r'^qqlogin/', include('qqlogin.urls')),
     url(r'^teetest/', include('teetest.urls')),
-    url(r'get-Resource/', get_Resource,name='get_Resource'),
-    url(r'^mooc/', include('mooc.urls')),
+    url(r'^sign/', include('sign.urls')),
 ]
 
 handler403 = permission_denied
-#handler404 = page_not_found
-#handler500 = page_error
+handler404 = page_not_found
+handler500 = page_error

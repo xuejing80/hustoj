@@ -69,25 +69,6 @@ class ChoiceProblem(models.Model):
         verbose_name = '选择题'
         verbose_name_plural = '选择题'
 
-class DuchengProblem(models.Model):
-    ducheng_id = models.AutoField('读程题id', primary_key=True)
-    title = models.TextField( max_length=200)
-    program = models.TextField('程序代码', blank=True, null=True)
-    answer = models.TextField('正确结果', blank=True, null=True)
-    in_date = models.DateTimeField('录入时间', blank=True, null=True, auto_now_add=True)
-    update_date = models.DateTimeField(auto_now=True, verbose_name='最后修改时间', blank=True, null=True)
-    knowledgePoint1 = models.ManyToManyField(KnowledgePoint1, verbose_name='一级知识点')
-    knowledgePoint2 = models.ManyToManyField(KnowledgePoint2, verbose_name='二级知识点')
-    classname = models.ManyToManyField(ClassName, verbose_name='所属课程')
-    creater = models.ForeignKey(MyUser)
-
-    def __str__(self):
-        return self.title
-
-    class Meta:
-        ordering = ['ducheng_id']
-        verbose_name = '读程题'
-        verbose_name_plural = '读程题'
 
 class Problem(models.Model):
     problem_id = models.AutoField('题目id', primary_key=True)

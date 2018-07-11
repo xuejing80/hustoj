@@ -50,9 +50,6 @@
             <label class="radio-inline">
                 <input type="radio" id="work_kind" value="实验" name="work_kind">实验
             </label>
-	    <label class="radio-inline">
-	        <input type="radio" id="work_kind" value="课堂练习" name="work_kind">课堂练习
-	    </label>
         </div>
         <div class="form-group">
             <label for="languages">允许的编译器类型：</label>
@@ -62,9 +59,18 @@
             <label class="checkbox-inline">
                 <input type="checkbox" id="inlineCheckbox1" value="1" name="languages" checked> C++
             </label>
+            <!--<label class="checkbox-inline">
+                <input type="checkbox" id="inlineCheckbox1" value="2" name="languages" checked> Pascal
+            </label>-->
             <label class="checkbox-inline">
                 <input type="checkbox" id="inlineCheckbox1" value="3" name="languages" checked> Java
             </label>
+            <!--<label class="checkbox-inline">
+                <input type="checkbox" id="inlineCheckbox1" value="4" name="languages" checked> Ruby
+            </label>-->
+            <!--<label class="checkbox-inline">
+                <input type="checkbox" id="inlineCheckbox1" value="5" name="languages" checked> Bash
+            </label>-->
             <label class="checkbox-inline">
                 <input type="checkbox" id="inlineCheckbox1" value="6" name="languages" checked> Python
             </label>
@@ -72,26 +78,12 @@
         <div class="form-group">
             <label for="allow_resubmit">是否允许重复提交：</label>
             <label class="radio-inline">
-                <input type="radio" id="allow_resubmit" value="1" name="allow_resubmit" onclick="al_resubmit()" checked>是
+                <input type="radio" id="allow_resubmit" value="1" name="allow_resubmit" checked>是
             </label>
             <label class="radio-inline">
-                <input type="radio" id="allow_resubmit" value="0" name="allow_resubmit" onclick="nal_resubmit()">否
+                <input type="radio" id="allow_resubmit" value="0" name="allow_resubmit">否
             </label>
         </div>
-        
-        <div class="form-group">
-            <label  class="form-inline" for="resubmit_number">自定义提交次数：</label>
-               <select id="resubmit_number" name="resubmit_number" >
-                   <option value="100" > 不限 </option>
-                   <option value="1" > 1 次 </option>
-                   <option value="2" > 2 次 </option>
-                   <option value="3" > 3 次 </option>
-                   <option value="5" > 5 次 </option>
-                   <option value="10" > 10 次 </option>
-                </select>
-            </label>
-        </div>
-
 	 <div class="form-group">
             <label for="allow_random">是否打乱选择题显示顺序：</label>
             <label class="radio-inline">
@@ -567,24 +559,6 @@
         </div>
     </div>
     <script type="text/javascript">
-        function nal_resubmit() {
-            $("#resubmit_number ").val(1);
-            $("#resubmit_number").attr("disabled", "disabled").css('background-color', '#eaeaea');
-    
-        }
-    
-        function al_resubmit() {
-            $("#resubmit_number").removeAttr('disabled').css('background-color', '#FFFFFF');
-             $("#resubmit_number ").val(100);
-        }
-            $(function(){
-                $('#saveButton').click(function(){
-                    if ($("#resubmit_number").prop("disabled") == true) {
-                        $("#resubmit_number").removeAttr('disabled');
-                        $('#resubmit_number option:eq(1)').attr('selected','selected');
-                    }
-                })
-             })
         $(function () {
             $('#datetimepicker1').datetimepicker({
                 format: 'yyyy-mm-dd hh:ii',
@@ -922,7 +896,6 @@
                                 $('#end_time').val(end_time);
                             $("#course option[value='{{ courser_id }}']").attr("selected", true);
                             $('#allow_resubmit[value="{{ allow_resubmit }}"]').attr('checked', true);
-                            $("#resubmit_number option[value='{{ resubmit_number }}']").attr('selected', true);
                             $('#allow_random[value="{{ allow_random }}"]').attr('checked', true);
                             $('#allow_similarity[value="{{ allow_similarity }}"]').attr('checked', true);
                             $('#work_kind[value="{{ work_kind }}"]').attr('checked',true);

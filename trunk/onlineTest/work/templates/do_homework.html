@@ -14,20 +14,11 @@
 
 {% endblock %}
 {% block content %}
-{% if homework.allow_resubmit and homework.resubmit_number == 100 %}
-    <div class="alert alert-success" role="alert">此份作业允许无限次重复提交，对成绩不满意可到作业列表中点击
-        <a class="btn btn-danger btn-xs" href="#"><span class="glyphicon glyphicon-repeat"></span></a>重新提交
-    </div>
-{% elif homework.allow_resubmit and remained_number > 1 %}
-    <div class="alert alert-success" role="alert">此份作业允许重复提交，你还可以提交{{ remained_number }}次，对成绩不满意可到作业列表中点击
-        <a class="btn btn-danger btn-xs" href="#"><span class="glyphicon glyphicon-repeat"></span></a>重新提交
-    </div>
-{% elif homework.allow_resubmit %}
-    <div class="alert alert-danger" role="alert"><strong>注意！</strong>你还剩余{{ remained_number }}次提交机会！
-    </div>
-{% else %}
-    <div class="alert alert-danger" role="alert"><strong>注意！</strong>此作业只能提交一次！(临时保存次数无限制)</div>
-{% endif %}
+{% if homework.allow_resubmit %}
+<div class="alert alert-success" role="alert">此份作业允许重复提交，对成绩不满意可到作业列表中点击
+    <a class="btn btn-danger btn-xs" href="#"><span class="glyphicon glyphicon-repeat"></span></a>重新提交
+</div>{% else %}
+<div class="alert alert-danger" role="alert"><strong>注意！</strong>此作业只能提交一次！(临时保存次数无限制)</div>{% endif %}
 <form method="post">
 {% csrf_token %}
 <input type="hidden" name="homework_id" size="20" value="{{ homework.id }}"/>

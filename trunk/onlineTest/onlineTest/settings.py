@@ -16,8 +16,6 @@ import os
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-USER_FILE_DIR = "/home/judge/user_file/"
-
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.9/howto/deployment/checklist/
 
@@ -25,12 +23,11 @@ USER_FILE_DIR = "/home/judge/user_file/"
 SECRET_KEY = 'CPP'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 SITE_NAME = "程序设计类课程作业平台"
 CONTACT_INFO = "薛景老师（QQ群：230689474）"
 ADMINS = [('XueJing', 'xuejing_cn@163.com'),]
-SITE_DOMAIN = "c.njupt.edu.cn"
 
 ALLOWED_HOSTS = ['*']
 
@@ -45,21 +42,13 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'auth_system',
-    'teetest',          #验证码
-    'judge',            #题库管理系统
-    'work',             #作业管理系统
-    'faq',              #智能问答系统
-    'mooc',             #慕课资源管理系统
-    'process',          #程序相似度计算
-    'qqlogin',          #QQ登录模块
-    'channels',         #django-channels，使用websocket来实时推送消息
-    'code_week',        #程序设计课过程管理系统
-    'warning',          #成绩预警模块
-    'django_crontab',   #定时发送邮件
-]
-
-CRONJOBS = [
-    ('0 20 * * 7', 'warning.m.warning', '>> /home/judge/log/warning.log'),
+    'teetest', #验证码
+    'judge',   #题库管理系统
+    'work',    #作业管理系统
+    'faq',     #智能问答系统
+    'process', #程序相似度计算
+    'qqlogin', #QQ登录模块
+    'sign',    #签到功能    powered by annhuny and meiko
 ]
 
 MIDDLEWARE_CLASSES = [
@@ -101,11 +90,14 @@ WSGI_APPLICATION = 'onlineTest.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'jol',
+        'NAME': 'oj_test',
         'USER': 'root',
         'PASSWORD': 'root',
         'HOST': '',
         'PORT': '',
+        'OPTIONS':{
+            "init_command": "SET foreign_key_checks = 0;",
+        }
     }
 }
 
@@ -132,11 +124,11 @@ AUTH_PASSWORD_VALIDATORS = [
         'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
     },
 ]
-
 # Internationalization
 # https://docs.djangoproject.com/en/1.9/topics/i18n/
 
 LANGUAGE_CODE = 'en-us'
+
 TIME_ZONE = 'Asia/Shanghai'
 
 # If you set this to False, Django will not use timezone-aware datetimes.
@@ -149,8 +141,8 @@ USE_L10N = True
 # email配置#########################################
 EMAIL_HOST = 'smtp.163.com'  # SMTP地址
 EMAIL_PORT = 25  # SMTP端口
-EMAIL_HOST_USER = 'youremail@163.com'  # 我自己的邮箱
-EMAIL_HOST_PASSWORD = 'password'  # 我的邮箱密码
+EMAIL_HOST_USER = 'annhuny@163.com'  # 我自己的邮箱
+EMAIL_HOST_PASSWORD = 'Az2323369194'  # 我的邮箱密码
 EMAIL_SUBJECT_PREFIX = '程序设计类课程作业平台'  # 为邮件Subject-line前缀,默认是'[django]'
 EMAIL_USE_TLS = True  # 与SMTP服务器通信时，是否启动TLS链接(安全链接)。默认是false
 
@@ -164,18 +156,7 @@ STATICFILES_DIRS = [os.path.join(BASE_DIR, "static"), ]
 # 需要与site.cnf 设置的静态文件路径相同
 STATIC_ROOT = '/var/www/html/static'
 
-LOGIN_URL = '/accounts/login/'
-
-# Channel settings
-CHANNEL_LAYERS = {
-    "default": {
-        "BACKEND": "asgi_redis.RedisChannelLayer",
-        "CONFIG": {
-            "hosts": [os.environ.get('REDIS_URL', 'redis://127.0.0.1:6379')],
-        },
-        "ROUTING": "code_week.routing.code_week_routing",
-    },
-}
+LOGIN_URL = '/test/accounts/login/'
 
 LOGGING = {
     'version': 1,
@@ -221,12 +202,10 @@ LOGGING = {
             'formatter':'verbose',
             'encoding':'UTF-8',
         },
-        'detail':{
+        'all':{
             'level':'INFO',
-            'class':'logging.handlers.TimedRotatingFileHandler',
-            'filename': os.path.join('/home/judge/log/','detail.log'),
-            'when': 'MIDNIGHT',
-            'interval': 1,
+            'class':'logging.FileHandler',
+            'filename': os.path.join('/home/judge/log/','all.log'),
             'formatter':'verbose',
             'encoding':'UTF-8',
         },
@@ -240,14 +219,14 @@ LOGGING = {
     },
     'loggers': {
         'django': {
-            'handlers': ['file','detail'],
+            'handlers': ['file','all'],
             'level': 'INFO',
             'propagate': False
         },
         'django.request':{
             'handlers':['request'],
             'level':'WARNING',
-            'propagate': False,
+            'propagate':True,
         },
     }
 }

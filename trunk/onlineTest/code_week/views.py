@@ -20,6 +20,8 @@ from enum import Enum, unique
 import xlwt
 import channels
 
+MAX_CODE_TAR_SIZE = 5 * 1024 * 1024
+
 def updateLatestInfo(courseId, infoObject):
     # 将消息发送给教师最新消息查看页面
     channels.Group('codeweekTeacherLatestInfo-' + courseId).send(
@@ -216,8 +218,9 @@ def delete_sheji(request):
     if request.method == 'POST':
         ids = request.POST.getlist('ids[]')
         try:
-            for pk in ids:
-                ShejiProblem.objects.filter(pk=pk).filter(creator=request.user).delete()
+            with transaction.atomic():
+                for pk in ids:
+                    ShejiProblem.objects.filter(pk=pk).filter(creator=request.user).delete()
         except:
             return HttpResponse(0)
         return HttpResponse(1)
@@ -795,6 +798,7 @@ def multipStuState(student):
 
 @login_required
 # 用于教师移除学生
+# 0代表有异常删除失败，1代表删除成功，2代表多人模式无法删除了，3代表单人模式无法删除
 def remove_student(request):
     courseId = None
     studentId = None
@@ -809,15 +813,28 @@ def remove_student(request):
         student = CodeWeekClassStudent.objects.get(codeWeekClass=course, id=studentId)
     except:
         return HttpResponse(0)
-    # 如果学生已经已经加入小组或者成立小组就无法移除
-    if student.group == None:
-        try:
-            with transaction.atomic():
-                student.delete()
-        except:
-            return HttpResponse(0)
-        return HttpResponse(1)
-    return HttpResponse(2)
+    # 如果是每组一个人，检查是否有选题
+    if course.numberEachGroup == 1:
+        if student.group.selectedProblem == None:
+            try:
+                with transaction.atomic():
+                    group = student.group
+                    student.delete()
+                    group.delete()
+            except:
+                return HttpResponse(0)
+            return HttpResponse(1)
+        return HttpResponse(3)
+    else:
+        # 如果学生已经已经加入小组或者成立小组就无法移除
+        if student.group == None:
+            try:
+                with transaction.atomic():
+                    student.delete()
+            except:
+                return HttpResponse(0)
+            return HttpResponse(1)
+        return HttpResponse(2)
 
 @login_required
 # 用于组长选择题目
@@ -994,6 +1011,9 @@ def submit_code(request, courseId):
         group = student.group
         if not group:
             return render(request, 'warning.html', {'info': '你还没有加入组或者成为组长'})
+        else:
+            if not group.selectedProblem:
+                return render(request, 'warning.html', {'info': '你还没有选择题目'})
     except:
         return render(request, 'warning.html', {'info': '你还没有加入组或者成为组长'})
 
@@ -1023,6 +1043,8 @@ def submit_code(request, courseId):
             # 保存序列化结果到数据库
             # 保存这个压缩文件，来方便打包文件的下载
             file = request.FILES['codeFile']
+            if file.size > MAX_CODE_TAR_SIZE:
+                return render(request, 'warning.html', {'info': '只支持小于5M大小的文件'})
             if not file.name.endswith(".zip"):
                 return render(request, 'warning.html', {'info': '只支持zip压缩文件'})
             else:
@@ -1092,11 +1114,11 @@ def returnUtf8FileStr(fileName):
             return ""
         elif chardetResult == "utf-8" or chardetResult == 'ascii' or chardetResult == 'UTF-8-SIG':
             return file.readlines()
-        else:  # 假设是gb2312
+        else:  # 假设是gb2312或者gbk
             allLine = ""
             try:
                 for line in file.readlines():
-                    allLine += line.decode('gb2312')
+                    allLine += line.decode('gb18030')
             except:
                 allLine = "无法编码文件"
             return allLine

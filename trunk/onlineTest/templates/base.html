@@ -18,6 +18,7 @@
     <script src="{% static "assets/js/jquery.js" %}"></script>
     <script src="{% static "assets/js/bootstrap.min.js" %}"></script>
     <script src="{% static "assets/js/jquery-ui-1.9.2.custom.min.js" %}"></script>
+    <script type="text/javascript" src="http://api.map.baidu.com/api?v=2.0&ak=NW1qGiEHfWeZLoVMg6ZtxeC9dyswLbGR"></script>
     <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
     <!--[if lt IE 9]>
       <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js" %}" ></script>
@@ -62,14 +63,6 @@
                             </li>
                         </ul>
                     </li>
-                    {% if user.is_superuser %}
-                    <li class="dropdown">
-                        <a data-toggle="dropdown" class="dropdown-toggle" href="index.html#" title="">
-                            <i class="fa fa-inbox" aria-hidden="true" ></i>
-                        信息 {% comment %} 这里可以通过数字来显示有新消息{%  endcomment %}
-                        </a>
-                    </li>
-                    {% endif %}
                 {% else %}
                     <li><a href="{% url 'register' %}">注册</a></li>
                     <li><a href="{% url 'login' %}">登录</a></li>
@@ -111,36 +104,9 @@
                     </a>
                 </li>
                 {% if user.is_authenticated %}
-                     <li><a href="{% url 'list_do_homework' %}" id="unfinished">
+                    <li><a href="{% url 'list_do_homework' %}" id="unfinished">
                         <i class="fa fa-edit" aria-hidden="true"></i>
                         <span>我的作业列表</span></a></li>
-		     <li class="sub-menu">
-                        <a href="javascript:;" id="course_list">
-                            <i class="fa fa-graduation-cap" aria-hidden="true"></i>
-                            <span>我的课程列表</span>
-                        </a>
-                        <ul class="sub" id="courser_name">
-                        </ul>
-                     </li>
-                    {% if user.isTeacher %} {% comment %}教师用户{% endcomment %}
-                       <li class="sub-menu">
-                           <a href="javascript:;" id="code_week_list">
-                               <i class="fa fa-pencil" aria-hidden="true"></i>
-                               <span>程序设计课</span>
-                           </a>
-                           <ul class="sub" id="extend_code_week_list">
-                               <li id="code_week_teacher_course_list"><a href="{% url 'course_list_for_teacher' %}">课程管理</a></li>
-                               <li id="sheji_list"><a href="{% url 'sheji_problem_list' %}">题库管理</a></li>
-                           </ul>
-                       </li>
-                    {% else %}
-                       <li class="mt" style="margin-top: 0">
-                         <a href="{% url 'course_list_for_student' %}" id="code_week_list">
-                           <i class="fa fa-pencil" aria-hidden="true"></i>
-                           <span>程序设计课</span>
-                       </a>
-                       </li>
-                    {% endif %}
                     {% if 'work.add_homework' in perms %}
                         <li><a href="{% url 'list_finished_homework' %}" id="finished">
                             <i class="fa fa-list-ul" aria-hidden="true"></i>
@@ -169,10 +135,6 @@
                             <ul class="sub" id="extend_manage">
                                 <li id="courser_manage"><a href="{% url 'list_coursers' %}">课程管理</a></li>
                                 <li id="banji_manage"><a href="{% url 'banji_list' %}">班级管理</a></li>
-				<li id="resource_list"><a href="{% url 'list_resource' %}">教学资源管理</a></li>
-                           {% if user.is_superuser %}
-				<li id="resource_type"><a href="{% url 'type_resource' %}">资源类型</a></li>
-                           {% endif %}
                             </ul>
                         </li>
                         <li class="sub-menu">
@@ -187,6 +149,19 @@
                         </li>
                     {% endif %}
                 {% endif %}
+                    <li class="sub-meun">
+                        <a href="javascript:;" id="sign_manage">
+                            <i class="fa fa-cogs"></i>
+                            <span>签到管理</span>
+                        </a>
+                        <ul class="sub" id="sign_user_manage">
+                            {% if user.is_superuser %}
+                                <li id="sign_teacher_manage" style="padding-left: 32px"><a href="{% url 'sign.teacher.index' %}">签到布置</a></li>
+                            {% else %}
+                                <li id="sign_student_manage" style="padding-left: 32px"><a href="{% url 'sign.student.index' %}">我的签到</a></li>
+                            {% endif %}
+                        </ul>
+                    </li>
                 <li class="sub-menu">
                     <a href="javascript:;">
                         <i class="fa fa-user" aria-hidden="true"></i>
@@ -212,32 +187,6 @@
                     <li><a href="{% url 'admin:index' %}" target="_blank"><i class="fa fa-key" aria-hidden="true"></i>
                     <span>系统管理</span></a></li>
                 {% endif %}
-		{% if user.is_authenticated %}
-                <script>
-                    jQuery(document).ready(function () {
-                
-                        $.ajax({
-                            type: "get",
-                            dataType: 'json',
-                            url: "{% url 'get_courser_name' %}",
-                            success: function (data) {
-                                var lh = data.length
-                                var nhh = ""
-                                var x = document.getElementById('courser_name')
-                                for(var k in data)
-                                {    
-                                    nhh = nhh +"<li><a href='{% url '_list_course'  %}"+k+"'>"+data[k]+"</a></li>";
-                                }
-                                x.innerHTML = nhh
-                            },
-                            error: function (XMLHttpRequest, textStatus, errorThrown) {
-                                alert(XMLHttpRequest.responseText);
-                            }
-                        }); 
-                    });
-                </script>
-                {% endif %}
-
 
             </ul>
             <!-- sidebar menu end-->
@@ -265,7 +214,7 @@
             </div>
 
         </section>
-        <! --/wrapper -->
+        <!--/wrapper -->
     </section><!-- /MAIN CONTENT -->
 
     <!--main content end-->
@@ -309,22 +258,6 @@
     $(function () {
         var position = "{{ position }}"
         switch (position) {
-        {% if user.isTeacher %}
-            case 'code_week_teacher_course_list':
-                $("#code_week_teacher_course_list").addClass("active");
-                $("#code_week_list").addClass("active");
-                $("#extend_code_week_list").css('display','block');
-                break;
-            case 'sheji_list':
-                $("#sheji_list").addClass("active");
-                $("#code_week_list").addClass("active");
-                $("#extend_code_week_list").css('display','block');
-                break;
-        {% else %}
-            case 'code_week_list':
-                $("#code_week_list").addClass("active");
-                break;
-        {% endif %}
             case 'biancheng_list':
                 $("#biancheng_list").addClass("active");
                 $("#problem_list").addClass("active");
@@ -376,8 +309,18 @@
                 $("#private_work_manage").addClass("active");
                 $("#extend_work_manage").css("display", 'block');
                 $("#work_manege").addClass("active");
+                break;
+            case 'sign_teacher_manage':
+                $("#sign_teacher_manage").addClass("active");
+                $("#sign_user_manage").css("display", 'block');
+                $("#sign_manage").addClass("active");
+                break;
+            case 'sign_student_manage':
+                $("#sign_student_manage").addClass("active");
+                $("#sign_user_manage").css("display", 'block');
+                $("#sign_manage").addClass("active");
+                break;
         }
-
     })
 </script>
 

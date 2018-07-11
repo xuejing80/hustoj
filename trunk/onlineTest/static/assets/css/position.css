@@ -1,0 +1,54 @@
+body{
+    display: flex;
+    justify-content: flex-start;
+    flex-direction: row;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    align-content: flex-start;
+    min-height: 800px;
+}
+.attend{
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+    margin: 10px 0 10px 0;
+}
+.attend h2{
+    text-align: center;
+}
+.attend input{
+    margin-top: 10px;
+}
+.attend button{
+    width: 100%;
+    margin-top: 10px;
+}
+.attend span{
+    margin-top: 10px;
+    font-size: 18px;
+    color: #bce8f1;
+}
+.leave{
+    margin-top: 10px;
+}
+.leave span{
+    font-size: 18px;
+}
+.front{
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    height: 30px;
+    width: 100%;
+    text-align: center;
+    line-height: 30px;
+    background-color: deepskyblue;
+}
+.front img{
+    height: 20px;
+    width: auto;
+}
+#test{
+    margin-top: 50px;
+}
+

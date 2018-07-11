@@ -79,7 +79,9 @@
          <div class="panel panel-{% if problem.result == 4 %}success{% else %}danger{% endif %}">
                 <div class="panel-heading"><span class="glyphicon glyphicon-{% if problem.result == 4 %}ok{% else %}remove{% endif %}"
                                                  aria-hidden="true"></span> {{ problem.title }}
-                &nbsp;得分：{{problem.score}}&nbsp;/&nbsp;{{problem.total_score}}
+                {% if result == True %}&nbsp;得分：{{problem.score}}&nbsp;/&nbsp;10
+                {% else %}&nbsp;得分：{{problem.score}}&nbsp;/&nbsp;10
+                {% endif %} 
                 </div><div class="panel-body">
                 <pre><code>{{ problem.code }}</code></pre></div>
              {% if problem.similar_code_owners %}

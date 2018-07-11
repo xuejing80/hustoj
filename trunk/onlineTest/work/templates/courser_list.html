@@ -66,13 +66,13 @@
         function add_courser() {
             $.confirm({
                 title: '新建课程',
-                content: '请输入课程名称 <input class="form-control" id="course_name" type="text" placeholder="输入课程名称"/>',
+                content: '请输入课程名称 <input class="form-control" id="courser_name" type="text" placeholder="输入课程名称"/>',
                 confirm: function () {
                     $.ajax({
                         url: '{% url 'add_courser' %}',
                         dataType: 'json',
                         method: 'post',
-                        data: {'name': $('#course_name').val()}
+                        data: {'name': $('#courser_name').val()}
                     }).done(function (response) {
                         if (response == 1) {
                             $.alert('创建成功！');

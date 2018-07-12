@@ -1,0 +1,165 @@
+{% extends 'base.html' %} 
+
+{% block title %} 
+
+我的签到列表
+
+{% endblock %} 
+
+{% block extrahead %} 
+
+{% load static %}
+<script src="{% static 'assets/js/bootstrap-table.min.js' %}"></script>
+<link href="{% static 'assets/css/bootstrap-table.min.css' %}" rel="stylesheet">
+<script src="{% static 'assets/js/bootstrap-table-zh-CN.min.js' %}"></script> 
+{% endblock %} 
+
+
+{% block content %}
+<ol class="breadcrumb">
+    <li>
+        <a href="{% url 'index' %}">主页</a>
+    </li >
+    <li class="active">签到管理</li>
+    <li class="active">查看详情</li>
+</ol>
+
+<h1>我的点名记录</h1>
+
+<!-- Modal 弹出模态框 -->
+<div class="modal fade" id="modal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+                <h4 id="myModalLabel" class="modal-title">假条</h4>
+            </div>
+            <div class="modal-body">
+                <h4 id="leave-cause"></h4>
+                <div class="col-sm-12"> 
+                    <img id="img-src">
+                </div>
+            </div>
+            <div class="modal-footer">
+
+                <div class="pull-left">
+                    <button id="accept-btn" type="button" class="btn btn-success btn-sm">通过</button>
+                    <button id="decline-btn" type="button" class="btn btn-danger btn-sm">拒绝</button>
+                </div>
+
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<h3>
+    <form class="form-inline" method="post" action="{% url 'sign.supplement' eventId %}">
+        <div class="form-group">
+            <input id="studentId" type="text" class="form-control" name="studentId" placeholder="学号">
+        </div>
+        <button id="supplement" class="btn btn-primary">补签</button>
+    </form>
+</h3>
+
+<div class="table-responsive">
+    <table class="table">
+        <tr>
+            <th>学生姓名</th>
+            <th>签到时间</th>
+            <th>备注</th>
+        </tr>
+
+        {% for i in data %}
+            <tr>
+                <th>
+                    {{ i.username }}
+                </th>
+                <th>
+                    {% if i.created_time %}
+                        {{ i.created_time }}
+                    {% else %}
+                        无
+                    {% endif %}
+                </th>
+                <th>
+                    {% if i.type_of == 1 %}
+
+                        {% if i.is_checked == 1 %}
+                            <span class="bg-success">假条已审核</span> &nbsp;
+                        {% elif i.is_checked == 0 %}
+                            <span class="bg-warning">假条待审核</span> &nbsp;
+                            <button id="{{ i.id }}" img-src="{{ i.path }}" cause="{{ i.cause }}" type="button" class="btn btn-primary btn-xs" data-toggle="modal" data-target="#modal" onclick="showDetail( {{ i.id }} )">查看</button>
+                        {% endif %}
+
+                    {% elif i.type_of == 0 %}
+                        <span class="bg-success">正常签到</span>
+                    {% else %}
+                        <span class="bg-danger">未签到</span>
+                    {% endif %}
+                </th>
+            </tr>
+        {% endfor %}
+    </table>
+</div>
+
+<script>
+    let sId
+    const showDetail = function (id) {
+        sId = id
+        $('#img-src').attr('src', '/static/' + $('#'+id).attr('img-src'))
+        $('#leave-cause').text(($('#'+id).attr('cause')))
+    }
+    
+    $('#supplement').on('click', function(e){
+        e.preventDefault() //取消默认行为
+        let urlArr = window.location.pathname.split('/')
+        $.post('/sign/supplement/' + urlArr[urlArr.length - 1], {
+                studentId: $('#studentId').val()
+            }, function (result, statue) {
+                if (statue === 'success') {
+                    if (result.success) {
+                        alert('补签成功')
+                        location.reload()
+                    } else {
+                        alert(result.errMsg)
+                    }
+                } else {
+                    alert('服务器抽风了QAQ，程序员小哥哥维修中')
+                }
+            })
+    })
+
+    $('#accept-btn').on('click', function (e){
+        $.post('/sign/accept/' + sId, {}, function(result, statue) {
+            if (statue === 'success') {
+                if (result.success) {
+                    location.reload()
+                } else {
+                    alert(result.errMsg)
+                }
+            } else {
+                alert('服务器抽风了QAQ，程序员小哥哥维修中')
+            }
+        })
+    })
+
+    $('#decline-btn').on('click', function (e){
+        $.post('/sign/decline/' + sId, {}, function(result, statue) {
+            if (statue === 'success') {
+                if (result.success) {
+                    location.reload()
+                    console.log('ok')
+                } else {
+                    alert(result.errMsg)
+                }
+            } else {
+                alert('服务器抽风了QAQ，程序员小哥哥维修中')
+            }
+        })
+    })
+</script>
+
+{% endblock %}

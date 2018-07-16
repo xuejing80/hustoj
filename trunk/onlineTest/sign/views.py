@@ -14,7 +14,7 @@ from onlineTest.settings import BASE_DIR
 def teacher_index(request):
     user = request.user
 
-    if request.method == 'GET' and user.is_admin:    
+    if request.method == 'GET' and (user.is_admin or user.isTeacher):
 
         cursor = connection.cursor()
         classesSql = 'select id, name\

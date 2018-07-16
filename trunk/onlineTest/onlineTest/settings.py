@@ -56,6 +56,7 @@ INSTALLED_APPS = [
     'code_week',        #程序设计课过程管理系统
     'warning',          #成绩预警模块
     'django_crontab',   #定时发送邮件
+    'sign',             #基于地理位置的签到
 ]
 
 CRONJOBS = [

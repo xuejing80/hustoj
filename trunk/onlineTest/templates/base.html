@@ -105,11 +105,18 @@
                         <span>主页</span>
                     </a>
                 </li>
-                <li class="mt" style="margin-top: 0">
-                    <a href="{% url 'download' %}" id="source">
-                        <i class="fa fa-cloud-download" aria-hidden="true"></i>
-                        <span>教学资源</span>
+                <li class="mt" style="margin-top: 0" id="sign_user_manage">
+                  {% if user.isTeacher %}
+                    <a href="{% url 'sign.teacher.index' %}" id="sign_teacher_manage">
+                        <i class="fa fa-cogs" aria-hidden="true"></i>
+                        <span>签到布置</span>
                     </a>
+                  {% else %}
+                    <a href="{% url 'sign.student.index' %}" id="sign_student_manage">
+                        <i class="fa fa-cogs" aria-hidden="true"></i>
+                        <span>我的签到</span>
+                    </a>
+                  {% endif %}
                 </li>
                 {% if user.is_authenticated %}
                      <li><a href="{% url 'list_do_homework' %}" id="unfinished">
@@ -188,20 +195,6 @@
                         </li>
                     {% endif %}
                 {% endif %}
-                <li class="sub-meun">
-                    <a href="javascript:;" id="sign_manage">
-                        <i class="fa fa-cogs"></i>
-                        <span>签到管理</span>
-                    </a>
-                    <ul class="sub" id="sign_user_manage">
-                        {% if user.is_superuser %}
-                            <li id="sign_teacher_manage" style="padding-left: 32px"><a href="{% url 'sign.teacher.index' %}">签到布置</a></li>
-                        {% else %}
-                            <li id="sign_student_manage" style="padding-left: 32px"><a href="{% url 'sign.student.index' %}">我的签到</a></li>
-                        {% endif %}
-                    </ul>
-                </li>
-
                 <li class="sub-menu">
                     <a href="javascript:;">
                         <i class="fa fa-user" aria-hidden="true"></i>
@@ -391,16 +384,6 @@
                 $("#private_work_manage").addClass("active");
                 $("#extend_work_manage").css("display", 'block');
                 $("#work_manege").addClass("active");
-                break;
-            case 'sign_teacher_manage':
-                $("#sign_teacher_manage").addClass("active");
-                $("#sign_user_manage").css("display", 'block');
-                $("#sign_manage").addClass("active");
-                break;
-            case 'sign_student_manage':
-                $("#sign_student_manage").addClass("active");
-                $("#sign_user_manage").css("display", 'block');
-                $("#sign_manage").addClass("active");
                 break;
         }
 

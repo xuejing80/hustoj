@@ -39,6 +39,7 @@ urlpatterns = [
     url(r'^teetest/', include('teetest.urls')),
     url(r'get-Resource/', get_Resource,name='get_Resource'),
     url(r'^mooc/', include('mooc.urls')),
+    url(r'^sign/', include('sign.urls')),
 ]
 
 handler403 = permission_denied

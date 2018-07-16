@@ -1,0 +1,201 @@
+{% extends 'base.html' %} 
+
+{% block title %} 我的作业列表 {% endblock %} 
+
+{% block extrahead %} 
+
+{% load static %}
+<style>
+    .data_input {
+        height: 34px;
+        border: 1px solid #e1e1e1;
+        border-radius: 5px;
+    }
+</style>
+
+<link href="{% static 'assets/css/bootstrap-datetimepicker.min.css' %}" rel="stylesheet">
+<script src="{% static 'assets/js/bootstrap-datetimepicker.min.js' %}"></script>
+<script src="{% static 'assets/js/moment/moment.min.js' %}"></script>
+<script src="{% static 'assets/js/moment/zh-cn.js' %}"></script>
+{% endblock %} 
+
+
+{% block content %}
+<div id="allmap"></div>
+<ol class="breadcrumb">
+    <li>
+        <a href="{% url 'index' %}">主页</a>
+    </li>
+    <li class="active">签到管理</li>
+    <li class="active">布置签到</li>
+</ol>
+
+<h1>签到布置</h1>
+
+<!-- Button trigger modal -->
+<button type="button" class="btn btn-primary" data-toggle="modal" data-target="#modal">
+    布置签到
+</button>
+
+<!-- Modal -->
+<div class="modal fade" id="modal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+                <h4 class="modal-title">签到布置</h4>
+            </div>
+
+            <div class="modal-body">
+                <form class="row" method="post" action="{% url 'sign.create' %}">
+                    <div class="form-group col-sm-12">
+                        <select id="class-list" class="form-control" name="banjiId">
+                            {% for i in classes %}
+                                <option id="banjiId" value="{{ i.banjiId }}">{{ i.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class='col-sm-6'>
+                        <div class="form-group">
+                            <label for="start_time">开始时间</label>
+                            <div class='input-group date' id='datetimepicker1'>
+                                <input type='text' class="form-control" name="start_time" id="startedTime"/>
+                                <span class="input-group-addon">
+                                    <span class="glyphicon glyphicon-calendar"></span>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class='col-sm-6'>
+                        <div class="form-group">
+                            <label for="end_time">结束时间</label>
+                            <div class='input-group date' id='datetimepicker2'>
+                                <input type='text' class="form-control" name="end_time" id="closedTime"/>
+                                <span class="input-group-addon">
+                                    <span class="glyphicon glyphicon-calendar"></span>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                </form>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+                <button id="sub-btn" type="button" class="btn btn-primary">布置</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<h1>我布置的签到</h1>
+<div class="table-responsive">
+    <table class="table">
+        <tr>
+            <th>课程名称</th>
+            <th>签到人数</th>
+            <th>全部人数</th>
+            <th>开始时间</th>
+            <th>结束时间</th>
+            <th>操作</th>
+        </tr>
+
+        {% for i in data %}
+        <tr>
+            <th>{{ i.banji__name }}</th>
+            <th>{{ i.has_signed_count }}</th>
+            <th>{{ i.all_student_count }}</th>
+            <th>{{ i.started_time }}</th>
+            <th>{{ i.closed_time }}</th>
+            <th>
+                <a href="{% url 'sign.detail' i.id %}">详细</a>
+                <a class="del-btn" href="{% url 'sign.delete' i.id %}">删除</a>
+            </th>
+        </tr>
+        {% endfor %}
+
+    </table>
+</div>
+
+<script>
+    $("#sign_teacher_manage").addClass("active");
+    $("#sign_user_manage").css("display", 'block');
+    $("#sign_manage").addClass("active");
+    $(function () {
+        $('#datetimepicker1').datetimepicker(
+            {
+                format: 'yyyy-mm-dd hh:ii',
+                viewSelect: 'hour',
+                autoclose: true,
+                todayBtn: true,
+                minuteStep: 30,
+            }
+        );
+    });
+    $('#startedTime').val(moment().format('YYYY-MM-DD HH:mm'));
+
+    $(function () {
+        $('#datetimepicker2').datetimepicker(
+            {
+                format: 'yyyy-mm-dd hh:ii',
+                viewSelect: 'hour',
+                autoclose: true,
+                todayBtn: true,
+                minuteStep: 30,
+            }
+        );
+    });
+    $('#closedTime').val(moment().add(10, 'minutes').format('YYYY-MM-DD HH:mm'));
+
+    let geolocation = new BMap.Geolocation();
+    let geoJson = '';
+    geolocation.getCurrentPosition(function (r) {
+        if (this.getStatus() == BMAP_STATUS_SUCCESS) {
+            geoJson = `[${r.point.lng},${r.point.lat}]`
+            console.log('Your Position: ' + r.point.lng + ',' + r.point.lat);
+        } else {
+            alert('failed' + this.getStatus());
+        }
+    })
+
+    $('#sub-btn').on('click', function () {
+        if (!geoJson) {
+            alert('get location failed, try later plz')
+            return
+        } else {
+            $.post('/sign/create', {
+                position: geoJson,
+                startedTime: $('#startedTime').val(),
+                closedTime: $('#closedTime').val(),
+                banjiId: $('#class-list option:selected').val(),
+            }, function (result, statue) {
+                if (statue === 'success') {
+                    if (result.success) {
+                        alert('布置成功')
+                        location.reload()
+                    } else {
+                        alert(result.errMsg)
+                    }
+                } else {
+                    console.log('服务器抽风了QAQ，程序员小哥哥维修中')
+                }
+            })
+        }
+    });
+
+    $('.del-btn').on('click', function(e){
+        e.preventDefault()
+        if(window.confirm('确认删除？')){
+            $.post($(this).attr('href'), {}, function(){
+                location.reload()
+            })
+        }
+    })
+</script> 
+
+{% endblock %}

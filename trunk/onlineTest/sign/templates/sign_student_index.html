@@ -1,0 +1,192 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    我的签到
+{% endblock %}
+
+{% block extrahead %}
+    {% load static %}
+    <link href="{% static "assets/css/position.css" %}" rel="stylesheet">
+    <link href="{% static "assets/css/upload.css" %}" rel="stylesheet">
+    <script src="{% static "assets/js/upload.js" %}"></script>
+{% endblock %}
+
+{% block content %}
+    <ol class="breadcrumb">
+        <li><a href="{% url 'index' %}">主页</a></li>
+        <li class="active">签到管理</li>
+        <li class="active">我的签到</li>
+    </ol>
+
+    {% if onGoing %}
+        <h1> 正在进行中 </h1>
+        <div id="positionGet" hidden>{{ onGoing.position }}</div>
+        <div id="idGet" hidden>{{ onGoing.id }}</div>
+
+        <div class="table-responsive">
+            <table class="table">
+                <tr>
+                    <th>课程名称</th>
+                    <th>开始时间</th>
+                    <th>截止时间</th>
+                </tr>
+
+                <tr>
+                    <th>{{ onGoing.name }}</th>
+                    <th>{{ onGoing.startTime }}</th>
+                    <th>{{ onGoing.closedTime }}</th>
+                </tr>
+
+            </table>
+        </div>
+    {% else %}
+        <h1> 暂时没有正在进行中的签到 </h1>
+    {% endif %}
+
+
+    <div class="attend">
+        <div id="allmap"></div>
+        <h3>签到</h3>
+        <button id="attend" class="btn btn-primary" type="submit" onclick="attendance()"
+            {% if not onGoing %}
+                disabled="disabled"
+            {% endif %}
+        >签到</button>
+        
+        <h3>请假</h3>
+
+        <input id="file_input" type="file">
+        <img id="result"></img>
+        <input id="message" type="text" class="form-control" placeholder="请输入你的请假理由">
+        <button id="sub-btn" type="submit" class="btn btn-info">请假</button>
+    </div>
+
+
+    <h3>签到记录</h3>
+    <div class="table-responsive">
+        <table class="table">
+            <tr>
+                <th>课程名称</th>
+                <th>打卡时间</th>
+            </tr>
+
+            {% for i in checked %}
+                <tr>
+                    <th>{{ i.name }}</th>
+                    <th>{{ i.createdTime }}</th>    
+                </tr>               
+            {% endfor %}
+        </table>
+    </div>
+    
+<script>
+    $("#sign_student_manage").addClass("active");
+    $("#sign_user_manage").css("display", 'block');
+    $("#sign_manage").addClass("active");
+    const map = new BMap.Map("allmap")
+    map.centerAndZoom("南京", 15) //初始化地图,设置城市和地图级别。
+    const positionGet = JSON.parse($('#positionGet').text())
+    const eventId = JSON.parse($('#idGet').text())
+    console.log(positionGet, eventId)
+    const pointA = new BMap.Point(positionGet[0], positionGet[1])
+    let lengthNow
+
+    const geolocation = new BMap.Geolocation()
+    geolocation.getCurrentPosition(function (r) {
+        if (this.getStatus() == BMAP_STATUS_SUCCESS) {
+            const mk = new BMap.Marker(r.point)
+            map.addOverlay(mk)
+            map.panTo(r.point)
+            console.log('Your Position: ' + r.point.lng + ',' + r.point.lat)
+            const pointB = new BMap.Point(r.point.lng, r.point.lat)
+            //pointB 为根据定位设置出的位置
+            lengthNow = (map.getDistance(pointA, pointB)).toFixed(2)
+            //获取两点距离,保留小数点后两位
+            var polyline = new BMap.Polyline([pointA, pointB], {
+                strokeColor: "blue",
+                strokeWeight: 6,
+                strokeOpacity: 0.5
+            })
+        } else {
+            alert('failed' + this.getStatus())
+        }
+
+    }, {
+        enableHighAccuracy: true
+    })
+
+    function attendance() {
+        const url = '/sign/checkout/' + eventId
+        if (lengthNow === undefined) {
+            alert("获取地理位置失败，请在数秒后重试。")
+        } else if (lengthNow >= 200) {
+            alert("签到失败（不在指定位置）")
+        } else if (lengthNow < 200) {
+            $.post(url, function (res, status) {
+                if (status === 'success') {
+                    if (res.success) {
+                        alert("签到成功")
+                        location.reload()
+                    } else {
+                        alert(res.errMsg)
+                    }
+                } else {
+                    alert('服务器抽风了QAQ，程序员小哥哥维修中')
+                }
+            })
+        }
+        
+    }
+
+
+    const result = $('#result')
+    const input = $('#file_input')
+
+    input.change(function() {
+        console.log(input)
+        const file = input[0].files[0]
+        const fileReader = new FileReader()
+        fileReader.onloadend = function () {
+            if (fileReader.readyState == fileReader.DONE) {
+                result.attr('src', fileReader.result)
+            }
+        }
+        fileReader.readAsDataURL(file)
+        console.log(result)
+    })
+
+
+    $('#sub-btn').on('click', function(e){
+        console.log('click send req')
+        e.preventDefault() //取消默认行为
+
+        if (message === '' || result.attr('src') === undefined) {
+            alert("请完善理由或选择假条")
+        }else {
+            let formData = new FormData();
+            formData.append('cause', $('#message').val());
+            formData.append('leaveAsk', $('#file_input').prop('files')[0]);
+
+            $.ajax({
+                url: '/sign/leave/' + eventId, 
+                type: 'POST',
+                data: formData,
+                contentType: false,
+                processData: false
+            }).done(function (result, statue) {
+                if (statue === 'success') {
+                    if (result.success) {
+                        alert('假条已提交')
+                        location.reload()
+                    } else {
+                        alert(result.errMsg)
+                    }
+                } else {
+                    alert('服务器抽风了QAQ，程序员小哥哥维修中')
+                }
+            })
+
+        }
+    })
+</script>
+{% endblock %}

@@ -37,7 +37,7 @@ def teacher_index(request):
 def create(request):
     user = request.user
 
-    if request.method == 'POST' and user.is_admin:   #judge HTTP method and user identity
+    if request.method == 'POST' and (user.is_admin or user.isTeacher):   #judge HTTP method and user identity
 
         banjiId = int(request.POST.get('banjiId'))
         timeNow = datetime.now()

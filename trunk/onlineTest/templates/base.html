@@ -175,10 +175,10 @@
                                 <span>课程与班级</span>
                             </a>
                             <ul class="sub" id="extend_manage">
-                                <li id="courser_manage"><a href="{% url 'list_coursers' %}">课程管理</a></li>
                                 <li id="banji_manage"><a href="{% url 'banji_list' %}">班级管理</a></li>
 				<li id="resource_list"><a href="{% url 'list_resource' %}">教学资源管理</a></li>
                            {% if user.is_superuser %}
+                                <li id="courser_manage"><a href="{% url 'list_coursers' %}">课程管理</a></li>
 				<li id="resource_type"><a href="{% url 'type_resource' %}">资源类型</a></li>
                            {% endif %}
                             </ul>
@@ -372,6 +372,11 @@
                 break;
             case 'banji_manage':
                 $("#banji_manage").addClass("active");
+                $("#extend_manage").css("display", 'block');
+                $("#manage").addClass("active");
+                break;
+            case 'resource_list':
+                $("#resource_list").addClass("active");
                 $("#extend_manage").css("display", 'block');
                 $("#manage").addClass("active");
                 break;

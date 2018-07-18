@@ -11,7 +11,7 @@ import os, cgi, json, html, zipfile, random, string, chardet, shutil
 from django.views.generic.detail import DetailView
 from django.utils.datastructures import MultiValueDictKeyError
 from django.apps import apps
-from django.core.exceptions import ObjectDoesNotExist
+from django.core.exceptions import ObjectDoesNotExist, PermissionDenied
 from django.db import transaction
 from onlineTest.settings import BASE_DIR, USER_FILE_DIR
 from enum import Enum, unique
@@ -50,8 +50,8 @@ def course_list_for_student(request):
 
 @login_required
 def course_list_for_teacher(request):
-    if not request.user.isTeacher:
-        return render(request, 'warning.html', {'info':'教师才可以操作'})
+    if not request.user.isTeacher() and request.user.is_admin!=True:
+        raise PermissionDenied
     nowtime = datetime.datetime.now()  # 获取当前时间用来判断有关老师的课程是否在进行
     nowCourses = CodeWeekClass.objects.filter(
         teacher=request.user).filter( # 过滤获取老师正在进行的课程
@@ -70,8 +70,8 @@ def course_list_for_teacher(request):
 #重点是学生的添加，这里的策略是通过学号添加，可以是学号范围，也可以是单个学号，这里设定所有合法的学号长度都是为9的
 @login_required
 def add_course(request):
-    if not request.user.isTeacher:
-        return render(request, 'warning.html', {'info':'教师才可以操作'})
+    if not request.user.isTeacher() and request.user.is_admin!=True:
+        raise PermissionDenied
     if request.method == 'POST':
         form = AddCodeWeekForm(request.POST)
         if form.is_valid():
@@ -152,12 +152,12 @@ def add_course(request):
 #教师查看课程主页
 @login_required
 def view_course(request, courseId):
-    if not request.user.isTeacher:
-        return render(request, 'warning.html', {'info': '教师才可以操作'})
+    if not request.user.isTeacher() and request.user.is_admin!=True:
+        raise PermissionDenied
     course = CodeWeekClass.objects.filter(id=courseId)
     if course.count() == 0:
         return render(request, 'warning.html', {'info' : '查无此课'})
-    elif course[0].teacher != request.user:
+    elif course[0].teacher != request.user and not request.user.is_admin:
         return render(request, 'warning.html', {'info': '查无此课'})
     else:
         students = course[0].students.all()
@@ -191,8 +191,8 @@ def newProblemFileName(fileId):
 #增加程序设计题
 @login_required
 def add_sheji(request):
-    if not request.user.isTeacher:
-        return render(request, 'warning.html', {'info': '教师才可以操作'})
+    if not request.user.isTeacher() and request.user.is_admin!=True:
+        raise PermissionDenied
     if request.method == 'POST':  # 当提交表单时
         form = ShejiAddForm(request.POST,request.FILES)  # form 包含提交的数据
         #print(form.errors)
@@ -213,8 +213,8 @@ def add_sheji(request):
 #删除程序设计题(未完成)
 @login_required
 def delete_sheji(request):
-    if not request.user.isTeacher:
-        return render(request, 'warning.html', {'info': '教师才可以操作'})
+    if not request.user.isTeacher() and request.user.is_admin!=True:
+        raise PermissionDenied
     if request.method == 'POST':
         ids = request.POST.getlist('ids[]')
         try:
@@ -233,6 +233,8 @@ class ShejiProblemDetailView(DetailView):
     template_name = 'code_week/sheji_problem_detail.html'
     context_object_name = 'problem'
     def get_context_data(self, **kwargs):
+            if not self.request.user.isTeacher() and self.request.user.is_admin!=True:
+                raise PermissionDenied
             context = super( ShejiProblemDetailView, self).get_context_data(**kwargs)
             context['title'] = '程序设计题“' + self.object.title + '”的详细信息'
             return context
@@ -240,8 +242,8 @@ class ShejiProblemDetailView(DetailView):
 #更新程序设计题
 @login_required
 def update_sheji(request, id):
-    if not request.user.isTeacher:
-        return render(request, 'warning.html', {'info': '教师才可以操作'})
+    if not request.user.isTeacher() and request.user.is_admin!=True:
+        raise PermissionDenied
     problem = get_object_or_404(ShejiProblem, pk=id)
     if problem.creator != request.user:
         return render(request, 'warning.html', {'info' : "您无法修改不是您创建的题目"})
@@ -265,6 +267,8 @@ def update_sheji(request, id):
 # 程序设计题列表
 @login_required()
 def list_sheji(request):
+    if not request.user.isTeacher() and request.user.is_admin!=True:
+        raise PermissionDenied
     categorys = ProblemCategory.objects.all()
     return render(request, 'code_week/sheji_problem_list.html', context={'categorys': categorys, 'title': '程序设计题题库', 'position': 'sheji_list'})
 
@@ -343,8 +347,8 @@ def encodeFilename(filename):
 # 老师下载描述文件
 @login_required
 def teacher_download(request, problemId):
-    if not request.user.isTeacher:
-        return render(request, 'warning.html', {'info': '教师才可以操作'})
+    if not request.user.isTeacher() and request.user.is_admin!=True:
+        raise PermissionDenied
     problem = None
     try:
         problem = ShejiProblem.objects.get(problem_id=problemId)
@@ -475,7 +479,7 @@ def teacher_get_student_info(request, courseId):
     data = None
     try:
         with transaction.atomic():
-            course = CodeWeekClass.objects.get(id=courseId, teacher=request.user)
+            course = CodeWeekClass.objects.get(id=courseId)
             if course:
                 data = {'id': course.counter}
                 groups = course.CodeWeekClass_group.all()
@@ -588,7 +592,7 @@ def get_select_problem(request, courseId):
     offset = None
     limit = None
     try:
-        course = CodeWeekClass.objects.get(id=courseId, teacher=request.user)
+        course = CodeWeekClass.objects.get(id=courseId)
         offset = int(request.GET['offset'])
         limit = int(request.GET['limit'])
     except:
@@ -654,6 +658,8 @@ def remove_select_problem(request):
 @login_required
 # 用于教师给课程增加题目和学生
 def add_problem_student(request, courseId):
+    if not request.user.isTeacher() and request.user.is_admin!=True:
+        raise PermissionDenied
     course = None
     try:
         course = CodeWeekClass.objects.get(id=courseId, teacher=request.user)

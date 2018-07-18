@@ -1152,6 +1152,8 @@ def get_gaicuo_score(homework_answer, judged_score=0):
 
 @login_required()
 def list_finished_homework(request):
+    if not request.user.isTeacher() and not request.user.is_admin:
+        raise PermissionDenied
     banjis = BanJi.objects.filter(students=request.user).all()
     return render(request, 'finidshed_homework_list.html',
                   context={'classnames': banjis, 'position': 'finished', 'title': '查看作业结果'})
@@ -1164,6 +1166,8 @@ def get_finished_homework(request):
     :param request: 请求
     :return: 含有用户已完成作业的json
     """
+    if not request.user.isTeacher() and not request.user.is_admin:
+        raise PermissionDenied
     json_data = {}
     records = []
     user = request.user
@@ -1322,6 +1326,8 @@ def list_coursers(request):
     """
     列出课程
     """
+    if not request.user.is_admin:
+        raise PermissionDenied 
     coursers = ClassName.objects.all()
     return render(request, 'courser_list.html', {'coursers': coursers, 'title': '课程列表', 'position': 'courser_manage'})
 
@@ -1342,6 +1348,8 @@ def list_kp2s(request, id):
 
 @permission_required('judge.delete_classname')
 def delete_courser(request):
+    if not request.user.is_admin:
+        raise PermissionDenied
     try:
         ClassName.objects.get(id=request.POST['id']).delete()
         return HttpResponse(1)
@@ -1351,6 +1359,8 @@ def delete_courser(request):
 
 @permission_required('judge.delete_knowledgepoint1')
 def delete_kp1(request):
+    if not request.user.is_admin:
+        raise PermissionDenied
     try:
         KnowledgePoint1.objects.get(id=request.POST['id']).delete()
         return HttpResponse(1)
@@ -1359,6 +1369,8 @@ def delete_kp1(request):
 
 @permission_required('judge.delete_knowledgepoint2')
 def delete_kp2(request):
+    if not request.user.is_admin:
+        raise PermissionDenied
     try:
         KnowledgePoint2.objects.get(id=request.POST['id']).delete()
         return HttpResponse(1)
@@ -1368,6 +1380,8 @@ def delete_kp2(request):
 
 @permission_required('judge.add_knowledgepoint1')
 def add_kp1(request):
+    if not request.user.is_admin:
+        raise PermissionDenied
     kp1 = KnowledgePoint1(name=request.POST['name'], classname_id=request.POST['id'])
     kp1.save()
     return HttpResponse(1)
@@ -1375,6 +1389,8 @@ def add_kp1(request):
 
 @permission_required('judge.add_knowledgepoint2')
 def add_kp2(request):
+    if not request.user.is_admin:
+        raise PermissionDenied
     kp2 = KnowledgePoint2(name=request.POST['name'], upperPoint_id=request.POST['id'])
     kp2.save()
     return HttpResponse(1)

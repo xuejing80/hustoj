@@ -22,6 +22,7 @@ from mooc.models import Resource,Week,Type
 from judge.models import ClassName
 from work.models import MyHomework,BanJi
 from auth_system.models import MyUser
+from django.core.exceptions import ObjectDoesNotExist, PermissionDenied
 
 # Create your views here.
 
@@ -63,6 +64,8 @@ def resource_show(request,id):
     return render(request, 'show_resource.html', context={'resource':resource})
 
 def list_resource(request):
+    if not request.user.isTeacher() and not request.user.is_admin:
+        raise PermissionDenied 
     resources = Resource.objects.all()
     classnames = ClassName.objects.all()
     return render(request, 'resource_list.html', context={'resources':resources,'classnames':classnames,'position':'resource_list','title':'资源库'})
@@ -85,6 +88,8 @@ class ResourceDetailView(DetailView):
         return context
 
 def add_resource(request):
+    if not request.user.isTeacher() and not request.user.is_admin:
+        raise PermissionDenied 
     if request.method == 'POST':
         form = ResourceAddForm(request.POST)
         if form.is_valid():
@@ -100,6 +105,8 @@ def add_resource(request):
     return render(request, 'resource_add.html', {'form': form, 'title': '添加资源'})
 
 def update_resource(request, id):
+    if request.user != resource.creater and request.user.is_admin!=True:
+        raise PermissionDenied
     resource = get_object_or_404(Resource, pk=id)
     initial = {
                'num': resource.num,
@@ -118,18 +125,24 @@ def update_resource(request, id):
     return render(request, 'resource_add.html', {'form': ResourceAddForm(initial=initial)})
 
 def del_resource(request):
+    if not request.user.isTeacher() and not request.user.is_admin:
+        raise PermissionDenied 
     if request.method == 'POST':
         ids = request.POST.getlist('ids[]')
-        try:
-            for pk in ids:
-                Resource.objects.filter(pk=pk).delete()
-        except:
-            return HttpResponse(0)
-        return HttpResponse(1)
+        for pk in ids:
+            resources = Resource.objects.filter(pk=pk)
+        for resource in resources:
+            if request.user == resource.creater:
+                resource.delete()
+                return HttpResponse(1)
+            else:
+                return HttpResponse(0) 
     else:
         return HttpResponse(0)
 
 def get_Resource(request):
+    if not request.user.isTeacher() and not request.user.is_admin:
+        raise PermissionDenied 
     json_data = {}
     kwargs = {}
     recodes = []
@@ -164,7 +177,9 @@ def get_Resource(request):
                   'courser': resource.courser.name,
                   'week': resource.week.name
                   }
-        recodes.append(recode)
+        if resource.creater == request.user or request.user.is_admin:
+            recodes.append(recode)
+    json_data['total'] = resources.count()
     json_data['rows'] = recodes
     return HttpResponse(json.dumps(json_data))
 
@@ -174,6 +189,8 @@ def uploud_file(request):
     :param request: 上传文件请求
     :return: 以json格式返回文件验证信息
     """
+    if not request.user.isTeacher() and not request.user.is_admin:
+        raise PermissionDenied 
     try:
         file = request.FILES['file_upload']
         print('1')

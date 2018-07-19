@@ -10,6 +10,10 @@
             {% endfor %}
         </select>
         <div class="form-group">
+            <label for="school" class="control-label">所属单位</label>
+            <input type="text" class="form-control" name="school" id="school" placeholder="请输入学校>名称" value="{{ user.school }}">
+            <label for="shortschool" class="control-label">学校简称</label>
+            <input type="text" class="form-control" name="school_short" id="school_short" placeholder="请输入学校简称" value="{{ user.school_short }}">
             <label for="password" class="control-label">密码</label>
             <input type="text" class="form-control" name="password" id="password" placeholder="请输入密码">
         </div>

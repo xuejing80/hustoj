@@ -14,6 +14,7 @@ urlpatterns = [
     url(r'^delete-kp2', delete_kp2, name='delete_kp2'),
 
     url(r'^banji-list', list_banji, name='banji_list'),
+    url(r'^get-students-(?P<banji>\d*)$', get_students, name='get_students'),
     url(r'^get_banji_list', get_banji_list, name='get_banji_list'),
     url(r'^add_banji', add_banji, name='add_banji'),
     url(r'^del-banji', del_banji, name='del_banji'),
@@ -24,6 +25,8 @@ urlpatterns = [
     url(r'^add-students$', ajax_add_students, name='ajax_add_students'),
     url(r'^add-students-to-mybanji-$', add_students, name='_add_students'),
     url(r'^add-students-to-mybanji-(?P<pk>\d+)', add_students, name='add_students'),
+    url(r'^reset-stupassword',reset_stupassword,name='reset_stupassword'),
+    url(r'^del-students',del_students,name='del_students'),
 
     url(r'^homework-list$', list_homework, name='homework_list'),
     url(r'^get-json-work', get_json_work, name='get_json_data'),

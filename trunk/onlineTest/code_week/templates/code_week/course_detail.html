@@ -391,6 +391,10 @@
                 $.alert('要删除的学生已经加入小组或者创建了小组，删除失败!');
                 $('#student_table').bootstrapTable('refresh');
                 return false
+            } else if (response == 3) {
+                $.alert('要删除的学生已经选择了题目，删除失败!');
+                $('#student_table').bootstrapTable('refresh');
+                return false
             } else {
                 $.alert('删除出现问题');
                 $('#student_table').bootstrapTable('refresh');

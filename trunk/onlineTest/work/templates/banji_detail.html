@@ -6,6 +6,10 @@
     <script src="{% static 'assets/js/tableExport.js' %}"></script>
     <script src="{% static 'assets/js/jquery-confirm.min.js' %}"></script>
     <link href="{% static 'assets/css/jquery-confirm.min.css' %}" rel="stylesheet">
+    <link href="{% static 'assets/css/bootstrap-table.min.css' %}" rel="stylesheet">
+    <script src="{% static 'assets/js/bootstrap-table.min.js' %}"></script>
+    <script src="{% static 'assets/js/bootstrap-table-zh-CN.min.js' %}"></script>
+    <script src="{% static 'assets/js/bootstrap-table-export.min.js' %}"></script>
 {% endblock %}
 {% block content %}
     <ol class="breadcrumb">
@@ -47,4 +51,110 @@
 
         </tbody>
     </table>
+    <table id="table"
+           data-toggle="table"
+           data-side-pagination="server"
+           data-url="{% url 'get_students' id%}"
+           data-pagination="true"
+           data-page-size="20"
+           data-page-list="[20, 50, 100, 200]"
+           data-classes="table table-hover table-condensed"
+           data-toolbar="#toolbar"
+           data-striped="true"
+           data-query-params="queryParams"
+           data-search="true"
+    >
+        <thead>
+        <tr>
+            <th data-field="pk" data-sortable="true">ID</th>
+            <th data-field="username" data-valign="middle">昵称(真实姓名)</th>
+            <th data-field="email" data-sortable="true">邮箱</th>
+            <th data-field="id_num" data-sortable="true">用户名(学号/工号)</th>
+            <th data-field="group">用户组</th>
+            <th data-field="id" data-valign="middle" data-formatter="editFormatter">操作</th>
+        </tr>
+        </thead>
+    </table>
+    <script>
+        $.ajaxSetup({
+            data: {csrfmiddlewaretoken: '{{ csrf_token }}'}
+        });
+        var $table = $('#table');
+        function queryParams(params) {
+            $('#toolbar').find('select[name]').each(function () {
+                params[$(this).attr('name')] = $(this).val();
+            });
+            return params;
+        }
+        $ok = $('#ok');
+        $(function () {
+            $ok.click(function () {
+                $table.bootstrapTable('refresh');
+            });
+        });
+        function resetPassword(id) {
+            $.confirm({
+                content: '确定要重置这个学生的密码吗？',
+                title: '重置密码',
+                confirmButton: '我确认',
+                cancelButton: '取消',
+                confirm: function () {
+                    $.ajax({
+                        url: '{% url 'reset_stupassword' %}',
+                        dataType: 'json',
+                        method: 'post',
+                        data: {'id': id,'banji_id': {{ id }}}
+                    }).done(function (response) {
+                        if (response == 2) {
+                            alert('不能重置该班级的老师的密码');
+                            return false;
+                        } else if (response == 1) {
+                            location.reload();
+                            return true;
+                        } else {
+                            self.setContent('重置密码时出现问题');
+                            return false;
+                        }
+                    }).fail(function () {
+                        self.setContent('数据传输时出现问题');
+                        return false
+                    });
+                }
+            });
+        }
+        function deleteStudent(id) {
+            $.confirm({
+                content: '确定要删除这个学生吗？',
+                title: '确认删除',
+                confirmButton: '我确认',
+                cancelButton: '取消',
+                confirm: function () {
+                    $.ajax({
+                        url: '{% url 'del_students' %}',
+                        dataType: 'json',
+                        method: 'post',
+                        data: {'id': id,'banji_id': {{ id }}}
+                    }).done(function (response) {
+                        if (response == 2) {
+                            alert('不能删除该班级的老师');
+                            return false;
+                        } else if (response == 1) {
+                            location.reload();
+                            return true;
+                        } else {
+                            self.setContent('删除时出现问题');
+                            return false;
+                        }
+                    }).fail(function () {
+                        self.setContent('数据传输时出现问题');
+                        return false
+                    });
+                }
+            });
+        }
+        function editFormatter(value) {
+           return ' <a class="btn btn-primary btn-xs" title="重置密码"  onclick="resetPassword(' + value + ');return false" aria-label="重置密码" data-pjax="0"><span class="glyphicon glyphicon-repeat"></span></a>'
+        +' <a class="btn btn-danger btn-xs" title="删除学生"  onclick="deleteStudent(' + value + ');return false" aria-label="删除学生" data-pjax="0"><span class="glyphicon glyphicon-trash"></span></a>';        
+}
+    </script>
 {% endblock %}

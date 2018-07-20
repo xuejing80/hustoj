@@ -54,10 +54,15 @@ def list_course(request,id):
     courser =  ClassName.objects.get(pk=id)
     weeks = Week.objects.all()
     array=[]
+    array_w = []
+    for week in weeks:
+        resource_w = Resource.objects.filter(week = week,courser = courser)
+        if any(resource_w) == True:
+            array_w.append(week)
     for resource in resources:
         array.append(resource)
         array.sort(key = attrgetter('num'))
-    return render(request,'course_list.html', {'courser':courser,'weeks':weeks,'resources':array,'title':courser.name})
+    return render(request,'course_list.html', {'courser':courser,'weeks':array_w,'resources':array,'title':courser.name})
 
 def resource_show(request,id):
     resource = Resource.objects.get(pk=id)

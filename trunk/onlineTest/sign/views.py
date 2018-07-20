@@ -63,6 +63,8 @@ def delete(request, eventId):
 
 
 def detail(request, eventId):
+    event = Event.objects.get(id = int(eventId))
+
     cursor = connection.cursor()
 
     sql = '\
@@ -75,7 +77,8 @@ def detail(request, eventId):
                     SELECT banji_id FROM sign_event WHERE id = %d\
                 )\
                 LEFT JOIN sign_leave AS sl\
-                ON s.id = sl.sign_id' % int(eventId)
+                ON s.id = sl.sign_id\
+                WHERE bj_stu.banji_id = %d' % ( int(eventId), event.banji_id )
 
     cursor.execute(sql)
     studentsList = list(map(lambda x: dict(zip(['id', 'username', 'type_of', 'is_checked', 'created_time', 'cause', 'path'], x)), cursor.fetchall()))

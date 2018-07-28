@@ -110,9 +110,9 @@ def add_resource(request):
     return render(request, 'resource_add.html', {'form': form, 'title': '添加资源'})
 
 def update_resource(request, id):
+    resource = get_object_or_404(Resource, pk=id)
     if request.user != resource.creater and request.user.is_admin!=True:
         raise PermissionDenied
-    resource = get_object_or_404(Resource, pk=id)
     initial = {
                'num': resource.num,
                'title': resource.title,
@@ -120,7 +120,7 @@ def update_resource(request, id):
                'courser': resource.courser,
                'week': resource.week,
                'link': resource.link, 
-               'creater': request.user,
+               'creater': resource.creater,
                }  # 生成表单的初始化数据
     if request.method == "POST":  # 当提交表单时
         form = ResourceAddForm(request.POST)

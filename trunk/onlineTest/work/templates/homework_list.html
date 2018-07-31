@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% block title %}公开作业列表{% endblock %}
+{% block title %}公共作业列表{% endblock %}
 {% block extrahead %}
     {% load static %}
     <script src="{% static 'assets/js/bootstrap-table.min.js' %}"></script>
@@ -10,15 +10,15 @@
     <ol class="breadcrumb">
         <li><a href="{% url 'index' %}">主页</a></li>
         <li class="active">作业管理</li>
-        <li class="active">作业列表</li>
+        <li class="active">公共作业管理</li>
     </ol>
     <h1>公共作业列表</h1>
-    <h4>此处作业不属于任何班级,若要使用,请先复制一份至自己的作业列表</h4>
+    <h4>此处作业不属于任何班级,若要布置到班级,请先复制一份至私有作业列表</h4>
     <div class="btn-group">
         <button type="button" id="remove" class="btn btn-danger"><i class="glyphicon glyphicon-remove">删除选中</i></button>
         <a class="btn btn-primary btn-l" href="{% url 'add_homework' %}" role="button"><i
                 class="glyphicon glyphicon-plus">新建作业</i></a>
-        <button type="button" class="btn btn-success" id="copy"><i class="glyphicon glyphicon-copy">复制到我的作业列表</i>
+        <button type="button" class="btn btn-success" id="copy"><i class="glyphicon glyphicon-copy">复制到私有作业</i>
         </button>
     </div>
     <div id="toolbar">

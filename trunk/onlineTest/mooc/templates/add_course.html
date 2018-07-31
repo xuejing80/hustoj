@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+{% block title %}添加课程{% endblock %}
+{% block content %}
+    <ol class="breadcrumb">
+        <li><a href="{% url 'index' %}">主页</a></li>
+        <li class="active">我的课程列表</a></li>
+        <li class="active">添加课程</li>
+    </ol>
+    <h3>添加课程(请输入教材后的序列号)</h3>
+    <form>
+        <input type="hidden" name="banji_id" id="banji_id" value="{{ id }}">
+        <p><textarea name="serial_number" id="serial_number" class="form-control" rows="1"></textarea>
+        <p><input type="button" class="btn btn-primary" name="submit_num" id="submit_num" value="提交序列号"/>
+    </form>
+
+    <style type="text/css">
+        .modal-body {
+            height: 100px;
+            overflow: auto;
+        }
+    </style>
+
+    <script>
+      $(function () {
+            $("#submit_num").click(function () {
+                    num = $("#serial_number").val()
+                        $.ajax({
+                            type: "post",
+                            url: "{% url 'ajax_add_course' %}",
+                            dataType: "json",
+                            data: {serial_number: num},
+                            success: function (data) {
+                                if ((data.result == 0)&&(data.repeat!=1)) {
+                                    window.location.href = "{% url 'index' %}"
+                                    }
+                                if ((data.result == 0)&&(data.repeat == 1)) {
+                                    alert("您以加入该课程!")
+                                } 
+                            },
+                            error: function(data){
+                                alert("请输入正确的序列号！")
+                                }
+                            
+                        });
+                    }) 
+        });
+
+           
+    </script>
+{% endblock %}

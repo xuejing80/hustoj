@@ -1,7 +1,9 @@
 from django.conf.urls import url
-from mooc.views import get_courser_name,type_resource,add_type,add_resource,list_course,list_resource,resource_show,update_resource,del_resource,ResourceDetailView,uploud_file
+from mooc.views import ajax_add_course,add_course,get_courser_name,type_resource,add_type,add_resource,list_course,list_resource,resource_show,update_resource,del_resource,ResourceDetailView,uploud_file
 
 urlpatterns = [
+    url(r'^ajax-add-course$', ajax_add_course, name='ajax_add_course'),
+    url(r'^add-course',add_course, name='add_course'),
     url(r'^get-courser-name',get_courser_name, name='get_courser_name'),
     url(r'^resource-type', type_resource, name='type_resource'),
     url(r'^add_type', add_type, name='add_type'),
@@ -15,6 +17,5 @@ urlpatterns = [
     url(r'update-resource-(?P<id>\d+)/$',update_resource,name='update_resource'),
     url(r'^resource-detail-$',ResourceDetailView.as_view(),name='_resource_detail'),
     url(r'^resource-detail-(?P<pk>\d+)/$',ResourceDetailView.as_view(),name='resource_detail'),
-
     url(r'upload-file',uploud_file,name='uploud_file'),
 ]

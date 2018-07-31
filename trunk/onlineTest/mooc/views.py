@@ -13,7 +13,7 @@ from operator import itemgetter, attrgetter
 from django.apps import apps
 from django.contrib.auth.decorators import permission_required
 from django.core.urlresolvers import reverse
-from django.http import HttpResponse
+from django.http import HttpResponse , HttpResponseRedirect
 from django.shortcuts import render, redirect, get_object_or_404
 from django.utils.datastructures import MultiValueDictKeyError
 from django.views.generic.detail import DetailView
@@ -22,9 +22,24 @@ from mooc.models import Resource,Week,Type
 from judge.models import ClassName
 from work.models import MyHomework,BanJi
 from auth_system.models import MyUser
+from django.contrib import messages
 from django.core.exceptions import ObjectDoesNotExist, PermissionDenied
-
 # Create your views here.
+
+def ajax_add_course(request):
+    serial_number = request.POST['serial_number']
+    user = request.user
+    id = 118    
+    banji = BanJi.objects.get(pk=id)
+    if serial_number == '12345':
+        banji_r = BanJi.objects.filter(id=id, students=user)
+        if any(banji_r) == True:
+            return HttpResponse(json.dumps({'result':0,'repeat':1}))       # 学生已加入该班级
+        banji.students.add(user)
+        return HttpResponse(json.dumps({'result':0,'repeat':0}))
+
+def add_course(request):
+    return render(request,'add_course.html')
 
 def get_courser_name(request):
     user = request.user
@@ -50,23 +65,68 @@ def type_resource(request):
     return render(request,'resource_type.html',{'types':types})
     
 def list_course(request,id):
-    resources = Resource.objects.all()
+    user = request.user
     courser =  ClassName.objects.get(pk=id)
+    resources = Resource.objects.filter(courser=courser)
     weeks = Week.objects.all()
-    array=[]
+    banjis = BanJi.objects.filter(students=user,courser=courser)
+    array = []
     array_w = []
+    array_wt = []
+    count = 0
+    if user.is_admin == True or user.groups.all()[0].name == '老师':
     for week in weeks:
-        resource_w = Resource.objects.filter(week = week,courser = courser)
+            resource_wt = Resource.objects.filter(week=week, courser=courser)
+            if any(resource_wt) == True:
+                array_wt.append(week)
+        return render(request,'course_list.html', {'courser':courser,'weeks':array_wt,'resources':resources})
+   
+    if user.groups.all()[0].name == '学生':
+    for week in weeks:
+            ##resource_c = Resource.objects.filter(courser = courser)
+            resource_w = Resource.objects.filter(week = week, courser = courser)
+            for resource in resource_w:
+                if (resource.creater.is_admin == True)&(week not in array_w):
+                    array_w.append(week)
+                
         if any(resource_w) == True:
+                for resource in resource_w:         #不同的老师开了同一门课程的课，学生只显示自己班级老师对这门课创建的资源
+                    for banji in banjis:
+                        if (banji.teacher == resource.creater)&(week not in array_w):  
             array_w.append(week)
+
     for resource in resources:
+            if (resource.creater.is_admin == True)&(resource not in array):
         array.append(resource)
         array.sort(key = attrgetter('num'))
-    return render(request,'course_list.html', {'courser':courser,'weeks':array_w,'resources':array,'title':courser.name})
+    for resource in resources:
+            for banji in banjis:                    #不同的老师开了同一门课程的课，学生只显示自己班级老师对这门课创建的资源
+                if (banji.teacher == resource.creater)&(resource not in array):
+        array.append(resource)
+        array.sort(key = attrgetter('num'))
+        for banji in banjis:                        #防止学生通过地址访问任意课程列表
+            if banji.courser == courser:
+                count = count + 1
+        if count != 0:
+            return render(request,'course_list.html', {'courser':courser,'weeks':array_w,'resources':array})   
+        else:
+            raise PermissionDenied
 
 def resource_show(request,id):
+    user = request.user
     resource = Resource.objects.get(pk=id)
+    count = 0
+    if user.groups.all()[0].name == '老师':
     return render(request, 'show_resource.html', context={'resource':resource})
+    if user.groups.all()[0].name == '学生':
+        banjis = BanJi.objects.filter(students=user)
+        for banji in banjis:
+            if (banji.courser == resource.courser) and (banji.teacher == resource.creater):
+                count = count + 1
+        if count != 0:
+    return render(request, 'show_resource.html', context={'resource':resource})
+        else:
+            raise PermissionDenied
 
 def list_resource(request):
     if not request.user.isTeacher() and not request.user.is_admin:
@@ -97,22 +157,28 @@ def add_resource(request):
         raise PermissionDenied 
     if request.method == 'POST':
         form = ResourceAddForm(request.POST)
+        print(request.POST.dict())
         if form.is_valid():
             resource = form.save(user=request.user)
             old_path = '/home/judge/resource/' + request.POST['random_name'] + request.POST['file_name']
+            print('a')
+            print(old_path)
             #shutil.move(old_path, '/home/judge/resource/')
+            print('b')
             #os.rename(old_path,
                       #'/home/judge/resource/' + str(resource.id) +'-'+ str(resource.creation_time) + request.POST['file_name'])
             #shutil.rmtree('/tmp/' + request.POST['random_name'])
             return redirect(reverse("resource_detail", args=[resource.id]))
     else:
         form = ResourceAddForm()
+        print('ccc')
     return render(request, 'resource_add.html', {'form': form, 'title': '添加资源'})
 
 def update_resource(request, id):
     resource = get_object_or_404(Resource, pk=id)
     if request.user != resource.creater and request.user.is_admin!=True:
         raise PermissionDenied
+    else:
     initial = {
                'num': resource.num,
                'title': resource.title,
@@ -128,6 +194,7 @@ def update_resource(request, id):
             resource = form.save(user=request.user, id=id)
             return redirect(reverse("resource_detail", args=[resource.id]))
     return render(request, 'resource_add.html', {'form': ResourceAddForm(initial=initial)})
+
 
 def del_resource(request):
     if not request.user.isTeacher() and not request.user.is_admin:
@@ -160,11 +227,8 @@ def get_Resource(request):
         kwargs['courser__id'] = classname
     if 'search' in request.GET:
         kwargs['name__icontains'] = request.GET['search']
-    try:
         resources = Resource.objects.filter(**kwargs)  #筛选
-    except Exception as err:
-        print(err)
-    json_data['total'] = resources.count()
+    #####json_data['total'] = resources.count()
     try:
         sort = request.GET['sort']                 
     except MultiValueDictKeyError:

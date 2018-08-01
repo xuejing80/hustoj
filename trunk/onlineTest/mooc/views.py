@@ -29,7 +29,7 @@ from django.core.exceptions import ObjectDoesNotExist, PermissionDenied
 def ajax_add_course(request):
     serial_number = request.POST['serial_number']
     user = request.user
-    id = 118    
+    id = 257    
     banji = BanJi.objects.get(pk=id)
     if serial_number == '12345':
         banji_r = BanJi.objects.filter(id=id, students=user)
@@ -75,14 +75,14 @@ def list_course(request,id):
     array_wt = []
     count = 0
     if user.is_admin == True or user.groups.all()[0].name == '老师':
-    for week in weeks:
+        for week in weeks:
             resource_wt = Resource.objects.filter(week=week, courser=courser)
             if any(resource_wt) == True:
                 array_wt.append(week)
         return render(request,'course_list.html', {'courser':courser,'weeks':array_wt,'resources':resources})
    
     if user.groups.all()[0].name == '学生':
-    for week in weeks:
+        for week in weeks:
             ##resource_c = Resource.objects.filter(courser = courser)
             resource_w = Resource.objects.filter(week = week, courser = courser)
             for resource in resource_w:
@@ -90,20 +90,20 @@ def list_course(request,id):
                     array_w.append(week)
                 
         if any(resource_w) == True:
-                for resource in resource_w:         #不同的老师开了同一门课程的课，学生只显示自己班级老师对这门课创建的资源
-                    for banji in banjis:
-                        if (banji.teacher == resource.creater)&(week not in array_w):  
-            array_w.append(week)
+            for resource in resource_w:         #不同的老师开了同一门课程的课，学生只显示自己班级老师对这门课创建的资源
+                for banji in banjis:
+                    if (banji.teacher == resource.creater)&(week not in array_w):  
+                        array_w.append(week)
 
-    for resource in resources:
+        for resource in resources:
             if (resource.creater.is_admin == True)&(resource not in array):
-        array.append(resource)
-        array.sort(key = attrgetter('num'))
-    for resource in resources:
+                array.append(resource)
+                array.sort(key = attrgetter('num'))
+        for resource in resources:
             for banji in banjis:                    #不同的老师开了同一门课程的课，学生只显示自己班级老师对这门课创建的资源
                 if (banji.teacher == resource.creater)&(resource not in array):
-        array.append(resource)
-        array.sort(key = attrgetter('num'))
+                    array.append(resource)
+                    array.sort(key = attrgetter('num'))
         for banji in banjis:                        #防止学生通过地址访问任意课程列表
             if banji.courser == courser:
                 count = count + 1
@@ -117,14 +117,14 @@ def resource_show(request,id):
     resource = Resource.objects.get(pk=id)
     count = 0
     if user.groups.all()[0].name == '老师':
-    return render(request, 'show_resource.html', context={'resource':resource})
+        return render(request, 'show_resource.html', context={'resource':resource})
     if user.groups.all()[0].name == '学生':
         banjis = BanJi.objects.filter(students=user)
         for banji in banjis:
-            if (banji.courser == resource.courser) and (banji.teacher == resource.creater):
+            if ((banji.courser == resource.courser) and (banji.teacher == resource.creater)) or resource.creater.is_admin:
                 count = count + 1
         if count != 0:
-    return render(request, 'show_resource.html', context={'resource':resource})
+            return render(request, 'show_resource.html', context={'resource':resource})
         else:
             raise PermissionDenied
 
@@ -179,7 +179,7 @@ def update_resource(request, id):
     if request.user != resource.creater and request.user.is_admin!=True:
         raise PermissionDenied
     else:
-    initial = {
+        initial = {
                'num': resource.num,
                'title': resource.title,
                'type': resource.type, 
@@ -188,12 +188,12 @@ def update_resource(request, id):
                'link': resource.link, 
                'creater': resource.creater,
                }  # 生成表单的初始化数据
-    if request.method == "POST":  # 当提交表单时
-        form = ResourceAddForm(request.POST)
-        if form.is_valid():
-            resource = form.save(user=request.user, id=id)
-            return redirect(reverse("resource_detail", args=[resource.id]))
-    return render(request, 'resource_add.html', {'form': ResourceAddForm(initial=initial)})
+        if request.method == "POST":  # 当提交表单时
+            form = ResourceAddForm(request.POST)
+            if form.is_valid():
+                resource = form.save(user=request.user, id=id)
+                return redirect(reverse("resource_detail", args=[resource.id]))
+        return render(request, 'resource_add.html', {'form': ResourceAddForm(initial=initial)})
 
 
 def del_resource(request):

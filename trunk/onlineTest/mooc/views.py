@@ -66,7 +66,7 @@ def type_resource(request):
     
 def list_course(request,id):
     user = request.user
-    courser =  ClassName.objects.get(pk=id)
+    courser =  get_object_or_404(ClassName, pk=id)
     resources = Resource.objects.filter(courser=courser)
     weeks = Week.objects.all()
     banjis = BanJi.objects.filter(students=user,courser=courser)
@@ -227,7 +227,7 @@ def get_Resource(request):
         kwargs['courser__id'] = classname
     if 'search' in request.GET:
         kwargs['name__icontains'] = request.GET['search']
-        resources = Resource.objects.filter(**kwargs)  #筛选
+    resources = Resource.objects.filter(**kwargs)  #筛选
     #####json_data['total'] = resources.count()
     try:
         sort = request.GET['sort']                 

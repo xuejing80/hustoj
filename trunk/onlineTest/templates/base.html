@@ -127,7 +127,6 @@
                             <i class="fa fa-graduation-cap" aria-hidden="true"></i>
                             <span>我的课程列表</span>
                         </a>
-                        <ul><a href="{% url 'add_course' %}">添加课程</a></ul>
                         <ul class="sub" id="courser_name">
                         </ul>
                      </li>
@@ -233,7 +232,7 @@
                             url: "{% url 'get_courser_name' %}",
                             success: function (data) {
                                 var lh = data.length
-                                var nhh = ""
+                                var nhh = "<li><a href='{% url 'add_course' %}'>添加课程</a></li>";
                                 var x = document.getElementById('courser_name')
                                 for(var k in data)
                                 {    

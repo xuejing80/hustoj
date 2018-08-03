@@ -6,11 +6,11 @@
         <li class="active"><a href="{% url 'banji_list' %}">班级管理</a></li>
         <li class="active">批量添加学生到班级</li>
     </ol>
-    <h3>批量添加学生账号</h3>
+    <h3>批量添加学生账号(剩余可添加学生数为：{{ teacher.create_num }})</h3>
     <form>
         <input type="hidden" name="banji_id" id="banji_id" value="{{ id }}">
-        <p><textarea name="stu_detail" id="stu_detail" class="form-control" rows="10"
-                     placeholder="学生账号信息格式为：一行一个学生，每行的前两个字段是学号和真实姓名，初始密码同用户名，初始邮箱为南邮邮箱，字段之间用空格分隔"></textarea>
+            <p><textarea name="stu_detail" id="stu_detail" class="form-control" rows="10"
+                        placeholder="学生账号信息格式为：一行一个学生，每行的前两个字段是学号和姓名，初始密码同用户名，初始邮箱为:校内学号@学校简称.edu.cn，字段之间用空格分隔"></textarea>
         <p><input type="button" class="btn btn-primary" name="submit_stu" id="submit_stu" value="提交学生账号信息"/>
     </form>
 
@@ -53,8 +53,9 @@
             });
 
             function adduser() {
+                //var stu_num = dataPara.length;
                 if (dataPara.length > 0) {
-                    stu = $.trim(dataPara.shift());
+                    stu = $.trim(dataPara.shift())
                     if (stu.length > 0) {
                         $.ajax({
                             type: "post",
@@ -66,10 +67,12 @@
                                     if (data.count > 0) {
                                         $("#result").append("添加学生 " + stu + " 到本班级：<font color=green>成功</font><br/>");
                                         count++;
-                                    } else {
+                                    } else{
                                         $("#result").append("添加学生 " + stu + " 到本班级：<font color=red>失败：" + data.message + "</font><br/>");
                                     }
-                                    setTimeout(adduser, 0);
+                                    if (data.allow != 1) {
+                                        setTimeout(adduser, 0);
+                                    }
                                 } else {
                                     alert({
                                         text: '信息提交过程中遇到错误：' + data.message + '！',

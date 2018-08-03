@@ -895,30 +895,45 @@ def get_students(request,banji=None):
 
 @permission_required('work.change_banji')
 def add_students(request, pk):
-    return render(request, 'add_students.html', context={'id': pk, 'title': '添加学生到班级'})
+    teacher = MyUser.objects.get(username=request.user)
+    return render(request, 'add_students.html', context={'id': pk, 'teacher':teacher, 'title': '添加学生到班级'})
 
 
 @permission_required('work.change_banji')
 def ajax_add_students(request):
     stu_detail = request.POST['stu_detail']
     banji_id = request.POST['banji_id']
+    teacher = MyUser.objects.get(username=request.user)
+    allow_num = teacher.allow_num
     if len(stu_detail.split()) > 1:
         id_num, username = stu_detail.split()[0], stu_detail.split()[1]
         try:
             student = MyUser.objects.get(id_num=id_num)
         except:
-            student = MyUser(id_num=id_num, email=id_num + '@njupt.edu.cn', username=username)
-            student.set_password(id_num)
-            student.save()
-            student.groups.add(Group.objects.get(name='学生'))
+            if teacher.school == 'None' and teacher.school_short == 'None':
+                student = MyUser(id_num=id_num, email=id_num + '@njupt.edu.cn', username=username)
+                student.set_password(id_num)
+                student.save()
+                student.groups.add(Group.objects.get(name='学生'))
+            else:
+                student = MyUser(id_num=teacher.school_short+id_num, email=id_num + '@' + teacher.school_short + '.edu.cn', username=username, school=teacher.school, school_short=teacher.school_short)
+                student.set_password(teacher.school_short+id_num)
+                student.save()
+                student.groups.add(Group.objects.get(name='学生'))
     else:
         try:
             student = MyUser.objects.get(id_num=stu_detail)
         except:
             return HttpResponse(json.dumps({'result': 0, 'message': '该学号未注册，且您未提供注册信息'}))
     banji = BanJi.objects.get(pk=banji_id)
-    banji.students.add(student)
-    return HttpResponse(json.dumps({'result': 0, 'count': 1}))
+    if teacher.create_num > 0:
+        banji.students.add(student)
+        teacher.create_num -= 1
+        teacher.save()
+        return HttpResponse(json.dumps({'result': 0, 'count': 1}))
+    if teacher.create_num < 1:
+        return HttpResponse(json.dumps({'result': 0, 'count': 0, 'allow': 1,'message':'已达到允许添加学生数量上限'}))
+
 
 def reset_stupassword(request):
     if request.method == 'POST':
@@ -940,6 +955,7 @@ def reset_stupassword(request):
 
 def del_students(request):
     if request.method == 'POST':
+        teacher = MyUser.objects.get(username=request.user)
         stu_id = request.POST.get('id')
         banji_id = request.POST.get('banji_id')
         try:
@@ -948,6 +964,8 @@ def del_students(request):
             if banji.teacher==student:
                 return HttpResponse(2)
             banji.students.remove(student)
+            teacher.create_num += 1
+            teacher.save()
         except:
             return HttpResponse(0)
         return HttpResponse(1)

@@ -372,6 +372,13 @@ def update_user(request, pk):
         group = Group.objects.get(pk=request.POST['group_id'])
         if request.POST['password']!="":
             user.set_password(request.POST['password'])
+        user.school = request.POST['school']
+        user.school_short = request.POST['school_short']
+        if user.isTeacher():   
+            t = user.allow_num - user.create_num
+            user.allow_num = int(request.POST['allow_num'])
+            user.create_num = user.allow_num - t
+            #print(user.create_num)
         user.groups.clear()
         user.groups.add(group)
         user.save()

@@ -51,6 +51,8 @@ class MyUser(AbstractBaseUser, PermissionsMixin):
     username = models.CharField(max_length=16, verbose_name='昵称（真实姓名）')
     school = models.CharField(max_length=50, verbose_name='所在学校', null=True, blank=True)
     school_short = models.CharField(max_length=10, verbose_name='学校缩写', null=True, blank=True)
+    allow_num = models.IntegerField(verbose_name='批量添加账号数量', null=True, blank=True,default=0)
+    create_num = models.IntegerField(verbose_name='当前可创建剩余数量', null=True, blank=True,default=0)
     is_active = models.BooleanField(default=True)
     is_admin = models.BooleanField(default=False)
     objects = MyUserManager()

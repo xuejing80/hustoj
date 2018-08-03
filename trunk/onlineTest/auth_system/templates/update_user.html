@@ -16,6 +16,8 @@
             <input type="text" class="form-control" name="school_short" id="school_short" placeholder="请输入学校简称" value="{{ user.school_short }}">
             <label for="password" class="control-label">密码</label>
             <input type="text" class="form-control" name="password" id="password" placeholder="请输入密码">
+            <label for="allow_num" class="control-label">批量添加账号数量</label>
+            <input type="text" class="form-control" name="allow_num" id="allow_num" placeholder="当前允许创建的总量:{{ user.allow_num }}, 剩余:{{ user.create_num }}, 此处请填写总量的数值">    
         </div>
         <button type="submit">保存</button>
     </form>

@@ -87,7 +87,7 @@
 
             <div class="modal-footer">
                 <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
-                <button id="sub-btn" type="button" class="btn btn-primary">布置</button>
+                <button id="sub-btn" type="button" class="btn btn-primary" disabled="disabled">获取地理位置中</button>
             </div>
         </div>
     </div>
@@ -122,10 +122,24 @@
     </table>
 </div>
 
-<script>
+<script type="text/javascript">   
     $("#sign_teacher_manage").addClass("active");
     $("#sign_user_manage").css("display", 'block');
     $("#sign_manage").addClass("active");
+
+    let geolocation = new BMap.Geolocation();
+    let geoJson = '';
+    geolocation.getCurrentPosition(function (r) {
+        if (this.getStatus() == BMAP_STATUS_SUCCESS) {
+            geoJson = `[${r.point.lng},${r.point.lat}]`
+            console.log('Your Position: ' + r.point.lng + ',' + r.point.lat);
+            let subBtn = $('#sub-btn')
+            subBtn.removeAttr('disabled').html('布置')
+        } else {
+            alert('failed' + this.getStatus());
+        }
+    })
+    
     $(function () {
         $('#datetimepicker1').datetimepicker(
             {
@@ -151,17 +165,6 @@
         );
     });
     $('#closedTime').val(moment().add(10, 'minutes').format('YYYY-MM-DD HH:mm'));
-
-    let geolocation = new BMap.Geolocation();
-    let geoJson = '';
-    geolocation.getCurrentPosition(function (r) {
-        if (this.getStatus() == BMAP_STATUS_SUCCESS) {
-            geoJson = `[${r.point.lng},${r.point.lat}]`
-            console.log('Your Position: ' + r.point.lng + ',' + r.point.lat);
-        } else {
-            alert('failed' + this.getStatus());
-        }
-    })
 
     $('#sub-btn').on('click', function () {
         if (!geoJson) {

@@ -38,3 +38,7 @@ class Leave(models.Model):
     sign = models.ForeignKey(Sign, on_delete = models.CASCADE)
     cause = models.CharField(default = 'null', max_length = 255)
     path = models.CharField(max_length = 512)
+
+class Record(models.Model):
+    event = models.ForeignKey(Event, on_delete = models.CASCADE)
+    address = models.CharField(max_length = 128)

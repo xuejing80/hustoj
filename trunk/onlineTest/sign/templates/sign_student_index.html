@@ -14,11 +14,12 @@
         <li class="active">签到管理</li>
         <li class="active">我的签到</li>
     </ol>
-
+    
+    
+    <div id="positionGet" hidden>{{ onGoing.position }}</div>
+    <div id="idGet" hidden>{{ onGoing.id }}</div>
     {% if onGoing %}
         <h1> 正在进行中 </h1>
-        <div id="positionGet" hidden>{{ onGoing.position }}</div>
-        <div id="idGet" hidden>{{ onGoing.id }}</div>
 
         <div class="table-responsive">
             <table class="table">
@@ -44,11 +45,17 @@
     <div class="attend">
         <div id="allmap"></div>
         <h3>签到</h3>
-        <button id="attend" class="btn btn-primary" type="submit" onclick="attendance()"
+        <button id="attend" class="btn btn-primary" type="submit" onclick="attendance()" disabled="disabled"
             {% if not onGoing %}
-                disabled="disabled"
+                onGoing = '0'
             {% endif %}
-        >签到</button>
+        >
+        {% if not onGoing %}
+            无签到事项
+        {% else %}
+            获取地理位置中
+        {% endif %}
+        </button>
         
         <h3>请假</h3>
 
@@ -80,14 +87,13 @@
     $("#sign_student_manage").addClass("active");
     $("#sign_user_manage").css("display", 'block');
     $("#sign_manage").addClass("active");
+
+    let lengthNow
     const map = new BMap.Map("allmap")
     map.centerAndZoom("南京", 15) //初始化地图,设置城市和地图级别。
     const positionGet = JSON.parse($('#positionGet').text())
     const eventId = JSON.parse($('#idGet').text())
-    console.log(positionGet, eventId)
     const pointA = new BMap.Point(positionGet[0], positionGet[1])
-    let lengthNow
-
     const geolocation = new BMap.Geolocation()
     geolocation.getCurrentPosition(function (r) {
         if (this.getStatus() == BMAP_STATUS_SUCCESS) {
@@ -104,10 +110,12 @@
                 strokeWeight: 6,
                 strokeOpacity: 0.5
             })
+            let attend = $('#attend')
+            if(attend.attr('onGoing') !== '0')
+                attend.removeAttr('disabled').html('签到')
         } else {
             alert('failed' + this.getStatus())
         }
-
     }, {
         enableHighAccuracy: true
     })
@@ -132,7 +140,6 @@
                 }
             })
         }
-        
     }
 
 
@@ -182,8 +189,8 @@
                     alert('服务器抽风了QAQ，程序员小哥哥维修中')
                 }
             })
-
         }
     })
+    
 </script>
 {% endblock %}

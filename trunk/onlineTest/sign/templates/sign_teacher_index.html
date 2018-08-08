@@ -1,10 +1,4 @@
-{% extends 'base.html' %} 
-
-{% block title %} 我的作业列表 {% endblock %} 
-
-{% block extrahead %} 
-
-{% load static %}
+{% extends 'base.html' %} {% block title %} 我的作业列表 {% endblock %} {% block extrahead %} {% load static %}
 <style>
     .data_input {
         height: 34px;
@@ -17,11 +11,7 @@
 <script src="{% static 'assets/js/bootstrap-datetimepicker.min.js' %}"></script>
 <script src="{% static 'assets/js/moment/moment.min.js' %}"></script>
 <script src="{% static 'assets/js/moment/zh-cn.js' %}"></script>
-{% endblock %} 
-
-
-{% block content %}
-<div id="allmap"></div>
+{% endblock %} {% block content %}
 <ol class="breadcrumb">
     <li>
         <a href="{% url 'index' %}">主页</a>
@@ -46,6 +36,7 @@
                     <span aria-hidden="true">&times;</span>
                 </button>
                 <h4 class="modal-title">签到布置</h4>
+
             </div>
 
             <div class="modal-body">
@@ -53,41 +44,41 @@
                     <div class="form-group col-sm-12">
                         <select id="class-list" class="form-control" name="banjiId">
                             {% for i in classes %}
-                                <option id="banjiId" value="{{ i.banjiId }}">{{ i.name }}</option>
+                            <option id="banjiId" value="{{ i.banjiId }}">{{ i.name }}</option>
                             {% endfor %}
                         </select>
                     </div>
-                    
+
                     <div class='col-sm-6'>
                         <div class="form-group">
                             <label for="start_time">开始时间</label>
                             <div class='input-group date' id='datetimepicker1'>
-                                <input type='text' class="form-control" name="start_time" id="startedTime"/>
+                                <input type='text' class="form-control" name="start_time" id="startedTime" />
                                 <span class="input-group-addon">
                                     <span class="glyphicon glyphicon-calendar"></span>
                                 </span>
                             </div>
                         </div>
                     </div>
-                    
+
                     <div class='col-sm-6'>
                         <div class="form-group">
                             <label for="end_time">结束时间</label>
                             <div class='input-group date' id='datetimepicker2'>
-                                <input type='text' class="form-control" name="end_time" id="closedTime"/>
+                                <input type='text' class="form-control" name="end_time" id="closedTime" />
                                 <span class="input-group-addon">
                                     <span class="glyphicon glyphicon-calendar"></span>
                                 </span>
                             </div>
                         </div>
                     </div>
-                    
+                    <div style="width:96%; margin: auto; height:400px; font-size:12px" id="allmap"></div>
                 </form>
             </div>
 
             <div class="modal-footer">
                 <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
-                <button id="sub-btn" type="button" class="btn btn-primary" disabled="disabled">获取地理位置中</button>
+                <button id="sub-btn" type="button" class="btn btn-primary" disabled="disabled">点击地图拾取位置</button>
             </div>
         </div>
     </div>
@@ -122,83 +113,74 @@
     </table>
 </div>
 
-<script type="text/javascript">   
+<script type="text/javascript">
     $("#sign_teacher_manage").addClass("active");
     $("#sign_user_manage").css("display", 'block');
     $("#sign_manage").addClass("active");
 
-    let geolocation = new BMap.Geolocation();
-    let geoJson = '';
-    geolocation.getCurrentPosition(function (r) {
-        if (this.getStatus() == BMAP_STATUS_SUCCESS) {
-            geoJson = `[${r.point.lng},${r.point.lat}]`
-            console.log('Your Position: ' + r.point.lng + ',' + r.point.lat);
-            let subBtn = $('#sub-btn')
-            subBtn.removeAttr('disabled').html('布置')
-        } else {
-            alert('failed' + this.getStatus());
-        }
-    })
-    
+    var position;
+    var map = new BMap.Map("allmap");
+    var point = new BMap.Point(118.936548, 32.114245);
+    map.centerAndZoom(point, 18);
+    map.addEventListener("click", attribute);
+
+    //获取覆盖物位置
+    function attribute(e) {
+        position = JSON.stringify([e.point.lng, e.point.lat])
+        $('#sub-btn').removeAttr('disabled').html('布置')
+        alert('坐标已更新');
+    }
+
     $(function () {
-        $('#datetimepicker1').datetimepicker(
-            {
-                format: 'yyyy-mm-dd hh:ii',
-                viewSelect: 'hour',
-                autoclose: true,
-                todayBtn: true,
-                minuteStep: 30,
-            }
-        );
+        $('#datetimepicker1').datetimepicker({
+            format: 'yyyy-mm-dd hh:ii',
+            viewSelect: 'hour',
+            autoclose: true,
+            todayBtn: true,
+            minuteStep: 30,
+        });
     });
     $('#startedTime').val(moment().format('YYYY-MM-DD HH:mm'));
 
     $(function () {
-        $('#datetimepicker2').datetimepicker(
-            {
-                format: 'yyyy-mm-dd hh:ii',
-                viewSelect: 'hour',
-                autoclose: true,
-                todayBtn: true,
-                minuteStep: 30,
-            }
-        );
+        $('#datetimepicker2').datetimepicker({
+            format: 'yyyy-mm-dd hh:ii',
+            viewSelect: 'hour',
+            autoclose: true,
+            todayBtn: true,
+            minuteStep: 30,
+        });
     });
     $('#closedTime').val(moment().add(10, 'minutes').format('YYYY-MM-DD HH:mm'));
 
     $('#sub-btn').on('click', function () {
-        if (!geoJson) {
-            alert('get location failed, try later plz')
-            return
-        } else {
-            $.post('/sign/create', {
-                position: geoJson,
-                startedTime: $('#startedTime').val(),
-                closedTime: $('#closedTime').val(),
-                banjiId: $('#class-list option:selected').val(),
-            }, function (result, statue) {
-                if (statue === 'success') {
-                    if (result.success) {
-                        alert('布置成功')
-                        location.reload()
-                    } else {
-                        alert(result.errMsg)
-                    }
+        $.post('/sign/create', {
+            position: position,
+            startedTime: $('#startedTime').val(),
+            closedTime: $('#closedTime').val(),
+            banjiId: $('#class-list option:selected').val(),
+        }, function (result, statue) {
+            if (statue === 'success') {
+                if (result.success) {
+                    alert('布置成功')
+                    location.reload()
                 } else {
-                    console.log('服务器抽风了QAQ，程序员小哥哥维修中')
+                    alert(result.errMsg)
                 }
-            })
-        }
+            } else {
+                alert('服务器抽风了QAQ，程序员小哥哥维修中')
+            }
+        })
     });
 
-    $('.del-btn').on('click', function(e){
+    $('.del-btn').on('click', function (e) {
         e.preventDefault()
-        if(window.confirm('确认删除？')){
-            $.post($(this).attr('href'), {}, function(){
+        if (window.confirm('确认删除？')) {
+            $.post($(this).attr('href'), {}, function () {
                 location.reload()
             })
         }
     })
-</script> 
+</script>
 
 {% endblock %}

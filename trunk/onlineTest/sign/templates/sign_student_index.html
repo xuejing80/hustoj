@@ -9,7 +9,6 @@
     <link href="{% static "assets/css/position.css" %}" rel="stylesheet">
     <link href="{% static "assets/css/upload.css" %}" rel="stylesheet">
     <script src="{% static "assets/js/upload.js" %}"></script>
-    <script type="text/javascript" src="http://pv.sohu.com/cityjson?ie=utf-8"></script>  
 {% endblock %}
 
 {% block content %}
@@ -124,7 +123,6 @@
         enableHighAccuracy: true
     })
 
-console.log(returnCitySN.cip)
     function attendance() {
         const url = '/sign/checkout/' + eventId
         if (lengthNow === undefined) {
@@ -132,9 +130,7 @@ console.log(returnCitySN.cip)
         } else if (lengthNow >= 200) {
             alert("签到失败（不在指定位置）")
         } else if (lengthNow < 200) {
-            $.post(url, {
-                    'ipAddress': returnCitySN.cip
-                }, function (res, status) {
+            $.post(url, function (res, status) {
                 if (status === 'success') {
                     if (res.success) {
                         alert("签到成功")

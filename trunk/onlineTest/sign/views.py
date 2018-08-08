@@ -134,11 +134,15 @@ def student_index(request):
 @csrf_exempt
 def checkout(request, eventId):
     eventId = int(eventId)
+    try:
+        ip =  request.META['HTTP_X_FORWARDED_FOR']
+    except KeyError:
+        ip = request.META['REMOTE_ADDR']
 
     if Sign.objects.filter(event_id = eventId, user_id = request.user.id):
         return JsonResponse({'success': False, 'errMsg': 'You have already sign'})
 
-    if Record.objects.filter(event_id = eventId, address = request.POST.get('ipAddress')):
+    if Record.objects.filter(event_id = eventId, address = ip):
         return JsonResponse({'success': False, 'errMsg': '签到无效，同一设备不可重复签到'})
 
     event = Event.objects.get(id = eventId)
@@ -154,7 +158,7 @@ def checkout(request, eventId):
 
     Record.objects.create(
         event_id = eventId,
-        address = request.POST.get('ipAddress')
+        address = ip
     )
 
     return JsonResponse({'success': True})

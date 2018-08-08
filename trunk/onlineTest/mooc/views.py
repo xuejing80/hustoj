@@ -11,7 +11,7 @@ import cgi
 import operator
 from operator import itemgetter, attrgetter
 from django.apps import apps
-from django.contrib.auth.decorators import permission_required
+from django.contrib.auth.decorators import permission_required, login_required
 from django.core.urlresolvers import reverse
 from django.http import HttpResponse , HttpResponseRedirect
 from django.shortcuts import render, redirect, get_object_or_404
@@ -26,6 +26,7 @@ from django.contrib import messages
 from django.core.exceptions import ObjectDoesNotExist, PermissionDenied
 # Create your views here.
 
+@login_required()
 def ajax_add_course(request):
     serial_number = request.POST['serial_number']
     user = request.user
@@ -38,9 +39,11 @@ def ajax_add_course(request):
         banji.students.add(user)
         return HttpResponse(json.dumps({'result':0,'repeat':0}))
 
+@login_required()
 def add_course(request):
     return render(request,'add_course.html')
 
+@login_required()
 def get_courser_name(request):
     user = request.user
     coursers = ClassName.objects.all()
@@ -55,15 +58,18 @@ def get_courser_name(request):
     array = json.dumps(array)
     return HttpResponse(array)
 
+@login_required()
 def add_type(request):
     type = Type(name=request.POST['name'])
     type.save()
     return HttpResponse(1)
 
+@login_required()
 def type_resource(request):
     types = Type.objects.all()
     return render(request,'resource_type.html',{'types':types})
     
+@login_required()
 def list_course(request,id):
     user = request.user
     courser =  get_object_or_404(ClassName, pk=id)
@@ -112,6 +118,7 @@ def list_course(request,id):
         else:
             raise PermissionDenied
 
+@login_required()
 def resource_show(request,id):
     user = request.user
     resource = Resource.objects.get(pk=id)
@@ -124,10 +131,14 @@ def resource_show(request,id):
             if ((banji.courser == resource.courser) and (banji.teacher == resource.creater)) or resource.creater.is_admin:
                 count = count + 1
         if count != 0:
-            return render(request, 'show_resource.html', context={'resource':resource})
+            if resource.type.name != '在线视频':
+                return HttpResponseRedirect(resource.link)
+            else:
+                return render(request, 'show_resource.html', context={'resource':resource})
         else:
             raise PermissionDenied
 
+@login_required()
 def list_resource(request):
     if not request.user.isTeacher() and not request.user.is_admin:
         raise PermissionDenied 
@@ -152,6 +163,7 @@ class ResourceDetailView(DetailView):
         context['title'] = '选择题“' + self.object.title + '”的详细信息'
         return context
 
+@login_required()
 def add_resource(request):
     if not request.user.isTeacher() and not request.user.is_admin:
         raise PermissionDenied 
@@ -174,6 +186,7 @@ def add_resource(request):
         print('ccc')
     return render(request, 'resource_add.html', {'form': form, 'title': '添加资源'})
 
+@login_required()
 def update_resource(request, id):
     resource = get_object_or_404(Resource, pk=id)
     if request.user != resource.creater and request.user.is_admin!=True:
@@ -195,7 +208,7 @@ def update_resource(request, id):
                 return redirect(reverse("resource_detail", args=[resource.id]))
         return render(request, 'resource_add.html', {'form': ResourceAddForm(initial=initial)})
 
-
+@login_required()
 def del_resource(request):
     if not request.user.isTeacher() and not request.user.is_admin:
         raise PermissionDenied 
@@ -212,6 +225,7 @@ def del_resource(request):
     else:
         return HttpResponse(0)
 
+@login_required()
 def get_Resource(request):
     if not request.user.isTeacher() and not request.user.is_admin:
         raise PermissionDenied 
@@ -252,6 +266,7 @@ def get_Resource(request):
     json_data['rows'] = recodes
     return HttpResponse(json.dumps(json_data))
 
+@login_required()
 def uploud_file(request):
     """
     验证上传的文件是否符合规范

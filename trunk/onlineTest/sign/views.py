@@ -10,12 +10,12 @@ from django.core.paginator import Paginator, EmptyPage
 from django.views.decorators.csrf import csrf_exempt
 from datetime import datetime, timedelta
 from onlineTest.settings import BASE_DIR
-
+from django.contrib.auth.decorators import permission_required, login_required
 
 def teacher_index(request):
     user = request.user
 
-    if request.method == 'GET' and user.is_admin:    
+    if request.method == 'GET' and (user.is_admin or user.isTeacher):
 
         cursor = connection.cursor()
         classesSql = 'select id, name\
@@ -32,7 +32,8 @@ def teacher_index(request):
             'data': signList,
             'classes': classes
         })
-
+    else:
+        raise PermissionDenied
 
 @csrf_exempt
 def create(request):

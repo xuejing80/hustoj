@@ -1,6 +1,50 @@
 {% extends "base.html" %}
 {% block title %}登录{% endblock %}
+{% load static %}
+{% block extrahead %}
+    <script src="{% static "assets/js/jquery-confirm.min.js" %}"></script>
+    <script src="{% static "assets/js/gt.js" %}"></script>
+    <link href="{% static "assets/css/jquery-confirm.min.css" %}" rel="stylesheet">
+{% endblock %}
 {% block content %}
+    <style>
+        #embed-captcha {
+            width: 300px;
+            margin: 0 auto;
+        }
+        .show {
+            display: block;
+        }
+        .hide {
+            display: none;
+        }
+        /* 以下遮罩层为demo.用户可自行设计实现 */
+        #mask {
+            display: none;
+            position: fixed;
+            text-align: center;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            overflow: auto;
+            z-index: 9999;
+        }
+        /* 可自行设计实现captcha的位置大小 */
+        .popup-mobile {
+            position: relative;
+        }
+        #popup-captcha-mobile {
+            position: fixed;
+            display: none;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            -webkit-transform: translate(-50%, -50%);
+            z-index: 9999;
+        }
+    </style>
     <div class="row">
         <div class="col-md-6 col-md-offset-3">
             <div class="panel panel-default">
@@ -28,9 +72,11 @@
                             </div>
                         </div>
                         <div id="vmaig-auth-forgetpassword"><a href="{% url 'forget_password' %}">忘记密码?</a></div>
-                        <button id="vmaig-auth-login-button" type="submit" class="btn btn-vmaig-auth pull-left">登录
+                        <button id="vmaig-auth-login-button" type="button" class="btn btn-vmaig-auth pull-left">登录
                         </button>
                         <a href="{% url 'register' %}" type="button" class="btn btn-vmaig-auth pull-right">注册</a>
+    <div id="mask"></div>
+    <div id="popup-captcha-mobile"></div>
                     </form>
                 </div>
             </div>
@@ -38,35 +84,54 @@
     </div>
 
 
-    <script language="javascript" type="text/javascript">
-        function geturl(name){
-            var reg = new RegExp("(^|&)"+name+"=([^&]*)(&|$)");
-            var r=window.location.search.substr(1).match(reg);
-            if(r!=null) return unescape(r[2]);
-            return "{% url 'index' %}";
-        }
+<script language="javascript" type="text/javascript">
+    $("#mask").click(function () {
+        $("#mask, #popup-captcha-mobile").hide();
+    });
+    $("#vmaig-auth-login-button").click(function () {
+        $("#mask, #popup-captcha-mobile").show();
+    });
+
+    function geturl(name){
+        var reg = new RegExp("(^|&)"+name+"=([^&]*)(&|$)");
+        var r=window.location.search.substr(1).match(reg);
+        if(r!=null) return unescape(r[2]);
+        return "{% url 'index' %}";
+    }
+
+    var handlerPopupMobile = function (captchaObj) {
         $.ajaxSetup({
-            data: {csrfmiddlewaretoken: '{{ csrf_token }}'},
+            data: { csrfmiddlewaretoken: '{{ csrf_token }}' },
         });
-        $('#vmaig-auth-login-form').submit(function (event) {
-            event.preventDefault();
+        // 将验证码加到id为captcha的元素里
+
+        captchaObj.appendTo("#popup-captcha-mobile");
+        //拖动验证成功后两秒(可自行设置时间)自动发生跳转等行为
+        captchaObj.onSuccess(function () {
+            var validate = captchaObj.getValidate();
             $.ajax({
                 type: "POST",
                 url: "{% url 'data' 'login' %}",
                 data: {
                     "email": $("#vmaig-auth-login-username").val(),
-                    "password": $("#vmaig-auth-login-password").val()
+                    "password": $("#vmaig-auth-login-password").val(),
+                    // 二次验证所需的三个值
+                    geetest_challenge: validate.geetest_challenge,
+                    geetest_validate: validate.geetest_validate,
+                    geetest_seccode: validate.geetest_seccode
                 },
-
-                success: function (data, textStatus) {
+                success: function (data) {
+                    $("#mask, #popup-captcha-mobile").hide();
                     var errors = data["errors"];
                     var code = eval(data["code"]);
                     if (code==0) {
-			location.href = geturl("next");
+                        location.href = geturl("next");
                     }
                     else {
                         if(code==1){
                             alert(errors);
+                            $("#popup-captcha-mobile").empty();
+                            gen_auth();
                         }
                         if(code==2){
                             if(confirm("为保证您的账号安全，请修改您的邮箱和密码！")==true)
@@ -75,15 +140,31 @@
                                 location.href = geturl("next");
                         }
                     }
-
-                },
-                error: function (XMLHttpRequest, textStatus, errorThrown) {
-                    alert(XMLHttpRequest.responseText);
                 }
             });
-            return false;
         });
-    </script>
+        // 更多接口参考：http://www.geetest.com/install/sections/idx-client-sdk.html
+    };
+ 
+    function gen_auth(){$.ajax({
+        // 获取id，challenge，success（是否启用failback）
+        url: "/teetest/mobile-geetest/register?t=" + (new Date()).getTime(), // 加随机数防止缓存
+        type: "get",
+        dataType: "json",
+        success: function (data) {
+            // 使用initGeetest接口
+            // 参数1：配置参数
+            // 参数2：回调，回调的第一个参数验证码对象，之后可以使用它做appendTo之类的事件
+            initGeetest({
+                gt: data.gt,
+                challenge: data.challenge,
+                offline: !data.success // 表示用户后台检测极验服务器是否宕机，一般不需要关注
+                // 更多配置参数请参见：http://www.geetest.com/install/sections/idx-client-sdk.html#config
+            }, handlerPopupMobile);
+        }
+    });}
+    gen_auth();
+</script>
 
 {% endblock %}
 

@@ -126,9 +126,14 @@
 
     //获取覆盖物位置
     function attribute(e) {
-        position = JSON.stringify([e.point.lng, e.point.lat])
         $('#sub-btn').removeAttr('disabled').html('布置')
-        alert('坐标已更新');
+        map.clearOverlays()
+
+        position = JSON.stringify([e.point.lng, e.point.lat])
+        point = new BMap.Point(e.point.lng, e.point.lat)
+
+        var marker = new BMap.Marker(point);
+        map.addOverlay(marker);
     }
 
     $(function () {

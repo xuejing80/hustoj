@@ -72,7 +72,7 @@
                             </div>
                         </div>
                     </div>
-                    <div style="width:96%; margin: auto; height:400px; font-size:12px" id="allmap"></div>
+                    <div style="width:90%; margin: auto; height:400px; font-size:12px" id="allmap"></div>
                 </form>
             </div>
 
@@ -126,9 +126,14 @@
 
     //获取覆盖物位置
     function attribute(e) {
+        $('#sub-btn').removeAttr('disabled').html('布置');
+        map.clearOverlays()
+
         position = JSON.stringify([e.point.lng, e.point.lat])
-        $('#sub-btn').removeAttr('disabled').html('布置')
-        alert('坐标已更新');
+        point = new BMap.Point(e.point.lng, e.point.lat)
+
+        var marker = new BMap.Marker(point);
+        map.addOverlay(marker);
     }
 
     $(function () {

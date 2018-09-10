@@ -130,7 +130,7 @@
                         <ul class="sub" id="courser_name">
                         </ul>
                      </li>
-                    {%  if user.school == None %}
+                    {%  if user.school == '' or user.school == None %}
                         {% if user.isTeacher %} {% comment %}教师用户{% endcomment %}
                         <li class="sub-menu">
                             <a href="javascript:;" id="code_week_list">

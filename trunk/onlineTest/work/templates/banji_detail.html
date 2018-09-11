@@ -106,7 +106,7 @@
                         data: {'id': id,'banji_id': {{ id }}}
                     }).done(function (response) {
                         if (response == 2) {
-                            alert('不能重置该班级的老师的密码');
+                            alert('不能重置老师的密码');
                             return false;
                         } else if (response == 1) {
                             location.reload();

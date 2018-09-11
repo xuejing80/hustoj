@@ -942,7 +942,7 @@ def reset_stupassword(request):
         try:
             student = MyUser.objects.get(pk=stu_id)
             banji = BanJi.objects.get(pk=banji_id)
-            if banji.teacher==student:
+            if student.isTeacher:#不允许重制教师账号的密码
                 return HttpResponse(2)
             stu_nu = student.id_num
             student.set_password(stu_nu)

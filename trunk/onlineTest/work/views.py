@@ -910,14 +910,14 @@ def ajax_add_students(request):
         try:
             student = MyUser.objects.get(id_num=id_num)
         except:
-            if teacher.school == 'None' and teacher.school_short == 'None':
-                student = MyUser(id_num=id_num, email=id_num + '@njupt.edu.cn', username=username)
-                student.set_password(id_num)
+            if teacher.school != None and teacher.school != '' and teacher.school_short != None and teacher.school_short != '':
+                student = MyUser(id_num=teacher.school_short+id_num, email=id_num + '@' + teacher.school_short + '.edu.cn', username=username, school=teacher.school, school_short=teacher.school_short)
+                student.set_password(teacher.school_short+id_num)
                 student.save()
                 student.groups.add(Group.objects.get(name='学生'))
             else:
-                student = MyUser(id_num=teacher.school_short+id_num, email=id_num + '@' + teacher.school_short + '.edu.cn', username=username, school=teacher.school, school_short=teacher.school_short)
-                student.set_password(teacher.school_short+id_num)
+                student = MyUser(id_num=id_num, email=id_num + '@njupt.edu.cn', username=username)
+                student.set_password(id_num)
                 student.save()
                 student.groups.add(Group.objects.get(name='学生'))
     else:

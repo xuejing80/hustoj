@@ -72,7 +72,7 @@
                             </div>
                         </div>
                         <div id="vmaig-auth-forgetpassword"><a href="{% url 'forget_password' %}">忘记密码?</a></div>
-                        <button id="vmaig-auth-login-button" type="button" class="btn btn-vmaig-auth pull-left">登录
+                        <button id="vmaig-auth-login-button" type="submit" class="btn btn-vmaig-auth pull-left">登录
                         </button>
                         <a href="{% url 'register' %}" type="button" class="btn btn-vmaig-auth pull-right">注册</a>
     <div id="mask"></div>
@@ -88,7 +88,9 @@
     $("#mask").click(function () {
         $("#mask, #popup-captcha-mobile").hide();
     });
-    $("#vmaig-auth-login-button").click(function () {
+    $('#vmaig-auth-login-form').submit(function (e) {
+        e = e||window.event;
+        e.preventDefault();
         $("#mask, #popup-captcha-mobile").show();
     });
 

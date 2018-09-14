@@ -145,7 +145,9 @@ def del_homework(request):
             objects = HomeWork.objects
         try:
             for pk in ids:
-                objects.get(pk=pk).delete()
+                homework = objects.filter(pk=pk)
+                if request.user == homework.creater or request.user.is_admin:
+                    homework.delete()
         except ObjectDoesNotExist:
             return HttpResponse(0)
         return HttpResponse(1)
@@ -769,7 +771,9 @@ def del_banji(request):
         ids = request.POST.getlist('ids[]')
         try:
             for pk in ids:
-                BanJi.objects.filter(pk=pk).delete()
+                banji = BanJi.objects.filter(pk=pk)
+                if request.user == banji.teacher or request.user.is_admin:
+                    banji.delete()
         except:
             return HttpResponse(0)
         return HttpResponse(1)
@@ -934,6 +938,7 @@ def ajax_add_students(request):
     if teacher.create_num < 1:
         return HttpResponse(json.dumps({'result': 0, 'count': 0, 'allow': 1,'message':'已达到允许添加学生数量上限'}))
 
+
 def reset_stupassword(request):
     if request.method == 'POST':
         stu_id = request.POST.get('id')
@@ -954,6 +959,7 @@ def reset_stupassword(request):
 
 def del_students(request):
     if request.method == 'POST':
+        teacher = MyUser.objects.get(username=request.user)
         stu_id = request.POST.get('id')
         banji_id = request.POST.get('banji_id')
         try:
@@ -962,6 +968,8 @@ def del_students(request):
             if banji.teacher==student:
                 return HttpResponse(2)
             banji.students.remove(student)
+            teacher.create_num += 1
+            teacher.save()
         except:
             return HttpResponse(0)
         return HttpResponse(1)

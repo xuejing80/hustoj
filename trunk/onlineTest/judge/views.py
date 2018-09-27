@@ -199,6 +199,8 @@ class ProblemDetailView(DetailView):
             str += point.upperPoint.classname.name + ' > ' + point.upperPoint.name + ' > ' + point.name + '\n'
         context['knowledge_point'] = str
         context['title'] = '编程题“' + self.object.title + '”的详细信息'
+        if self.object.creater == self.request.user:
+            context['isMine'] = True
         return context
 
 # 程序改错题详细视图
@@ -255,6 +257,8 @@ class ChoiceProblemDetailView(DetailView):
 @permission_required('judge.change_problem')
 def update_problem(request, id):
     problem = get_object_or_404(Problem, pk=id)
+    if request.user != problem.creater and not request.user.is_admin:
+        raise PermissionDenied
     json_dic = {}  # 知识点选择的需要的初始化数据
     for point in problem.knowledgePoint2.all():
         json_dic[point.id] = point.upperPoint.classname.name + ' > ' + point.upperPoint.name + ' > ' + point.name
@@ -321,6 +325,8 @@ def update_choice_problem(request, id):
 @permission_required('judge.change_problem')
 def update_gaicuo(request, id):
     problem = get_object_or_404(Problem, pk=id)
+    if request.user != problem.creater and not request.user.is_admin:
+        raise PermissionDenied
     json_dic = {}  # 知识点选择的需要的初始化数据
     for point in problem.knowledgePoint2.all():
         json_dic[point.id] = point.upperPoint.classname.name + ' > ' + point.upperPoint.name + ' > ' + point.name
@@ -362,6 +368,8 @@ def update_gaicuo(request, id):
 @permission_required('judge.change_problem')
 def update_tiankong(request, id):
     problem = get_object_or_404(Problem, pk=id)
+    if request.user != problem.creater and not request.user.is_admin:
+        raise PermissionDenied
     json_dic = {}  # 知识点选择的需要的初始化数据
     for point in problem.knowledgePoint2.all():
         json_dic[point.id] = point.upperPoint.classname.name + ' > ' + point.upperPoint.name + ' > ' + point.name

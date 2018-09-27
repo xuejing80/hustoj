@@ -261,7 +261,7 @@ def update_public_homework(request, pk):
         # 新增
         homework.resubmit_number = request.POST['resubmit_number']
         homework.save()
-        return redirect(reverse("homework_detail", args=[homework.pk]))
+        return redirect(reverse('homework_detail', args=[homework.pk]))
     else:
         context = {'languages': homework.allowed_languages, 'classnames': ClassName.objects.all(),
                    'name': homework.name, 'courser_id': homework.courser.id,
@@ -976,7 +976,6 @@ def reset_stupassword(request):
 
 def del_students(request):
     if request.method == 'POST':
-        teacher = MyUser.objects.get(username=request.user)
         stu_id = request.POST.get('id')
         banji_id = request.POST.get('banji_id')
         try:
@@ -985,8 +984,6 @@ def del_students(request):
             if banji.teacher==student:
                 return HttpResponse(2)
             banji.students.remove(student)
-            teacher.create_num += 1
-            teacher.save()
         except:
             return HttpResponse(0)
         return HttpResponse(1)

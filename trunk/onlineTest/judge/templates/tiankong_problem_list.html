@@ -75,9 +75,9 @@
         var $table = $('#table');
         function editFormatter(value,row,index) {
 	    if(row.isMine){
-            return '<a class="btn btn-primary btn-xs" href="{% url '_update_tiankong'  %}' + value + '/" title="编辑" aria-label="编辑" data-pjax="0"><span class="glyphicon glyphicon glyphicon-edit"></span></a>' ;}
+                return '<a class="btn btn-primary btn-xs" href="{% url '_update_tiankong'  %}' + value + '/" title="编辑" aria-label="编辑" data-pjax="0"><span class="glyphicon glyphicon glyphicon-edit"></span></a>' ;}
 	    else{
-	    return '<a class="btn btn-success btn-xs" href="{% url '_tiankong_detail'  %}' + value + '/" title="查看" aria-label="查看" data-pjax="0"><span class="glyphicon glyphicon-eye-open"></span></a>';
+	        return '<a class="btn btn-success btn-xs" href="{% url '_tiankong_detail'  %}' + value + '/" title="查看" aria-label="查看" data-pjax="0"><span class="glyphicon glyphicon-eye-open"></span></a>';
         }}
         $remove = $('#remove');
 

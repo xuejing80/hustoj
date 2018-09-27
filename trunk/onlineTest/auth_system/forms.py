@@ -10,8 +10,9 @@ from django.contrib.sites.shortcuts import get_current_site
 from django.utils.encoding import force_bytes
 from django.core.mail import send_mail
 from django.core.urlresolvers import reverse
-import base64
+import base64,os
 import logging
+from django.conf import settings
 
 logger = logging.getLogger('django.request')
 
@@ -159,7 +160,8 @@ class VmaigPasswordRestForm(forms.Form):
                   "感谢使用!\n\n"
 
         try:
-            send_mail(title, message, from_email, [self.user.email])
+            os.system("echo '%s' | mail -s %s %s -aFrom:%s\<%s\>" % (message,title,self.user.email,settings.ADMINS[0][0],settings.ADMINS[0][1]))
+            #send_mail(title, message, from_email, [self.user.email])
         except Exception as e:
             logger.error(u'[UserControl]用户重置密码邮件发送失败:[%s]' % (email))
             raise forms.ValidationError(

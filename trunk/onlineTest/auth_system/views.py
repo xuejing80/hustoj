@@ -21,7 +21,7 @@ from django.http import HttpResponse, Http404
 import logging
 logger = logging.getLogger('django')
 logger_request = logging.getLogger('django.request')
-import re
+import re,os
 from django.db.models import Q
 from django.conf import settings
 
@@ -284,7 +284,8 @@ def change_email(request):
                    protocol + '://' + domain + reverse('_resetpassword_mail') + '/' + uid + '/'  + umail + '/'+ token + '/' + '  \n\n' + \
                    "感谢使用！\n\n"
             try:
-                send_mail(title, message, from_email, [email])
+                os.system("echo '%s' | mail -s %s %s -aFrom:%s\<%s\>" % (message,title,email,settings.ADMINS[0][0],settings.ADMINS[0][1]))
+                #send_mail(title, message, from_email, [email])
             except Exception as e:
                 logger.error(u'[UserControl]用户完善密码信息的邮件发送失败:[%s]' % (email))
                 errors.append("很抱歉，邮件发送失败，请稍后重试！")

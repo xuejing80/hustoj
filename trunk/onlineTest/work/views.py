@@ -145,7 +145,7 @@ def del_homework(request):
             objects = HomeWork.objects
         try:
             for pk in ids:
-                homework = objects.filter(pk=pk)
+                homework = objects.get(pk=pk)
                 if request.user == homework.creater or request.user.is_admin:
                     homework.delete()
         except ObjectDoesNotExist:
@@ -282,7 +282,10 @@ def update_my_homework(request, pk):
     :return: 私有作业详细页面
     """
     homework = get_object_or_404(MyHomework, pk=pk)
-    if request.user != homework.creater and request.user.is_admin!=True:
+    try:
+        if request.user != homework.creater and request.user.is_admin!=True:
+            raise PermissionDenied
+    except:
         raise PermissionDenied
     if request.method == 'POST':
         homework.name = request.POST['name']
@@ -771,7 +774,7 @@ def del_banji(request):
         ids = request.POST.getlist('ids[]')
         try:
             for pk in ids:
-                banji = BanJi.objects.filter(pk=pk)
+                banji = BanJi.objects.get(pk=pk)
                 if request.user == banji.teacher or request.user.is_admin:
                     banji.delete()
         except:
@@ -899,7 +902,7 @@ def get_students(request,banji=None):
 
 @permission_required('work.change_banji')
 def add_students(request, pk):
-    teacher = MyUser.objects.get(username=request.user)
+    teacher = MyUser.objects.get(id=request.user.id)
     return render(request, 'add_students.html', context={'id': pk, 'teacher':teacher, 'title': '添加学生到班级'})
 
 
@@ -907,28 +910,42 @@ def add_students(request, pk):
 def ajax_add_students(request):
     stu_detail = request.POST['stu_detail']
     banji_id = request.POST['banji_id']
-    teacher = MyUser.objects.get(username=request.user)
+    teacher = MyUser.objects.get(id=request.user.id)
     allow_num = teacher.allow_num
     if len(stu_detail.split()) > 1:
         id_num, username = stu_detail.split()[0], stu_detail.split()[1]
-        try:
-            student = MyUser.objects.get(id_num=id_num)
-        except:
-            if teacher.school != None and teacher.school != '' and teacher.school_short != None and teacher.school_short != '':
-                student = MyUser(id_num=teacher.school_short+id_num, email=id_num + '@' + teacher.school_short + '.edu.cn', username=username, school=teacher.school, school_short=teacher.school_short)
-                student.set_password(teacher.school_short+id_num)
-                student.save()
-                student.groups.add(Group.objects.get(name='学生'))
-            else:
+        if teacher.school == '' and teacher.school_short == '':
+            try:
+                student = MyUser.objects.get(id_num=id_num)
+                if student.username == username:
+                    student.groups.add(Group.objects.get(name='学生'))
+                if student.username != username:
+                    student = MyUser(id_num=id_num, email=id_num + '@njupt.edu.cn', username=username)
+                    student.set_password(id_num)
+                    student.save()
+                    student.groups.add(Group.objects.get(name='学生'))
+            except:
+                print('1')
                 student = MyUser(id_num=id_num, email=id_num + '@njupt.edu.cn', username=username)
                 student.set_password(id_num)
                 student.save()
                 student.groups.add(Group.objects.get(name='学生'))
-    else:
-        try:
-            student = MyUser.objects.get(id_num=stu_detail)
-        except:
-            return HttpResponse(json.dumps({'result': 0, 'message': '该学号未注册，且您未提供注册信息'}))
+            
+        else:
+            try:
+                student = MyUser.objects.get(id_num=id_num)
+                if student.username == username:
+                    student.groups.add(Group.objects.get(name='学生'))
+                if student.username != username:
+                    student = MyUser(id_num=teacher.school_short+id_num, email=id_num + '@' + teacher.school_short + '.edu.cn', username=username, school=teacher.school, school_short=teacher.school_short)
+                    student.set_password(teacher.school_short+id_num)
+                    student.save()
+                    student.groups.add(Group.objects.get(name='学生'))
+            except:
+                student = MyUser(id_num=teacher.school_short+id_num, email=id_num + '@' + teacher.school_short + '.edu.cn', username=username, school=teacher.school, school_short=teacher.school_short)
+                student.set_password(teacher.school_short+id_num)
+                student.save()
+                student.groups.add(Group.objects.get(name='学生'))
     banji = BanJi.objects.get(pk=banji_id)
     if teacher.create_num > 0:
         banji.students.add(student)
@@ -946,7 +963,7 @@ def reset_stupassword(request):
         try:
             student = MyUser.objects.get(pk=stu_id)
             banji = BanJi.objects.get(pk=banji_id)
-            if student.isTeacher:#不允许重制教师账号的密码
+            if student.isTeacher():#不允许重置教师账号的密码
                 return HttpResponse(2)
             stu_nu = student.id_num
             student.set_password(stu_nu)

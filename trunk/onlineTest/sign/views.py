@@ -39,19 +39,31 @@ def create(request):
     user = request.user
 
     if request.method == 'POST' and user.is_admin:   #judge HTTP method and user identity
-
-        banjiId = int(request.POST.get('banjiId'))
         timeNow = datetime.now()
 
-        Event.objects.create(
-            position = request.POST.get('position'),    #点名发起的位置，以此来判断学生是否在指定范围内签到
-            has_signed_count = 0,
-            all_student_count = BanJi.objects.get(id = banjiId).students.count(),
-            started_time = request.POST.get('startedTime', timeNow.strftime('%Y-%m-%d %H:%M:%S')),     #点名开始的时间，可自定义
-            closed_time = request.POST.get('closedTime', (timeNow + timedelta(minutes = 10)).strftime('%Y-%m-%d %H:%M:%S')),    #点名结束的时间，默认10min的点名期限
-            banji_id = banjiId,
-            teacher_id = user.id
-        )
+        position = request.POST.get('position')   #点名发起的位置，以此来判断学生是否在指定范围内签到
+        started_time = datetime.strptime(request.POST.get('startedTime'), '%Y-%m-%d %H:%M')     #点名开始的时间，可自定义
+        closed_time = datetime.strptime(request.POST.get('closedTime'), '%Y-%m-%d %H:%M')    #点名结束的时间，默认10min的点名期限
+        banjiId = int(request.POST.get('banjiId'))
+        all_student_count = BanJi.objects.get(id = banjiId).students.count()
+        teacher_id = user.id
+        start_week = int(request.POST.get('startWeek', 1))
+        end_week = int(request.POST.get('endWeek', 18))
+        interval = int(request.POST.get('interval', 1))
+
+        queryList = []
+        for i in range(start_week, end_week + 1, interval):
+            queryList.append(Event(
+                position = position,
+                has_signed_count = 0,
+                all_student_count = all_student_count,
+                started_time = (started_time + timedelta(days = 7 * i)).strftime("%Y-%m-%d %H:%M:%S"),
+                closed_time = (closed_time + timedelta(days = 7 * i)).strftime("%Y-%m-%d %H:%M:%S"),
+                banji_id = banjiId,
+                teacher_id = user.id
+            ))
+        
+        Event.objects.bulk_create(queryList)
         return JsonResponse({'success': True})
     else:
         return JsonResponse({'success': False, 'errMsg': 'Permission denied'})

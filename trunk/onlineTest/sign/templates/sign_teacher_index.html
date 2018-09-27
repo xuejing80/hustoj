@@ -72,6 +72,34 @@
                             </div>
                         </div>
                     </div>
+
+                    <div class='col-sm-4'>
+                        <div class="form-group">
+                            <label for="end_time">开始周</label>
+                            <div>
+                                <input type='text' class="form-control" name="startWeek" value="1" id="startWeek"/>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class='col-sm-4'>
+                        <div class="form-group">
+                            <label for="end_time">结束周</label>
+                            <div>
+                                <input type='text' class="form-control" name="endWeek" value="18" id="endWeek"/>
+                            </div>
+                        </div>
+                    </div>                   
+                    
+                    <div class='col-sm-4'>
+                        <div class="form-group">
+                            <label for="end_time">间隔</label>
+                            <div>
+                                <input type='text' class="form-control" name="interval" value="1" id="interval"/>
+                            </div>
+                        </div>
+                    </div>
+
                     <div style="width:96%; margin: auto; height:400px; font-size:12px" id="allmap"></div>
                 </form>
             </div>
@@ -164,6 +192,9 @@
             startedTime: $('#startedTime').val(),
             closedTime: $('#closedTime').val(),
             banjiId: $('#class-list option:selected').val(),
+            startWeek: $('#startWeek').val(),
+            endWeek: $('#endWeek').val(),
+            interval: $('#interval').val()
         }, function (result, statue) {
             if (statue === 'success') {
                 if (result.success) {

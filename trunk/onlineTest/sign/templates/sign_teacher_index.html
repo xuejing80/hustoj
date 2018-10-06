@@ -72,7 +72,35 @@
                             </div>
                         </div>
                     </div>
-                    <div style="width:90%; margin: auto; height:400px; font-size:12px" id="allmap"></div>
+
+                    <div class='col-sm-4'>
+                        <div class="form-group">
+                            <label for="end_time">开始周</label>
+                            <div>
+                                <input type='text' class="form-control" name="startWeek" value="1" id="startWeek"/>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class='col-sm-4'>
+                        <div class="form-group">
+                            <label for="end_time">结束周</label>
+                            <div>
+                                <input type='text' class="form-control" name="endWeek" value="18" id="endWeek"/>
+                            </div>
+                        </div>
+                    </div>                   
+                    
+                    <div class='col-sm-4'>
+                        <div class="form-group">
+                            <label for="end_time">间隔</label>
+                            <div>
+                                <input type='text' class="form-control" name="interval" value="1" id="interval"/>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="width:96%; margin: auto; height:400px; font-size:12px" id="allmap"></div>
                 </form>
             </div>
 
@@ -122,11 +150,22 @@
     var map = new BMap.Map("allmap");
     var point = new BMap.Point(118.936548, 32.114245);
     map.centerAndZoom(point, 18);
-    map.addEventListener("click", attribute);
 
-    //获取覆盖物位置
-    function attribute(e) {
-        $('#sub-btn').removeAttr('disabled').html('布置');
+    var geolocation = new BMap.Geolocation();
+    geolocation.getCurrentPosition(function(r){
+        if(this.getStatus() == BMAP_STATUS_SUCCESS){
+            var mk = new BMap.Marker(r.point);
+            map.addOverlay(mk);
+            map.panTo(r.point);
+        }
+        else {
+            alert('failed'+this.getStatus());
+        }        
+    });
+
+
+    map.addEventListener("click", function (e) {
+        $('#sub-btn').removeAttr('disabled').html('布置')
         map.clearOverlays()
 
         position = JSON.stringify([e.point.lng, e.point.lat])
@@ -134,7 +173,8 @@
 
         var marker = new BMap.Marker(point);
         map.addOverlay(marker);
-    }
+    });
+
 
     $(function () {
         $('#datetimepicker1').datetimepicker({
@@ -164,6 +204,9 @@
             startedTime: $('#startedTime').val(),
             closedTime: $('#closedTime').val(),
             banjiId: $('#class-list option:selected').val(),
+            startWeek: $('#startWeek').val(),
+            endWeek: $('#endWeek').val(),
+            interval: $('#interval').val()
         }, function (result, statue) {
             if (statue === 'success') {
                 if (result.success) {

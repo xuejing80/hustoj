@@ -6,11 +6,11 @@
         <li class="active">我的课程列表</a></li>
         <li class="active">添加课程</li>
     </ol>
-    <h3>添加课程(请输入教材后的序列号)</h3>
+    <h3>添加课程(请输入教材封底刮刮卡中的激活码)</h3>
     <form>
         <input type="hidden" name="banji_id" id="banji_id" value="{{ id }}">
         <p><textarea name="serial_number" id="serial_number" class="form-control" rows="1"></textarea>
-        <p><input type="button" class="btn btn-primary" name="submit_num" id="submit_num" value="提交序列号"/>
+        <p><input type="button" class="btn btn-primary" name="submit_num" id="submit_num" value="提交激活码"/>
     </form>
 
     <style type="text/css">
@@ -31,14 +31,20 @@
                             data: {serial_number: num},
                             success: function (data) {
                                 if ((data.result == 0)&&(data.repeat!=1)) {
-                                    window.location.href = "{% url 'index' %}"
-                                    }
+                                    alert("添加课程成功，请您刷新页面后，在我的课程列表查看课程资源！")
+                                }
                                 if ((data.result == 0)&&(data.repeat == 1)) {
-                                    alert("您以加入该课程!")
+                                    alert("该激活码已被使用!")
                                 } 
+                                if ((data.result == 1)&&(data.repeat == 1)){
+                                    alert("已加入此班级!")
+                                }
+                                if ((data.result == 1)&&(data.repeat == 0)){
+                                    alert("请输入正确的激活码！")
+				}
                             },
                             error: function(data){
-                                alert("请输入正确的序列号！")
+                                alert("系统错误，请稍后再试！")
                                 }
                             
                         });

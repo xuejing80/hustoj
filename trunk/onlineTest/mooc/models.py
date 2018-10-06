@@ -39,7 +39,10 @@ class Resource(models.Model):
     courser = models.ForeignKey('judge.ClassName', verbose_name='所属课程')
     week = models.ForeignKey('mooc.Week', verbose_name='周次数')
 
-    
-
-
+class Number(models.Model):
+    ming_ma=models.IntegerField(verbose_name='明码', null=True, blank=True,default=0)
+    an_ma=models.CharField(verbose_name='暗码', max_length=30,null=True, blank=True,default=0)
+    user=models.ForeignKey(MyUser,null=True,related_name='Number_user')
+    time=models.CharField(verbose_name='加入时间', max_length=100, null=True, blank=True,default=0)
+    is_used=models.CharField(verbose_name='是否使用', max_length=30,blank=True, null=True,default='false')
     

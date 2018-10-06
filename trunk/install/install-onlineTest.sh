@@ -22,6 +22,7 @@ echo "pip3 install pymysql -i https://pypi.douban.com/simple/" | bash
 echo "pip3 install -i https://pypi.douban.com/simple/ channels==1.1.8" | bash
 echo "pip3 install -i https://pypi.douban.com/simple/ asgi_redis" | bash
 echo "pip3 install -i https://pypi.douban.com/simple/ django_crontab" | bash
+echo "pip3 install -i https://pypi.douban.com/simple/ xlrd" | bash
 
 mkdir -p /home/judge/log
 

@@ -1,14 +1,4 @@
-import argparse
-import codecs
-import json
-import os
-import random
-import re
-import shutil
-import string
-import zipfile
-import cgi
-import operator
+import argparse, codecs, json, os, random, re, shutil, string, zipfile, cgi, operator, xlrd, time
 from operator import itemgetter, attrgetter
 from django.apps import apps
 from django.contrib.auth.decorators import permission_required, login_required
@@ -18,26 +8,41 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.utils.datastructures import MultiValueDictKeyError
 from django.views.generic.detail import DetailView
 from mooc.forms import ResourceAddForm
-from mooc.models import Resource,Week,Type
+from mooc.models import Resource,Week,Type,Number
 from judge.models import ClassName
 from work.models import MyHomework,BanJi
 from auth_system.models import MyUser
 from django.contrib import messages
 from django.core.exceptions import ObjectDoesNotExist, PermissionDenied
+
 # Create your views here.
 
 @login_required()
 def ajax_add_course(request):
     serial_number = request.POST['serial_number']
     user = request.user
-    id = 257    
+    id = 257
     banji = BanJi.objects.get(pk=id)
-    if serial_number == '12345':
-        banji_r = BanJi.objects.filter(id=id, students=user)
-        if any(banji_r) == True:
-            return HttpResponse(json.dumps({'result':0,'repeat':1}))       # 学生已加入该班级
-        banji.students.add(user)
-        return HttpResponse(json.dumps({'result':0,'repeat':0}))
+    try:    
+        SM = Number.objects.get(an_ma=serial_number)
+    except:
+        return HttpResponse(json.dumps({'result':1,'repeat':0}))
+    if SM:
+        if SM.is_used == 'false':     
+            banji_r = BanJi.objects.filter(pk=id,students=user)
+            if any(banji_r) == True:
+                return HttpResponse(json.dumps({'result':1,'repeat':1}))        ##已加入此班级          
+            else: 
+                SM.user = request.user
+                SM.time = time.asctime(time.localtime(time.time()))
+                SM.is_used = 'true'
+                SM.save()
+                banji.students.add(user)
+                return HttpResponse(json.dumps({'result':0,'repeat':0}))
+        else:                                              
+            return HttpResponse(json.dumps({'result':0,'repeat':1}))            ##码已被使用过
+    else:
+        return HttpResponse(json.dumps({'result':1,'repeat':0}))                   ##序列码不存在
 
 @login_required()
 def add_course(request):

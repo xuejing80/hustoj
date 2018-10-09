@@ -73,4 +73,5 @@ urlpatterns = [
 
     url(r'^download',file_download,name='download'),
     url(r'send_zipfile_(\d+)/$',send_zipfile,name='send_zipfile'),
+    url(r'send_zipfile_$',send_zipfile,name='_send_zipfile'),
 ]

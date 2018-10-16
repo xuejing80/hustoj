@@ -412,6 +412,7 @@ def show_homework_result(request, id=0):
                 score = 0
         except:
             sourceCode = "未回答"
+            score = 0
         problem = Problem.objects.get(pk=pid)
         problems.append({'code': sourceCode, 'desc': problem.description,
                          'title': problem.title, 'result': result,'score': score,
@@ -912,6 +913,8 @@ def ajax_add_students(request):
     banji_id = request.POST['banji_id']
     teacher = MyUser.objects.get(id=request.user.id)
     allow_num = teacher.allow_num
+    if teacher.create_num < 1:
+        return HttpResponse(json.dumps({'result': 0, 'count': 0, 'allow': 1,'message':'已达到允许添加学生数量上限'}))
     if len(stu_detail.split()) > 1:
         id_num, username = stu_detail.split()[0], stu_detail.split()[1]
         if teacher.school == '' and teacher.school_short == '':
@@ -937,12 +940,12 @@ def ajax_add_students(request):
                 if student.username == username:
                     student.groups.add(Group.objects.get(name='学生'))
                 if student.username != username:
-                    student = MyUser(id_num=teacher.school_short+id_num, email=id_num + '@' + teacher.school_short + '.edu.cn', username=username, school=teacher.school, school_short=teacher.school_short)
+                    student = MyUser(id_num=teacher.school_short+id_num, email=id_num + '@' + teacher.school_short.lower() + '.edu.cn', username=username, school=teacher.school, school_short=teacher.school_short)
                     student.set_password(teacher.school_short+id_num)
                     student.save()
                     student.groups.add(Group.objects.get(name='学生'))
             except:
-                student = MyUser(id_num=teacher.school_short+id_num, email=id_num + '@' + teacher.school_short + '.edu.cn', username=username, school=teacher.school, school_short=teacher.school_short)
+                student = MyUser(id_num=teacher.school_short+id_num, email=id_num + '@' + teacher.school_short.lower() + '.edu.cn', username=username, school=teacher.school, school_short=teacher.school_short)
                 student.set_password(teacher.school_short+id_num)
                 student.save()
                 student.groups.add(Group.objects.get(name='学生'))
@@ -952,8 +955,6 @@ def ajax_add_students(request):
         teacher.create_num -= 1
         teacher.save()
         return HttpResponse(json.dumps({'result': 0, 'count': 1}))
-    if teacher.create_num < 1:
-        return HttpResponse(json.dumps({'result': 0, 'count': 0, 'allow': 1,'message':'已达到允许添加学生数量上限'}))
 
 
 def reset_stupassword(request):

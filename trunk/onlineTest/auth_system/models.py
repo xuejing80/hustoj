@@ -47,7 +47,7 @@ class MyUser(AbstractBaseUser, PermissionsMixin):
         max_length=255,
         unique=True,
     )
-    id_num = models.CharField(max_length=20, null=True, blank=True, verbose_name='用户名（工号/学号）')
+    id_num = models.CharField(max_length=20, null=True, blank=True, verbose_name='用户名（工号/学号）',unique=True)
     username = models.CharField(max_length=16, verbose_name='昵称（真实姓名）')
     school = models.CharField(max_length=50, verbose_name='所在学校', null=True, blank=True)
     school_short = models.CharField(max_length=10, verbose_name='学校缩写', null=True, blank=True)

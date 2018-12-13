@@ -12,7 +12,7 @@ from django.core.mail import send_mail
 from warning import gcp
 
 now = datetime.datetime.now()
-homeworkstarttime= now - datetime.timedelta(days=30)
+homeworkstarttime= now - datetime.timedelta(days=60)
 homeworkendtime=now + datetime.timedelta(days=7)
 domain = settings.SITE_DOMAIN
 
@@ -83,6 +83,7 @@ def warning():
 	mydict = getDict()
 	teacherList = getAllTeachers()
 	for teacher in teacherList:
+		print("开始准备给",teacher.username,"发送邮件：")
 		#if teacher.username != '薛景老师':
 			#continue
 		msgteacher = "%s 老师您好:\n"%teacher.username

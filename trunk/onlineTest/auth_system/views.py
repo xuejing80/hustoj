@@ -118,7 +118,8 @@ class UserControl(View):
                       u"网站：http://%s" % domain + "/\n\n"
             from_email = settings.EMAIL_HOST_USER
             try:
-                send_mail(title, message, from_email, [email])
+                os.system("echo '%s' | mail -s %s %s -aFrom:%s\<%s\>" % (message,title,email,settings.ADMINS[0][0],settings.ADMINS[0][1]))
+                #send_mail(title, message, from_email, [email])
             except Exception as e:
                 logger.error(u'[UserControl]用户注册邮件发送失败:[%s]/[%s](%s)' % (username, email, repr(e)))
                 print(e)
@@ -377,7 +378,10 @@ def update_user(request, pk):
         user.school_short = request.POST['school_short']
         if user.isTeacher():   
             t = user.allow_num - user.create_num
-            user.allow_num = int(request.POST['allow_num'])
+            try:
+                user.allow_num = int(request.POST['allow_num'])
+            except:
+                pass
             user.create_num = user.allow_num - t
             #print(user.create_num)
         user.groups.clear()

@@ -922,13 +922,14 @@ def ajax_add_students(request):
                 student = MyUser.objects.get(id_num=id_num)
                 if student.username == username:
                     student.groups.add(Group.objects.get(name='学生'))
-                if student.username != username:
-                    student = MyUser(id_num=id_num, email=id_num + '@njupt.edu.cn', username=username)
-                    student.set_password(id_num)
-                    student.save()
-                    student.groups.add(Group.objects.get(name='学生'))
+                else:
+                    return HttpResponse(json.dumps({'result': 0, 'count': 0, 'allow': 1,'message':'该学号被其他用户占用，请联系管理员老师'}))
+                #if student.username != username:
+                #    student = MyUser(id_num=id_num, email=id_num + '@njupt.edu.cn', username=username)
+                #    student.set_password(id_num)
+                #    student.save()
+                #    student.groups.add(Group.objects.get(name='学生'))
             except:
-                print('1')
                 student = MyUser(id_num=id_num, email=id_num + '@njupt.edu.cn', username=username)
                 student.set_password(id_num)
                 student.save()
@@ -936,14 +937,16 @@ def ajax_add_students(request):
             
         else:
             try:
-                student = MyUser.objects.get(id_num=id_num)
+                student = MyUser.objects.get(id_num=teacher.school_short+id_num)
                 if student.username == username:
                     student.groups.add(Group.objects.get(name='学生'))
-                if student.username != username:
-                    student = MyUser(id_num=teacher.school_short+id_num, email=id_num + '@' + teacher.school_short.lower() + '.edu.cn', username=username, school=teacher.school, school_short=teacher.school_short)
-                    student.set_password(teacher.school_short+id_num)
-                    student.save()
-                    student.groups.add(Group.objects.get(name='学生'))
+                else:
+                    return HttpResponse(json.dumps({'result': 0, 'count': 0, 'allow': 1,'message':'该学号被其他用户占用，请联系管理员老师'}))
+                #if student.username != username:
+                #    student = MyUser(id_num=teacher.school_short+id_num, email=id_num + '@' + teacher.school_short.lower() + '.edu.cn', username=username, school=teacher.school, school_short=teacher.school_short)
+                #    student.set_password(teacher.school_short+id_num)
+                #    student.save()
+                #    student.groups.add(Group.objects.get(name='学生'))
             except:
                 student = MyUser(id_num=teacher.school_short+id_num, email=id_num + '@' + teacher.school_short.lower() + '.edu.cn', username=username, school=teacher.school, school_short=teacher.school_short)
                 student.set_password(teacher.school_short+id_num)

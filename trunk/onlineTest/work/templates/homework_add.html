@@ -656,20 +656,29 @@
         function check() {
             if ($("#course").val() == 0) {
                 alert("请选择课程"); return false;
-            } else {
-                $("#problem-ids").val($.map($table2.bootstrapTable('getData'), function (row) { return row.pk; }).toString());
-                $("#choice-problem-ids").val($.map($table4.bootstrapTable('getData'), function (row) { return row.pk; }).toString());
-                $("#tiankong-problem-ids").val($.map($table6.bootstrapTable('getData'), function (row) { return row.pk; }).toString());
-                $("#gaicuo-problem-ids").val($.map($table8.bootstrapTable('getData'), function (row) { return row.pk; }).toString());
-
-                $('#problem-info').val(JSON.stringify($table2.bootstrapTable('getData')));
-                $('#choice-problem-info').val(JSON.stringify($table4.bootstrapTable('getData')));
-                $('#tiankong-problem-info').val(JSON.stringify($table6.bootstrapTable('getData')));
-                $('#gaicuo-problem-info').val(JSON.stringify($table8.bootstrapTable('getData')));
-
-                //console.log($('#gaicuo-problem-info').val());return false;
-                $('#total_score').val($("#score").text());
             }
+            var CheckBox = $('input[name = languages]');//得到所的复选框
+            var SelectFalse=false;
+            for(var i = 0; i < CheckBox.length; i++){
+                if(CheckBox[i].checked)//如果有1个被选中时
+                    SelectFalse = true;
+            }
+            if(!SelectFalse){
+                alert("请选择允许的编译器类型");return false;
+            };
+
+            $("#problem-ids").val($.map($table2.bootstrapTable('getData'), function (row) { return row.pk; }).toString());
+            $("#choice-problem-ids").val($.map($table4.bootstrapTable('getData'), function (row) { return row.pk; }).toString());
+            $("#tiankong-problem-ids").val($.map($table6.bootstrapTable('getData'), function (row) { return row.pk; }).toString());
+            $("#gaicuo-problem-ids").val($.map($table8.bootstrapTable('getData'), function (row) { return row.pk; }).toString());
+
+            $('#problem-info').val(JSON.stringify($table2.bootstrapTable('getData')));
+            $('#choice-problem-info').val(JSON.stringify($table4.bootstrapTable('getData')));
+            $('#tiankong-problem-info').val(JSON.stringify($table6.bootstrapTable('getData')));
+            $('#gaicuo-problem-info').val(JSON.stringify($table8.bootstrapTable('getData')));
+
+            //console.log($('#gaicuo-problem-info').val());return false;
+            $('#total_score').val($("#score").text());
         }
 
         var $table = $('#table');

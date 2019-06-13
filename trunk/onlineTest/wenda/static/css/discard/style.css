@@ -1,0 +1,73 @@
+.searchbox {
+    position: relative;
+    /* z-index: 1; */
+    /* clear: both; */
+    width: 70%;
+    margin: 80px auto;
+    border: 2px solid #337ab7;
+}
+.mod_select {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 98px;
+}
+.mod_select .select_box {
+  position: relative;
+  width: 98px;
+  height: 36px;
+}
+.mod_select .select_box .select_txt {
+  display: inline-block;
+  width: 98px;
+  height: 36px;
+  overflow: hidden;
+  line-height: 36px;
+  font-size: 16px;
+  cursor: pointer;
+  margin-top: 2px;
+   text-align: center;
+}
+.mod_select .select_box .select-icon {
+  position: absolute;
+  top: 50%;
+  right: -9px;
+  transform: translate(0,-50%);
+  width: 10px;
+  height: 10px;
+  background: url(../images/search_ico.png) center no-repeat;
+}
+.mod_select .select_box .option {
+  display: none;
+  position: absolute;
+  top: 40px;
+  left: -2px;
+  width: 100px;
+  background-color: #fff;
+  border: 2px solid #337ab7;
+  border-top: 0;
+}
+.mod_select .select_box .option li {
+  padding-left: 28px;
+  font-size: 16px;
+  line-height: 2;
+  cursor: pointer;
+}
+.searchbox .import {
+  width: 70%;
+  height: 40px;
+  margin-left: 100px;
+  padding-left: 20px;
+  border: none;
+  outline: none;
+}
+.searchbox .btn-search {
+  position: absolute;
+  right: 0;
+  width: 100px;
+  height: 40px;
+  color: #fff;
+  background-color: #337ab7;
+  border: 0;
+    font-size: larger;
+}

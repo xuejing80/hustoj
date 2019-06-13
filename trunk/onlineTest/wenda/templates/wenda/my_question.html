@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block title %}我的提问{% endblock %}
+{% load staticfiles %}
+
+{% block extrahead %}
+<style>
+	.item{
+
+		background-color: #f2f2f2;
+		border-radius:10px;
+		margin-bottom: 15px;
+		padding: 5px 5px 5px 5px;
+	}
+	.question{
+		color: #000000;
+		text-indent: 1.5em;
+		margin-top:10px;
+		margin-left:10px;
+		margin-right:10px;
+		margin-bottom: 5px;
+	}
+	.question a{
+		font-size: 1.25em;
+		font-weight: 500;
+	}
+	.info{
+		margin-left: 10px;
+	}
+	.info span{
+		color: #797979;
+		font-size:1.05em;
+		margin-right:8px;
+	}
+
+</style>
+{% endblock %}
+
+{% block content %}
+<h3>我的提问<small>&nbsp&nbsp&nbsp你提过的问题都在这里哦!</small></h3>
+<!-- 'id' 0,'ques' 1,'update_date' 2,'praisenum' 3, 'ansNum'4 -->
+{% for q in quesList %}
+<div class="item">
+	<div class="question">
+		<a href="/wenda/qusdetail/{{q.id}}">{{q.ques}}</a>
+	</div>
+	<div class="info">
+		<span><i class="fa fa-thumbs-o-up"></i>&nbsp{{q.praisenum}}&nbsp</span>
+		<span><i class="fa fa-pencil-square-o"></i>&nbsp{{q.ansNum}}</span>
+		<span>&nbsp最近更新时间:&nbsp<i class="fa fa-calendar"></i>&nbsp{{q.update_date}}</span>
+	</div>
+</div>
+{% empty %}
+
+{% endfor %}
+
+{% endblock %}

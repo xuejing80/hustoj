@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+{% load staticfiles %}
+{% block extrahead %}
+
+<link rel="stylesheet" type="text/css" href="{% static 'css/wenda_index.css' %}">
+<script type="text/javascript" src="{% static 'js/wenda_index.js' %}"></script>
+
+<style>
+    .item .attach p{
+        font-size: 1.15em;
+    }
+    .item .attach img:hover{
+        cursor:zoom-in;
+    }
+
+</style>
+
+<script>
+    // 图片旋转的角度
+    var RotateCurrent;
+    $(document).ready(
+        function(){
+            var imgs = $(".attach img");
+            for(var i=0;i<imgs.length;i++){
+                $(imgs[i]).click(function(){
+                    ZoomBig(this);
+                })
+            }
+    })
+    
+
+
+   
+</script>
+
+
+
+{% endblock %}
+
+{% block content %}
+
+    <div id="list">
+        <img src="" alt="" id="bigimg" onclick="ImgRotate(this)">
+        <div id="mask">
+            <img src="{% static 'images/close.png' %}" alt="" onclick="ZoomOut()">
+        </div>
+<!-- {'id', 'ques', 'update_date', 'tag', 'asker_id', 'praisenum','description','username','answernum'}-->
+
+        {% for q in question %}
+        <div class="Card">
+            <div class="topic">
+                <span>来自语言:<a href="#">{{q.tag}}</a></span>
+            </div>
+            <div class="userinfo">
+                <div class="name">
+                    <a href="#">由&nbsp;{{q.username}}&nbsp;</a>
+                    <span>提问于&nbsp;{{q.update_date|date:"Y-m-d"}}</span>  
+                </div>
+            </div>
+            <div class="clearfix"></div>
+            <div class="question" data-qusid="{{q.id}}">
+                <div class="board">
+                    <div class="item">
+
+                        <div class="problem" style="margin-bottom:10px">
+                            <p>{{q.ques}}</p>
+                        </div>
+                        <div class="attach">
+                            {% if q.description %}
+                                {{q.description|safe}}
+                            {% endif %} 
+                        </div>
+                       
+                        <div class="qfooter">
+                            <a href="javascript:void(0)" class="praise" onclick="PraiseQuestion(this)" status="0"><span>{{q.praisenum}}</span>&nbsp;<span class="glyphicon glyphicon-thumbs-up"></span>
+                    
+                            </a>
+                            <!-- status:0代表答案是收起来隐藏的； 1：代表答案是展开的
+                                 loaded：0代表答案还未加载    1：代表答案已经加载
+                            -->
+                            <a href="javascript:void(0)" class="replynum" onclick="ShowOrHideAnswer(this)" status="0" data-origintext="" loaded="0">&nbsp;共{{q.answernum}}条回答&nbsp;
+                            </a>
+                            <a href="/wenda/question/answer/{{q.id}}" class="replynum">我要回答</a>
+                            <!-- <a href="javascript:void(0)">关注</a> -->
+                        </div>
+                    </div>
+                    <div class="answeritem hideoff" >
+                    </div>
+                </div>
+            </div>
+        </div> 
+        {% empty %}
+            <h3>还没有人问你问题呦～～～</h3>
+        {% endfor %} 
+    </div>
+
+
+{% endblock %}
+    
+
+
+
+
+
+
+
+
+
+
+
+
+

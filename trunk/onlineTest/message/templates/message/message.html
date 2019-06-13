@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block title %}我的消息{% endblock %}
+{% load staticfiles %}
+
+{% block extrahead %}
+<script type="text/javascript" src="{% static 'js/wenda_index.js' %}"></script>
+<script type="text/javascript" src="{% static 'js/message.js' %}"></script>
+<link rel="stylesheet" href="{% static 'css/message.css' %}">
+<script>
+    // 图片旋转的角度
+    var RotateCurrent;
+    $(document).ready(
+        function(){
+            var imgs = $(".attach img");
+            for(var i=0;i<imgs.length;i++){
+                $(imgs[i]).click(function(){
+                    ZoomBig(this);
+                })
+            }
+    }) 
+</script>
+
+{% endblock %}
+
+{% block content %}
+<h3>我的消息</h3>
+<img src="" alt="" id="bigimg" onclick="ImgRotate(this)">
+<div id="mask">
+    <img src="{% static 'images/close.png' %}" alt="" onclick="ZoomOut()">
+</div>
+<!-- msgtype = (  
+sid 
+rid
+message 
+objId
+messagetype
+date
+isread -->
+
+{% for m in message %}
+<div class="item">
+	<div class="question">       
+        {% if m.messagetype == 0 %}<!-- (0, u'系统消息') -->
+        <span>系统提示您:{{m.message}}</span>
+        {% elif m.messagetype == 1 %}<!--(1, u'邀请消息')-->
+        <a href="/wenda/question/answer/{{m.objId}}">{{m.sname}}邀请您回答问题：{{m.message}}</a>
+        {% elif m.messagetype == 2 %}<!--(2, u'关注消息')-->
+        <span>{{m.message}}</span>
+        {% elif m.messagetype == 3 %}<!--(3, u'回答问题消息')-->
+        <a href="javascript:void(0)" data-ansid="{{m.objId}}" onclick="showAnswer(this)" status="0" load="0" isread="0">{{m.sname}}回答了您的问题：{{m.message}}</a>
+        {% elif m.messagetype == 4 %}<!--(4, u'评论问题消息')-->
+        <a href="/wenda/qusdetail/{{m.objId}}">{{m.sname}}评论了您的问题：{{m.message}}</a>
+        {% elif m.messagetype == 5 %}<!--(5, u'更新答案消息')-->
+        <a href="javascript:void(0)" data-ansid="{{m.objId}}" onclick="showAnswer(this)" status="0" load="0" isread="0">{{m.sname}}更新了答案：{{m.message}}</a>
+        {% endif %}
+        
+        <span style="font-size:1em">&nbsp;发布时间:{{m.date}}</span>
+        <div class="tip" data-mid="{{m.id}}" onclick="readMessage(this)"></div>
+    </div>
+    <div class="answeritem hideoff"></div>
+</div>
+{% endfor %}
+
+<div id="loadMore">
+    <a href="javascript:void(0)" onclick="loadMessage(this)">点击加载已读历史信息</a>
+</div>
+
+{% endblock %}

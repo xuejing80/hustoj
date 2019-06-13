@@ -6,7 +6,7 @@
     <meta name="description" content="南京邮电大学程序设计类课程作业平台">
     <meta name="keyword" content="南邮,NJUPT,NUPT,C语言">
 
-    <title>{% block title %}{{ SITE_NAME }}{% endblock %}</title>
+    <title>{% block title %}南京邮电大学程序设计类课程作业平台{% endblock %}</title>
     {% load static %}
     <!-- Bootstrap core CSS -->
     <link href="{% static "assets/css/bootstrap.css" %}" rel="stylesheet">
@@ -37,7 +37,8 @@
             <div class="fa fa-bars tooltips" data-placement="right" data-original-title="Toggle Navigation"></div>
         </div>
         <!--logo start-->
-        <a href="{% url 'index' %}" class="logo"><b>{{ SITE_NAME }}</b></a>
+        <a href="{% url 'index' %}" class="logo"><b>南京邮电大学程序设计类课程作业平台</b></a>
+
         <!--logo end-->
         <div class="nav notify-row" id="top_menu">
             <!--  notification start -->
@@ -62,12 +63,14 @@
                             </li>
                         </ul>
                     </li>
+                    {% if user.is_superuser %}
                     <li class="dropdown">
-                        <a  class="dropdown-toggle" href="{% url 'to_message' %}" title="">
+                        <a data-toggle="dropdown" class="dropdown-toggle" href="index.html#" title="">
                             <i class="fa fa-inbox" aria-hidden="true" ></i>
-                            信息&nbsp;{% if request.session.mnum > 0 %}({{request.session.mnum}}){% endif %}
+                        信息 {% comment %} 这里可以通过数字来显示有新消息{%  endcomment %}
                         </a>
                     </li>
+                    {% endif %}
                 {% else %}
                     <li><a href="{% url 'register' %}">注册</a></li>
                     <li><a href="{% url 'login' %}">登录</a></li>
@@ -96,61 +99,87 @@
 
                 <p class="centered"><a href="{% url 'index' %}"></a></p>
 
-                {% if user.is_authenticated %}
-                     <li class="mt" style="margin-top: 0" id="sign_user_manage">
-                       {% if user.isTeacher %}
-                         <a href="{% url 'sign.teacher.index' %}" id="sign_teacher_manage">
-                             <i class="fa fa-cogs" aria-hidden="true"></i>
-                             <span>签到布置</span>
-                         </a>
-                       {% else %}
-                         <a href="{% url 'sign.student.index' %}" id="sign_student_manage">
-                             <i class="fa fa-cogs" aria-hidden="true"></i>
-                             <span>我的签到</span>
-                         </a>
-                       {% endif %}
-                     </li>
+                <li class="mt active">
+                    <a href="{% url 'index' %}" id="index">
+                        <i class="fa fa-dashboard" aria-hidden="true"></i>
+                        <span>主页</span>
+                    </a>
+                </li>
+                
+		<li class="mt" style="margin-top: 0">
+                    <a href="{% url 'download' %}" id="source">
+                        <i class="fa fa-cloud-download" aria-hidden="true"></i>
+                        <span>教学资源</span>
+                    </a>
+                </li>
+                
+		{% if user.is_authenticated %}
                      <li><a href="{% url 'list_do_homework' %}" id="unfinished">
                         <i class="fa fa-edit" aria-hidden="true"></i>
                         <span>我的作业列表</span></a></li>
-		     <li class="sub-menu">
+		     
+			<li class="sub-menu">
                         <a href="javascript:;" id="course_list">
                             <i class="fa fa-graduation-cap" aria-hidden="true"></i>
                             <span>我的课程列表</span>
                         </a>
                         <ul class="sub" id="courser_name">
+                            
                         </ul>
                      </li>
+
 			<li class="sub-menu">
-                <a href="javascript:;" id="dayi" class=""><i class="fa fa-table"></i><span>在线答疑</span></a>     
-		<ul class="sub" id="dayi_list">
-                    <li id="wenda"><a href="/wenda/"><span class="glyphicon glyphicon-bullhorn"></span>&nbsp;&nbsp;问答首页</a></li>
-                    <li id="askqus"><a href="{% url 'to_ask_question' %}"><span class="glyphicon glyphicon-fire"></span>&nbsp;&nbsp;我要提问</a></li>
-                    <li id="collection"><a href="{% url 'to_my_collection' %}"><span class="glyphicon glyphicon-book"></span>&nbsp;&nbsp;我的收藏</a></li>
-                    <li id="myask" class=""><a href="{% url 'to_my_question' %}"><span class="glyphicon glyphicon-bookmark"></span>&nbsp;&nbsp;我的提问</a></li>
-                    <li id="myinvite"><a href="{% url 'get_invitation' %}"><span class="glyphicon glyphicon-flag"></span>&nbsp;&nbsp;邀请我回答的问题</a></li>
-                    <li id="wantanswer"><a href="{% url 'want_answer' %}"><span class="glyphicon glyphicon-pencil"></span>&nbsp;&nbsp;我要回答</a></li>
-                </ul></li>  
-                    {%  if user.school == '' or user.school == None %}
-                        {% if user.isTeacher %} {% comment %}教师用户{% endcomment %}
-                        <li class="sub-menu">
-                            <a href="javascript:;" id="code_week_list">
-                                <i class="fa fa-pencil" aria-hidden="true"></i>
-                                <span>程序设计课</span>
-                            </a>
-                            <ul class="sub" id="extend_code_week_list">
-                                <li id="code_week_teacher_course_list"><a href="{% url 'course_list_for_teacher' %}">课程管理</a></li>
-                                <li id="sheji_list"><a href="{% url 'sheji_problem_list' %}">题库管理</a></li>
-                            </ul>
-                        </li>
-                        {% else %}
-                        <li class="mt" style="margin-top: 0">
-                            <a href="{% url 'course_list_for_student' %}" id="code_week_list">
-                                <i class="fa fa-pencil" aria-hidden="true"></i>
-                                <span>程序设计课</span>
-                            </a>
-                        </li>
-                        {% endif %}
+                        <a href="javascript:;" id="ask" class="dcjq-parent active">
+                            <i class="fa fa-table"></i>
+                            <span>在线答疑</span></a>
+                        
+				<ul class="sub">
+                            <li>
+                                <a href="/wenda/">
+                                    <span class="glyphicon glyphicon-bullhorn"></span>&nbsp;&nbsp;问答首页</a>
+                            </li>
+                            <li>
+                                <a href="{% url 'to_ask_question' %}">
+                                    <span class="glyphicon glyphicon-fire"></span>&nbsp;&nbsp;我要提问</a>
+                            </li>
+                            <li>
+                                <a href="{% url 'to_my_collection' %}">
+                                    <span class="glyphicon glyphicon-book"></span>&nbsp;&nbsp;我的收藏</a>
+                            </li>
+                            <li>
+                                <a href="{% url 'to_my_question' %}">
+                                    <span class="glyphicon glyphicon-bookmark"></span>&nbsp;&nbsp;我的提问</a>
+                            </li>
+                            <li>
+                                <a href="{% url 'get_invitation' %}">
+                                    <span class="glyphicon glyphicon-flag"></span>&nbsp;&nbsp;邀请我回答的问题</a>
+                            </li>
+                            <li>
+                                <a href="{% url 'want_answer' %}">
+                                    <span class="glyphicon glyphicon-pencil"></span>&nbsp;&nbsp;我要回答</a>
+                            </li>
+                        </ul>
+			</li>      
+
+		
+                    {% if user.isTeacher %} {% comment %}教师用户{% endcomment %}
+                       <li class="sub-menu">
+                           <a href="javascript:;" id="code_week_list">
+                               <i class="fa fa-pencil" aria-hidden="true"></i>
+                               <span>程序设计课</span>
+                           </a>
+                           <ul class="sub" id="extend_code_week_list">
+                               <li id="code_week_teacher_course_list"><a href="#">课程管理</a></li>
+                               <li id="sheji_list"><a href="#">题库管理</a></li>
+                           </ul>
+                       </li>
+                    {% else %}
+                       <li class="mt" style="margin-top: 0">
+                         <a href="#" id="code_week_list">
+                           <i class="fa fa-pencil" aria-hidden="true"></i>
+                           <span>程序设计课</span>
+                       </a>
+                       </li>
                     {% endif %}
                     {% if 'work.add_homework' in perms %}
                         <li><a href="{% url 'list_finished_homework' %}" id="finished">
@@ -165,9 +194,10 @@
                             </a>
                             <ul class="sub" id="extend_problem_list">
                                 <li id="choice_list"><a href="{% url 'choice_problem_list' %}">选择题题库</a></li>
-                                <li id="biancheng_list"><a href="{% url 'problem_list' %}">编程题题库</a></li>
-                                <li id="tiankong_list"><a href="{% url 'tiankong_problem_list' %}">程序填空题题库</a></li>
-                                <li id="gaicuo_list"><a href="{% url 'gaicuo_problem_list' %}">程序改错题题库</a></li>
+                                <li id="biancheng_list"><a href="#">编程题题库</a></li>
++                                <li id="tiankong_list"><a href="#">阅读程序题题库</a></li>
+                                <li id="tiankong_list"><a href="#">程序填空题题库</a></li>
+                                <li id="gaicuo_list"><a href="#">程序改错题题库</a></li>
                             </ul>
                         </li>
                     {% endif %}
@@ -178,12 +208,10 @@
                                 <span>课程与班级</span>
                             </a>
                             <ul class="sub" id="extend_manage">
-                                <li id="banji_manage"><a href="{% url 'banji_list' %}">班级管理</a></li>
-				<li id="resource_list"><a href="{% url 'list_resource' %}">教学资源管理</a></li>
-                           {% if user.is_superuser %}
                                 <li id="courser_manage"><a href="{% url 'list_coursers' %}">课程管理</a></li>
-				<li id="resource_type"><a href="{% url 'type_resource' %}">资源类型</a></li>
-                           {% endif %}
+                                <li id="banji_manage"><a href="{% url 'banji_list' %}">班级管理</a></li>
+				<li id="resource_list"><a href="#">教学资源管理</a></li>
+				<li id="resource_type"><a href="#">资源类型</a></li>
                             </ul>
                         </li>
                         <li class="sub-menu">
@@ -230,19 +258,19 @@
                         $.ajax({
                             type: "get",
                             dataType: 'json',
-                            url: "{% url 'get_courser_name' %}",
+                            url: "#",
                             success: function (data) {
                                 var lh = data.length
-                                var nhh = "<li><a href='{% url 'add_course' %}'>添加课程</a></li>";
+                                var nhh = new Array()
                                 var x = document.getElementById('courser_name')
                                 for(var k in data)
                                 {    
-                                    nhh = nhh +"<li><a href='{% url '_list_course'  %}"+k+"'>"+data[k]+"</a></li>";
+                                    nhh.push("<li><a href='#"+k+"'>"+data[k]+"</a></li>")
                                 }
                                 x.innerHTML = nhh
                             },
                             error: function (XMLHttpRequest, textStatus, errorThrown) {
-                                alert(XMLHttpRequest.responseText);
+                                // alert(XMLHttpRequest.responseText);
                             }
                         }); 
                     });
@@ -266,13 +294,14 @@
                 <h3><i class="fa fa-angle-right"></i>{{ title }}</h3>
             {% endif %}
             <div class="row mt">
-                <div class="col-lg-12">
+                <div class="col-lg-2"></div>
+                <div class="col-lg-8">
                     <div class="showback">
                         {% block content %}
                         {% endblock %}
                     </div>
-
                 </div>
+                <!-- <div class="col-lg-2"></div> -->
             </div>
 
         </section>
@@ -378,11 +407,6 @@
                 $("#extend_manage").css("display", 'block');
                 $("#manage").addClass("active");
                 break;
-            case 'resource_list':
-                $("#resource_list").addClass("active");
-                $("#extend_manage").css("display", 'block');
-                $("#manage").addClass("active");
-                break;
             case 'public_work_manage':
                 $("#public_work_manage").addClass("active");
                 $("#extend_work_manage").css("display", 'block');
@@ -392,32 +416,6 @@
                 $("#private_work_manage").addClass("active");
                 $("#extend_work_manage").css("display", 'block');
                 $("#work_manege").addClass("active");
-                break;
-           case 'wenda':
-                $('#dayi_list').css("display", 'block');
-                $('#wenda').addClass('active');
-                break;
-            case 'askqus':
-                $('#dayi_list').css("display", 'block');
-                $('#askqus').addClass('active');
-                break; 
-            case 'collection':
-                $('#dayi_list').css("display", 'block');
-                $('#collection').addClass('active');
-                break;                        
-            case 'myask':
-                $('#dayi_list').css("display", 'block');
-                $('#myask').addClass('active');
-                break; 
-            case 'myinvite':
-                $('#dayi_list').css("display", 'block');
-                $('#myinvite').addClass('active');
-                break; 
-            case 'wantanswer':
-                $('#dayi_list').css("display", 'block');
-                $('#wantanswer').addClass('active');
-                break;
-
         }
 
     })

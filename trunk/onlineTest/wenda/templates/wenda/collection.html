@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+{% block title %}我的收藏{% endblock %}
+{% load staticfiles %}
+{% block extrahead %}
+
+<style>
+	.collection{
+		border: 1px solid #797979;
+		padding: 8px;
+		border-radius: 8px;
+		margin-top: 20px; 
+	}
+
+	.collection hr{
+		border:0.25px dashed #797979;
+		display: block;
+	}
+	.collection a{
+		font-size: 1.2em;
+	}
+
+	.answeritem{
+		margin-top:6px;
+		margin-bottom: 0px;
+	}
+
+	.answerboard{
+		padding: 2px;
+		margin-top:4px;
+		 
+	}
+	.answerboard img{
+		max-width: 100%;
+		max-height: 100%;
+	}
+	.answerboard{
+		font-size: 1.15em; 
+		color: #000000;
+		text-indent: 1em;
+	}
+
+	.delete{
+		float:right;
+	}
+</style>
+
+<script>
+	function DeleteCollect(node){
+		if(confirm("你确定要删除吗?")){
+			var collection = $(node).closest(".collection");
+			var aid = $(node).attr("ansid");
+			var qid = $($(node).siblings("a")[0]).attr("qusid");
+			$.ajax({
+				type: "GET",
+				url: "/wenda/collect_or_not/",
+				data: { qid: qid, aid: aid, status: "1" },
+				success: function (response) {
+					if (response == "1") {
+						collection.remove();
+					} else {
+						alert("操作失败，请稍后再试！");
+					}
+				}
+			})
+		}
+	}
+</script>
+
+{% endblock %}
+{% block content %}
+<h3>我的收藏<small>&nbsp&nbsp&nbsp积跬步，至千里...</small></h3>
+
+<div>
+<!-- questionId , qus , replier ,answer , answer_date  ansId -->
+	{% for c in collectList %}
+	<div class="collection">
+		<div class="question">
+			<a href="/wenda/qusdetail/{{c.questionId}}" qusid="{{c.questionId}}">{{c.qus}}</a>
+			<a href="javascript:void(0)" class="delete" onclick="DeleteCollect(this)" ansid="{{c.ansId}}">删除</a>
+		</div>	
+		<hr>
+		<div class="answeritem">
+			<div class="answer">
+				<div class="replier">
+					<div class="name">
+						<span>由 {{c.replier}} 发表于{{c.answer_date}}</span>
+					</div>
+				</div>
+				<div class="answerboard">
+					{{c.answer | safe}}
+				</div>
+			</div>
+		</div>
+	</div>
+	{% empty %}
+	<h4><small>快去收藏吧...</small></h4>
+	{% endfor %}
+</div>
+
+{% endblock %}

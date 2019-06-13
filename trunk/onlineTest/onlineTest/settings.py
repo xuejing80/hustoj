@@ -29,7 +29,7 @@ DEBUG = False
 
 SITE_NAME = "程序设计类课程作业平台"
 CONTACT_INFO = "薛景老师（QQ群：230689474）"
-ADMINS = [('XueJing', 'xuejing_cn@163.com'),]
+ADMINS = [('XueJing', 'xuejing@c.njupt.edu.cn', 'xuejing_cn@163.com'),]#第一项为管理员名称>    ，第二项为发件人邮箱，第三项为收系统邮件邮箱
 SITE_DOMAIN = "c.njupt.edu.cn"
 
 ALLOWED_HOSTS = ['*']
@@ -57,6 +57,8 @@ INSTALLED_APPS = [
     'warning',          #成绩预警模块
     'django_crontab',   #定时发送邮件
     'sign',             #基于地理位置的签到
+    'message',          #消息系统
+    'wenda',            #异步问答模块
 ]
 
 CRONJOBS = [
@@ -164,7 +166,8 @@ STATICFILES_DIRS = [os.path.join(BASE_DIR, "static"), ]
 
 # 需要与site.cnf 设置的静态文件路径相同
 STATIC_ROOT = '/var/www/html/static'
-
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(USER_FILE_DIR,'media')
 LOGIN_URL = '/accounts/login/'
 
 # Channel settings
@@ -228,6 +231,7 @@ LOGGING = {
             'filename': os.path.join('/home/judge/log/','detail.log'),
             'when': 'MIDNIGHT',
             'interval': 1,
+            'backupCount': 180,
             'formatter':'verbose',
             'encoding':'UTF-8',
         },

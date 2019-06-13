@@ -20,6 +20,8 @@ from judge.views import get_json
 from mooc.views import get_Resource
 from django.views.generic.base import RedirectView
 from auth_system.views import page_not_found, page_error, permission_denied
+from django.views.static import serve
+from django.conf import settings
 
 favicon_view = RedirectView.as_view(url='/static/favicon.ico', permanent=True)
 
@@ -41,6 +43,9 @@ urlpatterns = [
     url(r'^mooc/', include('mooc.urls')),
     url(r'^sign/', include('sign.urls')),
     url(r'^warning/', include('warning.urls')),
+    url(r'^wenda/',include('wenda.urls')),
+    url(r'^message/', include('message.urls')),
+    url(r'^media/(?P<path>.*)', serve, {'document_root':settings.MEDIA_ROOT}),
 ]
 
 handler403 = permission_denied

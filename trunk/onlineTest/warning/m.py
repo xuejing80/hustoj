@@ -164,10 +164,30 @@ def warning():
 	print(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')+"end")
 			
 
-def sendMailToTeacher(msg,emailaddress):
-	title = "作业完成情况反馈"
+def sendMailToTeacher(msg,emailaddress,title="作业完成情况反馈"):
 	#from_email = settings.EMAIL_HOST_USER
 
 	os.system("echo '%s' | mail -s %s %s -aFrom:%s\<%s\>" % (msg,title,emailaddress,settings.ADMINS[0][0],settings.ADMINS[0][1]))
 	#from_email = settings.EMAIL_HOST_USER
 	#send_mail(title,msg,from_email,[emailaddress])
+
+from wenda.models import Question,Answer
+def getUpdateQuestion():
+	print("getUpdateQuestion "+datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')+"begin...")
+	today = datetime.date.today() 
+	new_question = Question.objects.filter(update_date = today)
+	message = ''
+	q_num = 0
+	for q in new_question:
+		if not Answer.objects.filter(question=q).exists():
+			id_num = q.asker.id_num
+			username = q.asker.username
+			qus = q.ques
+			msg = "%s %s 提问 %s(http://%s/wenda/qusdetail/%d)\n" %(id_num,username,qus,domain,q.id)
+			message += msg
+			q_num += 1
+
+	title = "%d年%d月%d日，共有%d条新问题未解答" % (today.year,today.month,today.day,q_num)
+	sendMailToTeacher(message,settings.ADMINS[0][2],title)
+	print("getUpdateQuestion "+datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')+"end...")
+	

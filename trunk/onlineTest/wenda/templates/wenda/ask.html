@@ -1,0 +1,251 @@
+{% extends "wenda/base.html" %} 
+{% load staticfiles %} 
+{% block extrahead %}
+<script src="{% static 'conversion.js' %}"></script>
+<link rel="stylesheet" type="text/css" href="{% static 'simditor/styles/simditor.css' %}" />
+<script type="text/javascript" src="{% static 'simditor/scripts/module.js' %}"></script>
+<script type="text/javascript" src="{% static 'simditor/scripts/hotkeys.js' %}"></script>
+<script type="text/javascript" src="{% static 'simditor/scripts/uploader.js' %}"></script>
+<script type="text/javascript" src="{% static 'simditor/scripts/simditor.js' %}"></script>
+<script type="text/javascript" src="{% static 'simditor/scripts/simditor-dropzone.js' %}"></script>
+<script type="text/javascript" src="{% static 'simditor/scripts/simditor-fullscreen.js' %}"></script>
+<script type="text/javascript" src="{% static 'simditor/scripts/simditor-fullscreen.js' %}"></script>
+<script type="text/javascript" src="{% static 'simditorConf/descriptionEditor.js' %}"></script>
+<script type="text/javascript">  
+
+	function Clear() {
+		deseditor.setValue("");
+		$("#question").val("");
+	}
+
+	function Submit() {
+		
+		var question = $("#question").val();
+		var tag = $('#tag option:selected').val();
+        console.log(tag);
+		if(question == undefined || question == "" || question == null){
+			alert("问题为空！");
+			return;
+		}
+
+		if(tag == undefined || tag == null || tag == ""){
+			alert("请选择问题的类别！");
+			return;
+		}
+
+		var editor = $("#editor");
+		deseditor.sync();
+		var description = editor.val();
+		
+		$.ajax({
+			type:"POST",
+			url:"/wenda/submitqus/",
+			data:{question: question, tag: tag,description:description},
+			success:function(response){
+				if(typeof response == "object"){
+					var qid = response['qid'];
+					var user = response['user'];
+					var inviteUser = $("#inviteUser");
+					$("#qid").val(qid);
+					// + user[i]['id_num'] + '&nbsp;' 
+					for(var i=0;i<user.length;i++){
+						var u = '<div class="invitation">\
+										<div class="person">\
+												<div class="name">'+ user[i]['username'] + '</div>\
+												<div class="invite">\
+														<a href="javascript:void(0)" uid="' + user[i]['id'] + '" onclick=\'Invite(this)\'">邀请他</a>\
+												</div>\
+										</div>\
+							</div>';
+						inviteUser.append($(u));					
+					}
+
+					$("#inviteModal").modal('show');
+					// alert("问题上传成功！");
+				}else if(response == "0"){
+					alert("问题上传失败！");
+				}
+			}
+		})
+	}
+
+
+  function Invite(node){
+    var uid = $(node).attr("uid");
+    var qid = $("#qid").val();
+    $.ajax({
+      type:"GET",
+      data:{qid:qid, uid:uid},
+      url:'/wenda/invite/',
+      success:function(response){
+        if(response == "1"){
+          $(node).text("已邀请");
+        }else{
+          alert("邀请失败！");
+        }
+      }
+    })
+  }
+
+  $(function () { $('#inviteModal').on('hide.bs.modal', function () {
+        window.location.href = "{% url 'wenda_index' %}"
+    })
+   });
+
+</script>
+
+<style type="text/css">
+	.desceditor{
+		text-align: left;
+		width: 80%;
+		margin-left: 10%;
+	}
+	.desceditor img {
+		max-width: 100%;
+		max-height: 100%;
+	}
+
+	.footer {
+		position:relative;
+		right:40px;
+		margin-top: 30px;
+		margin-bottom: 5px;
+
+	}
+	.footer a {
+		padding: 8px;
+		border-radius: 4px;
+		color: white;
+		background-color: #0084ff;
+		font-size: 1.5em;
+		position: relative;
+		left: 50%;
+		bottom: 0px;
+	}
+
+ #qusboard{
+    padding-top:5px; 
+    text-align: center;
+  }
+
+  input[id="question"]{
+    width: 85%;
+    height: 50px;
+    border: none;
+    outline: none;
+    border-bottom: 1px solid #999;
+    padding-bottom:0px; 
+    margin-top:15px; 
+  }
+  input[id="question"]:focus{
+    border-bottom: 1.5px solid blue;
+  }
+
+
+  
+  .tag{
+    text-align: left;
+    margin-left:7%; 
+    margin-top: 30px;
+
+  }
+  .invitation{
+    margin-top:10px;
+    padding: 5px; 
+    background-color:#DDF0ED; 
+    height: 50px;
+    border-radius: 5px;
+  }
+
+
+
+  .person{
+    position: relative;
+  }
+  .headphoto{
+    width: 50px;
+    height: 50px;
+  }
+  .headphoto img{
+    max-width: 100%;
+    max-height: 100%;
+    border-radius: 8px;
+  }
+
+  .name{
+    /* margin-left:8px;  */
+    position: absolute;
+    top:6px;
+    left: 6px;
+
+  }
+
+  .invite{
+    position: absolute;
+    right: 8px;
+    top:13px;
+    /* float: right; */
+  }
+  .invite a{
+    padding: 6px;
+    background-color: #0084ff;
+    color: white;
+    border-radius: 4px;
+  }
+
+
+
+
+
+</style>
+{% endblock %} 
+{% block content %}
+{% csrf_token %}
+<input type="hidden" value="" id="qid">
+<div class="modal fade" id="inviteModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header" style="border-radius:inherit;background: white">
+                <h4 class="modal-title" style="color:inherit">你可以向他们求助</h4>
+            </div>
+            <div class="modal-body" id="inviteUser">
+											
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+<div>
+	<div id="qusboard">
+	    <input type="text" placeholder="写下你的问题..." id="question">
+		<br>
+	    <div class="tag">
+          <span>请选择问题所属的课程：&nbsp;</span>
+          <select id="tag" required>
+            <option selected="selected" disabled="disabled"  style='display: none' value=''></option>
+            {% for t in tag %}
+                <option value="{{t}}">{{t}}</option>
+            {% endfor %}
+          </select>
+
+	    </div>
+	    <br>
+		<div class="desceditor">
+			<textarea id="editor" autofocus></textarea>
+			<div class="footer">
+				<a href="javascript:void(0)" onclick="Clear()">清空</a>
+				<a href="javascript:void(0)" onclick="Submit()">提交</a>
+			</div>
+		</div>
+
+	</div>	
+</div>
+
+
+{% endblock %}

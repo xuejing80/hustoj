@@ -1,0 +1,116 @@
+{% extends "base.html" %} 
+{% load staticfiles %} 
+{% block extrahead %}
+<link rel="stylesheet" type="text/css" href="{% static 'simditor/styles/simditor.css' %}" />
+<script src="{% static 'conversion.js' %}"></script>
+<script type="text/javascript" src="{% static 'simditor/scripts/module.js' %}"></script>
+<script type="text/javascript" src="{% static 'simditor/scripts/hotkeys.js' %}"></script>
+<script type="text/javascript" src="{% static 'simditor/scripts/uploader.js' %}"></script>
+<script type="text/javascript" src="{% static 'simditor/scripts/simditor.js' %}"></script>
+<script type="text/javascript" src="{% static 'simditor/scripts/simditor-dropzone.js' %}"></script>
+<script type="text/javascript" src="{% static 'simditor/scripts/simditor-fullscreen.js' %}"></script>
+<script type="text/javascript" src="{% static 'simditor/scripts/simditor-fullscreen.js' %}"></script>
+<script type="text/javascript" src="{% static 'simditorConf/answerEditor.js' %}"></script>
+<!-- <script type="text/javascript" src="{% static 'simditor/scripts/simditor-autosave.js' %}"></script> -->
+<script type="text/javascript">  
+	$(document).ready(function(){
+		var historyAnswer = $("#historyAnswer").attr("value");
+		anseditor.setValue(historyAnswer);
+	})
+
+	function Clear(node) {
+		anseditor.setValue("");
+	}
+
+	function Submit(node) {
+		var editor = $("#editor");
+		anseditor.sync();
+		// console.log(editor.val());
+		var answer = editor.val();
+		if(answer == "" || answer == null || answer == undefined){
+			alert("答案为空！");
+			return;
+		}
+		var qid = $(node).attr("qid");
+		$.ajax({
+			type:"POST",
+			url:"{% url 'submitAnswer' %}",
+			data:{answer: answer, qid: qid},
+			success:function(response){
+				if(response == "1"){
+                    $('#mask').fadeIn().delay(1000).fadeOut();
+                    setTimeout(function(){
+                        window.location.href = "{% url 'wenda_index' %}";
+                    },1200);
+				}else if(response == "2"){
+					alert("答案提交失败！");
+				}else if(response == "1"){
+					alert("答案为空！");
+				}
+			}
+		})
+	}
+</script>
+
+<style type="text/css">
+        .answereditor {
+                width: 80%;
+                margin-left: 10%;
+        }
+	.answereditor img {
+		max-width: 100%;
+		max-height: 100%;
+	}
+
+	.footer {
+		position:relative;
+		margin-top: 30px;
+		margin-bottom: 5px;
+
+	}
+	.question {
+		padding: 10px 10px;
+		margin-top:10px;
+		margin-bottom:25px;
+		margin-left: 10%;
+		margin-right: 10px; 
+		text-indent: 2em;
+		background-color: #f0f0f0;
+		border-radius:10px;
+                width: 80%;
+	}
+	.question a{
+		font-size: 1.6em;
+	}
+    #mask{
+        position: fixed;
+        left: 0;
+        top: 0; 
+        right: 0;
+        bottom: 0;
+        background: rgba(0,0,0,0.5);
+        z-index: 98;
+        display: none;
+    }
+    #mask>div{position: fixed;right:20%;top: 40%;width: 40%;}
+</style>
+{% endblock %} 
+{% block content %}
+{% csrf_token %}
+<input id="historyAnswer" type="hidden" value="{{answer}}">
+<div class="question">
+<h4>{{question.ques}}</h4>
+</div>
+<div id="mask">
+        <div class="alert alert-success" >
+            <p><strong>答案提交成功,正在前往上一页...</strong></p>
+        </div>
+</div>
+<div class="answereditor">
+	<textarea id="editor" autofocus></textarea>
+	<div class="footer">
+		<a class="btn btn-primary" href="javascript:void(0)" onclick="Clear()">清空</a>
+		<a class="btn btn-primary" href="javascript:void(0)" onclick="Submit(this)" qid="{{question.id}}">提交</a>
+	</div>
+</div>
+{% endblock %}

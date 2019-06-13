@@ -1,0 +1,213 @@
+{% extends "base.html" %}
+{% load staticfiles %}
+{% block extrahead %}
+
+<link rel="stylesheet" type="text/css" href="{% static 'css/wenda_index.css' %}">
+<!-- <link rel="stylesheet" type="text/css" href="{% static 'fonts/font-awesome-4.2.0/css/font-awesome.min.css' %}" /> -->
+<!-- <link rel="stylesheet" type="text/css" href="{% static 'css/normalize.css' %}" /> -->
+<!-- <link rel="stylesheet" type="text/css" href="{% static 'css/component.css' %}" /> -->
+<script type="text/javascript" src="{% static 'js/wenda_index.js' %}"></script>
+
+
+<style>
+    .item .attach p{
+        font-size: 1.15em;
+    }
+    .item .attach img:hover{
+        cursor:zoom-in;
+    }
+
+    .answerboard img:hover{
+        cursor:zoom-in;
+    }
+</style>
+
+<script>
+    // 图片旋转的角度
+    var RotateCurrent;
+    $(document).ready(
+        function(){
+            var imgs = $(".attach img");
+            for(var i=0;i<imgs.length;i++){
+                $(imgs[i]).click(function(){
+                    ZoomBig(this);
+                })
+            }
+    })
+    
+    $(function(){
+        window.onscroll = function () {
+        var hh = document.body.scrollTop || document.documentElement.scrollTop;
+        var clientHeight = window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight;
+        var H = document.documentElement.scrollHeight - clientHeight;
+        if (H * 0.9 <= hh) {
+            var flag = $("#loadquesStatus").attr("value");
+            if(flag == "1"){
+                var qall = getCookie("qall");
+                var qnum = getCookie("qnum");
+                // console.log("qall:"+qall+" qnum:"+qnum);
+                qall = parseInt(qall);
+                qnum = parseInt(qnum);
+                if(qnum < qall){
+                    LoadQuestion('/wenda/load_question/');
+                }else{
+                    $("#loadquesStatus").attr("value","0");
+                    $("#loadAll").removeClass('hideoff');
+                }
+            }
+    }
+}
+})
+
+
+function DeleteCard(node){
+    if(getCookie('role') != 'a'){
+        alert("您没有权限操作！")
+    }else if(confirm("确定要删除吗？")){
+        var card = $(node).parents().filter("div.Card")[0];
+        var question = $(card).find("div.question")[0];
+        var qusid = $(question).attr("data-qusid");
+        $.ajax({
+            type:'GET',
+            url:'/wenda/delete_question/',
+            data:{qid:qusid},
+            success:function(response){
+                if(response == '1'){
+                    $(card).remove();
+                }else{
+                    alert("删除问题出错，请稍后再试！");
+                }
+            }
+        })
+
+    }
+}
+
+
+function DeleteAnswer(node){
+    var answer = $(node).parents().filter("div.answer")[0];
+    var ansid = $(answer).attr("data-ansid");
+    // console.log(ansid)
+    if(getCookie('role') != 'a'){
+        alert("您没有权限操作！")
+    }else{
+        $.ajax({
+            type:'GET',
+            data:{ansid:ansid},
+            url:'/wenda/detele_answer/',
+            success:function(response){
+                if(response != '1'){
+                    alert("删除该答案失败，请稍后再试！");
+                }else{
+                    $(answer).remove();
+                }
+            }
+        })
+    }
+}
+
+
+
+</script>
+
+
+
+{% endblock %}
+
+{% block content %}
+<input type="hidden"  id="loadquesStatus" value="1">
+
+<div style="margin-bottom: 25px;margin-top: 5px">
+    <form  role="form" method="GET" action="/wenda/search/">
+        <div class="row">
+            <div class="col-lg-2 col-sm-2"></div>
+            <div class="col-lg-8 col-sm-8">
+                <div class="input-group">
+                    <input type="text" name='questionTail' class="form-control" placeholder="输入你要查询的问题" required>
+                    <span class="input-group-btn">
+                        <input class="btn btn-default" type="submit">搜索</input>
+                    </span>
+                </div>
+            </div>
+            <div class="col-lg-2 col-sm-2"></div>
+        </div>
+    </form>
+</div>
+
+
+    {% if notfound %} {% if not question %}
+        <h3>还没有人问过这个问题...</h3>
+        <div style="font-size:1.5em;margin-top:8px;">
+            <a href="/wenda/ask/">点击传送，去提问吧</a>
+        </div>
+    {% endif %} {% endif %}
+
+    {% if getdetail %} {% if not question %}
+        <h3>出错啦~~~~</h3>
+    {% endif %} {% endif %}
+    <div id="list">
+        <img src="" alt="" id="bigimg" onclick="ImgRotate(this)">
+        <div id="mask">
+            <img src="{% static 'images/close.png' %}" alt="" onclick="ZoomOut()">
+        </div>
+<!-- {'id', 'ques', 'update_date', 'tag', 'asker_id', 'praisenum','description','username','answernum'}-->
+
+        {% for q in question %}
+        <div class="Card">
+            <div class="topic">
+                <span>来自语言:<a href="#">{{q.tag}}</a></span>
+            </div>
+            <div class="userinfo">
+                <div class="name">
+                    <a href="#">由&nbsp;{{q.username}}&nbsp;</a>
+                    <span>提问于&nbsp;{{q.update_date|date:"Y-m-d"}}</span>  
+                </div>
+            </div>
+            <div class="clearfix"></div>
+            <div class="question" data-qusid="{{q.id}}">
+                <div class="board">
+                    <div class="item">
+
+                        <div class="problem" style="margin-bottom:10px">
+                            <p>{{q.ques}}</p>
+                        </div>
+                        <div class="attach">
+                            {% if q.description %}
+                                {{q.description|safe}}
+                            {% endif %} 
+                        </div>
+                       
+                        <div class="qfooter">
+                            <a href="javascript:void(0)" class="praise" onclick="PraiseQuestion(this)" status="0"><span>{{q.praisenum}}</span>&nbsp<span class="glyphicon glyphicon-thumbs-up"></span>
+                    
+                            </a>
+                            <!-- status:0代表答案是收起来隐藏的； 1：代表答案是展开的
+                                 loaded：0代表答案还未加载    1：代表答案已经加载
+                            -->
+                            <a href="javascript:void(0)" class="replynum" onclick="ShowOrHideAnswer(this)" status="0" data-origintext="" loaded="0">&nbsp共{{q.answernum}}条回答&nbsp
+                            </a>
+                            {% if user.isTeacher %}
+                            <a href="/wenda/question/answer/{{q.id}}" class="replynum">我要回答</a>
+                            {% endif %}
+                            {% if user.is_superuser %}
+                            <a href="javascript:void(0)" class="replynum" onclick="DeleteCard(this)">删除</a>
+                            {% endif %}
+                            <!-- <a href="javascript:void(0)">关注</a> -->
+                        </div>
+                    </div>
+                    <div class="answeritem hideoff" >
+                    </div>
+                </div>
+            </div>
+        </div> 
+        {% endfor %} 
+        <div id="loadBar" class="hideoff" style="text-align:center">
+                <img src="{% static 'images/loading.gif' %}" alt="">
+    
+        </div>
+    </div>
+    <div id="loadAll" style="text-align: center;margin-top:20px;" class="hideoff">
+        <p>已经加载全部问题！</p>
+    </div>
+
+{% endblock %}

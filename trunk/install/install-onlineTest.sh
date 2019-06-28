@@ -15,6 +15,9 @@ chown -R judge:judge /home/judge/onlineTest
 cd /home/judge/onlineTest
 
 # 不这样pip版本还是旧的
+echo "pip3 install --upgrade setuptools" | bash
+echo "pip3 install --ignore-installed urllib3" | bash
+echo "pip3 install --ignore-installed six" | bash
 echo "pip3 install -i https://pypi.douban.com/simple/ python-docx" | bash
 echo "pip3 install -i https://pypi.douban.com/simple/ xlwt" | bash
 echo "pip3 install django==1.9.9 -i https://pypi.douban.com/simple/" | bash
@@ -27,9 +30,6 @@ echo "pip3 install -i https://pypi.douban.com/simple/ gensim==3.7.3" | bash
 echo "pip3 install -i https://pypi.douban.com/simple/ jieba==0.39" | bash
 echo "pip3 install -i https://pypi.douban.com/simple/ numpy==1.16.3" | bash
 echo "pip3 install -i https://pypi.douban.com/simple/ scipy==1.2.1" | bash
-echo "pip3 install --upgrade setuptools" | bash
-echo "pip3 install --ignore-installed urllib3" | bash
-echo "pip3 install --ignore-installed six" | bash
 
 mkdir -p /home/judge/log
 

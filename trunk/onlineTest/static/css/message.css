@@ -1,0 +1,126 @@
+	.item{
+		background-color: #f2f2f2;
+		border-radius:10px;
+		margin-bottom: 15px;
+		padding: 5px 5px 5px 5px;
+	}
+	.question{
+		color: #000000;
+		margin-top:10px;
+		margin-left:10px;
+		margin-right:10px;
+		margin-bottom: 5px;
+	}
+	.question span{
+		/* font-size: 1.25em; */
+		font-weight: 500;
+	}
+	.question span a{
+		font-size: 1.25em;
+		font-weight: 500;
+	}
+    .tip {
+        background:#f00;
+        border-radius:50%;
+        width:8px;
+        height:8px;
+        float: right;
+        margin-top: 5px;
+        cursor: pointer;
+    }
+
+
+    .answer{
+    padding: 5px;
+    margin-top: 5px;
+    }
+
+    .answer .replier .name a{
+        font-size: 1.1em;
+    }
+
+    .slogen{
+        margin-left: 5px;
+    }
+
+    .answerboard p{
+        padding: 0 5px;
+    }
+
+    .answerboard{
+        padding: 8px 0px 5px 0px;
+        margin: 0;
+        font-size: 1.1em;
+        color:black;
+    }
+
+    .answerboard blockquote p{
+        margin: 0;
+        font-size: 1em;
+    }
+
+    .answerboard img{
+        max-width: 100%;
+        max-height: 100%;
+        width: auto;
+        height: auto;
+    }
+
+    .praise{
+        margin-top:5px; 
+        border-radius: 6px;
+        height: 2em;
+        width: auto;
+        color: #0084ff;
+        background-color: rgba(0,132,255,.1);
+        padding: 6px;
+        /* margin-left: 6px; */
+    }
+
+    .replynum{
+        margin-top:5px; 
+        border-radius: 6px;
+        height: 2em;
+        width: auto;
+        color: #0084ff;
+        background-color: rgba(0,132,255,.1);
+        padding: 6px;
+        margin-left: 6px;
+    }
+
+
+
+    .hideoff{
+        display: none;
+    }
+
+    /* 图片遮罩放大样式 */
+    #bigimg{
+        max-width: 100%;
+        width:600px;
+        position: fixed;
+        left: 0;
+        top: 0; 
+        right: 0;
+        bottom: 0;
+        margin:auto;
+        display: none;
+        z-index:9999;
+        border: 2px solid #fff;
+        cursor: pointer;
+    }
+    #mask{
+        position: fixed;
+        left: 0;
+        top: 0; 
+        right: 0;
+        bottom: 0;
+        background-color: #000;opacity:0.5;
+        filter: Alpha(opacity=50);
+        z-index: 98;
+        transition:all 1s;
+        display: none
+    }
+    #imgzoom:hover{cursor:zoom-in}
+    #mask>img{position: fixed;right:30px;top: 80px;width: 60px;}
+    #mask>img:hover{cursor:pointer}

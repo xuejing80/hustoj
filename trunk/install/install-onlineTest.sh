@@ -1,7 +1,7 @@
 iptables -D OUTPUT -m owner --uid-owner 1536 -j DROP
 cd /home/judge
 
-apt-get -y install libmysql++-dev python3 python3-pip redis-server supervisor python-dev libxml2-dev libxslt1-dev zlib1g-dev
+apt-get -y install libmysql++-dev python3.5 python3.5-dev python3-pip redis-server supervisor libxml2-dev libxslt1-dev zlib1g-dev
 
 pip3 install -U pip -i https://pypi.douban.com/simple/
 
@@ -23,6 +23,13 @@ echo "pip3 install -i https://pypi.douban.com/simple/ channels==1.1.8" | bash
 echo "pip3 install -i https://pypi.douban.com/simple/ asgi_redis" | bash
 echo "pip3 install -i https://pypi.douban.com/simple/ django_crontab" | bash
 echo "pip3 install -i https://pypi.douban.com/simple/ xlrd" | bash
+echo "pip3 install -i https://pypi.douban.com/simple/ gensim==3.7.3" | bash
+echo "pip3 install -i https://pypi.douban.com/simple/ jieba==0.39" | bash
+echo "pip3 install -i https://pypi.douban.com/simple/ numpy==1.16.3" | bash
+echo "pip3 install -i https://pypi.douban.com/simple/ scipy==1.2.1" | bash
+echo "pip3 install --upgrade setuptools" | bash
+echo "pip3 install --ignore-installed urllib3" | bash
+echo "pip3 install --ignore-installed six" | bash
 
 mkdir -p /home/judge/log
 
@@ -43,3 +50,5 @@ service nginx restart
 
 service php5-fpm stop
 service memcached stop
+
+# 上传stopwords.txt 和 train_150.bin到服务器 /home/judge/user_file/ 路径下

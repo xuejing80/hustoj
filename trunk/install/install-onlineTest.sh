@@ -2,8 +2,15 @@ iptables -D OUTPUT -m owner --uid-owner 1536 -j DROP
 cd /home/judge
 
 apt-get -y install libmysql++-dev python3.5 python3.5-dev python3-pip redis-server supervisor libxml2-dev libxslt1-dev zlib1g-dev
+sudo rm /usr/bin/python
+sudo ln -s /usr/bin/python3.5 /usr/bin/python
+sudo rm /usr/bin/python3
+sudo ln -s /usr/bin/python3.5 /usr/bin/python3
 
 pip3 install -U pip -i https://pypi.douban.com/simple/
+
+sudo rm /usr/local/bin/pip
+sudo ln -s /usr/local/bin/pip /usr/local/bin/pip3.5
 
 cp src/install/onlineTestNginx.conf /etc/nginx/sites-available
 cp src/install/daphne.conf /etc/supervisor/conf.d/

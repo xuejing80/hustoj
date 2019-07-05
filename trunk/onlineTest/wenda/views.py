@@ -573,10 +573,12 @@ import _thread
 # 加载停止词
 stopwords_set = set()
 STOP_PATH = settings.USER_FILE_DIR + 'stopwords.txt'
-stopwords = open(STOP_PATH,'r', encoding='utf-8')
+stopwords = None
+#stopwords = open(STOP_PATH,'r', encoding='utf-8')
 # 加载训练好的词向量
 model_file = settings.USER_FILE_DIR + 'train_150.bin'
-model = gensim.models.KeyedVectors.load_word2vec_format(model_file, binary=True)
+model = None
+#model = gensim.models.KeyedVectors.load_word2vec_format(model_file, binary=True)
 # 将句子转换为向量
 # s输入的句子 size词向量的维度
 def sentence_vector(s,size):

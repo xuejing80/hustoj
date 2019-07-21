@@ -40,7 +40,22 @@
                         </div>
                     </div>
                 </div>
-                <div class="panel-footer">正确答案是: {{ choice_problem.detail.right_answer|upper }}
+                <div class="panel-footer">
+                {% if show_answer == "每次提交后" %}
+                正确答案是: {{ choice_problem.detail.right_answer|upper }}
+                {% elif show_answer == "提交次数用完后" %}
+                    {% if remained_number != resubmit_number %}
+                    请在作业完成后查看答案     
+                    {% else %}
+                    正确答案是: {{ choice_problem.detail.right_answer|upper }}
+                    {% endif %}
+                {% else %}
+                    {% if not is_end %}
+                    请等待作业截止后查看答案
+                    {% else %}
+                    正确答案是: {{ choice_problem.detail.right_answer|upper }}
+                    {% endif %}    
+                {% endif %} 
                 </div>
             </div>
             {% else %}
@@ -67,8 +82,26 @@
                         </div>
                     </div>
                 </div>
-                <div class="panel-footer">正确答案是: {{ choice_problem.detail.right_answer|upper }}
-                    你的答案是: {{ choice_problem.info|upper }}</div>
+                <div class="panel-footer">
+                    {% if show_answer == "每次提交后" %}
+                    正确答案是: {{ choice_problem.detail.right_answer|upper }}
+                    你的答案是: {{ choice_problem.info|upper }}
+                    {% elif show_answer == "提交次数用完后" %}
+                        {% if remained_number != resubmit_number %}
+                        请在作业完成后查看答案
+                        {% else %}
+                        正确答案是: {{ choice_problem.detail.right_answer|upper }}
+                        你的答案是: {{ choice_problem.info|upper }}
+                        {% endif %}
+                    {% else %}
+                        {% if not is_end %}
+                        请等待作业截止后查看答案
+                        {% else %}
+                        正确答案是: {{ choice_problem.detail.right_answer|upper }}
+                        你的答案是: {{ choice_problem.info|upper }}
+                        {% endif %} 
+                    {% endif %}
+                </div>
             </div>
             {% endif %}
         {% endfor %}

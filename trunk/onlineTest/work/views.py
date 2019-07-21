@@ -69,7 +69,8 @@ def add_homework(request):
                             resubmit_number = request.POST['resubmit_number'],
                             allow_resubmit = True if request.POST['allow_resubmit'] == '1' else False,
                             allow_random = True if request.POST['allow_random'] == '1' else False,
-                            allow_similarity = True if request.POST['allow_similarity'] == '1' else False)
+                            allow_similarity = True if request.POST['allow_similarity'] == '1' else False,
+                            show_answer = request.POST['show_answer'])
         homework.save()
         return redirect(reverse("homework_detail", args=[homework.pk]))
     classnames = ClassName.objects.all()
@@ -260,6 +261,7 @@ def update_public_homework(request, pk):
         homework.allow_similarity = True if request.POST['allow_similarity'] == '1' else False
         # 新增
         homework.resubmit_number = request.POST['resubmit_number']
+        homework.show_answer = request.POST['show_answer']
         homework.save()
         return redirect(reverse('homework_detail', args=[homework.pk]))
     else:
@@ -271,7 +273,8 @@ def update_public_homework(request, pk):
                    'resubmit_number': homework.resubmit_number,
                    'allow_random': '1' if homework.allow_random else '0',
                    'allow_similarity': '1' if homework.allow_similarity else '0',
-                   'allow_resubmit': '1' if homework.allow_resubmit else '0',}
+                   'allow_resubmit': '1' if homework.allow_resubmit else '0',
+	           'show_answer': homework.show_answer}
     return render(request, 'homework_add.html', context=context)
 
 def update_my_homework(request, pk):
@@ -305,6 +308,7 @@ def update_my_homework(request, pk):
         homework.allow_resubmit = True if request.POST['allow_resubmit'] == '1' else False
         homework.allow_random = True if request.POST['allow_random'] == '1' else False
         homework.allow_similarity = True if request.POST['allow_similarity'] == '1' else False
+        homework.show_answer = request.POST['show_answer']
         homework.work_kind = request.POST['work_kind']
         # 2017年9月新增功能
         tiankong_problem_ids = request.POST['tiankong-problem-ids']
@@ -321,6 +325,7 @@ def update_my_homework(request, pk):
                    'allow_resubmit': '1' if homework.allow_resubmit else '0',
                    'allow_random': '1' if homework.allow_random else '0',
                    'allow_similarity': '1' if homework.allow_similarity else '0',
+                   'show_answer': homework.show_answer,
                    'work_kind': homework.work_kind}
     return render(request, 'homework_add.html', context=context)  # 查看作业结果
 
@@ -356,6 +361,12 @@ def show_homework_result(request, id=0):
     tiankong_problems = []
     gaicuo_problems = []
     allow_similarity = MyHomework.objects.get(pk=homework_answer.homework_id).allow_similarity
+    show_answer = homework.show_answer  # 答案显示时机
+    remained_number = homework_answer.remained_number  # 已经提交次数
+    resubmit_number = homework.resubmit_number # 提交次数限制
+    is_end = False if homework.start_time < timezone.now() < homework.end_time else True  # 作业是否截止
+    
+
     for info in json.loads(homework.choice_problem_info):  # 载入作业的选择题信息，并进行遍历
         if str(info['id']) in wrong_id:  # 如果答案有错
             choice_problems.append(
@@ -465,7 +476,9 @@ def show_homework_result(request, id=0):
                        'work_kind': homework.work_kind, 'summary': homework_answer.summary,
                        'teacher_comment': homework_answer.teacher_comment,
                        'allow_similarity': allow_similarity,
-                       'title': ' {}的"{}"详细'.format(homework_answer.creator.username, homework.name)}
+                       'title': ' {}的"{}"详细'.format(homework_answer.creator.username, homework.name),
+                       'show_answer': show_answer, 'remained_number': remained_number,
+                       'resubmit_number': resubmit_number, 'is_end': is_end}
     #logger.info(str(context))
     return render(request, 'homework_result.html',context)
 
@@ -828,7 +841,8 @@ def copy_to_my_homework(request):
                                   allow_random=old_homework.allow_random,
                                   work_kind=old_homework.work_kind,
                                   total_score=old_homework.total_score,  # todo 有更好的方法
-                                  resubmit_number = old_homework.resubmit_number)
+                                  resubmit_number = old_homework.resubmit_number,
+                                  show_answer = old_homework.show_answer)
             homework.save()
     except:
         logger_request.exception("Exception Logged")

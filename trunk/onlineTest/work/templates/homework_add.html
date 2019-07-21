@@ -111,6 +111,20 @@
                 <input type="radio" id="allow_similarity" value="0" name="allow_similarity" checked>否
             </label>
         </div>
+
+	<div class="form-group">
+		<label for="show_answer">何时显示答案：</label>
+		<label class="radio-inline">
+			<input type="radio" id="show_answer" value="每次提交后" name="show_answer" checked>每次提交后
+		</label>
+		<label class="radio-inline">
+                    <input type="radio" id="show_answer" value="提交次数用完后" name="show_answer">提交次数用完后
+		</label>
+                <label class="radio-inline">
+                    <input type="radio" id="show_answer" value="作业截止后" name="show_answer">作业截止后
+                </label> 
+	</div>	
+
         <div class="row">
             <div class='col-sm-6'>
                 <div class="form-group">
@@ -935,7 +949,8 @@
                             $('#allow_random[value="{{ allow_random }}"]').attr('checked', true);
                             $('#allow_similarity[value="{{ allow_similarity }}"]').attr('checked', true);
                             $('#work_kind[value="{{ work_kind }}"]').attr('checked',true);
-                            data = window.location.pathname.split('-').pop();
+                            $('#show_answer[value="{{ show_answer }}').attr('checked',true);
+			    data = window.location.pathname.split('-').pop();
                             if(data.replace("/","")=="myhomework")
                                 return;
                             $.ajax({

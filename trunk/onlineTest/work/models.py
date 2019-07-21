@@ -44,6 +44,7 @@ class HomeWork(models.Model):
     resubmit_number = models.IntegerField(default=100, verbose_name="提交次数限制")
     allow_similarity = models.BooleanField(default=True, verbose_name='是否开启相似度判分>？')
     allow_random = models.BooleanField(default=True, verbose_name='是否打乱选择题选项顺序>？')
+    show_answer = models.CharField(max_length=20,verbose_name='何时显示答案',default='每次提交后')
     def __str__(self):
         return str(self.id)
 
@@ -78,6 +79,7 @@ class MyHomework(models.Model):
     allow_similarity = models.BooleanField(default=False, verbose_name='是否开启相似度判分？')
     work_kind = models.CharField(max_length=20,verbose_name="作业类型",default='作业')
     total_score = models.IntegerField()
+    show_answer = models.CharField(max_length=20,verbose_name='何时显示答案',default='每次提交后')
 
     def __str__(self):
         return str(self.id)

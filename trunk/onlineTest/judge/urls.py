@@ -1,6 +1,6 @@
 from django.conf.urls import url, include
 from .views import  select_point, delete_problem, add_problem, ProblemDetailView, update_problem, \
-    add_choice,list_problems,list_choices,del_choice_problem,ChoiceProblemDetailView,update_choice_problem, verify_file,list_tiankong,list_gaicuo,add_tiankong,update_tiankong,TiankongProblemDetailView,delete_tiankong,add_gaicuo,update_gaicuo,GaicuoProblemDetailView,delete_gaicuo
+    add_choice,list_problems,list_choices,del_choice_problem,ChoiceProblemDetailView,update_choice_problem, verify_file,list_tiankong,list_gaicuo,add_tiankong,update_tiankong,TiankongProblemDetailView,delete_tiankong,add_gaicuo,update_gaicuo,GaicuoProblemDetailView,delete_gaicuo, add_ducheng, list_ducheng, del_ducheng_problem, update_ducheng, DuchengProblemDetailView
 
 urlpatterns = [
     url(r'pointslect', select_point, name='select_point'),
@@ -37,5 +37,13 @@ urlpatterns = [
     url(r'update-gaicuo-(?P<id>\d+)/$',update_gaicuo,name='update_gaicuo'),
     url(r'^gaicuo-detail-$',GaicuoProblemDetailView.as_view(), name='_gaicuo_detail'),
     url(r'^gaicuo-detail-(?P<pk>\d+)/$',GaicuoProblemDetailView.as_view(), name='gaicuo_problem_detail'),
+
+    url(r'ducheng_problem_list',list_ducheng,name='ducheng_problem_list'),
+    url(r'add_ducheng',add_ducheng,name='add_ducheng'),
+    url(r'^del-ducheng-problem',del_ducheng_problem,name='del_ducheng_problem'),
+    url(r'update-ducheng-$',update_ducheng,name='_update_ducheng'),
+    url(r'update-ducheng-(?P<id>\d*)/$',update_ducheng,name='update_ducheng'),
+    url(r'^ducheng-detail-$',DuchengProblemDetailView.as_view(), name='_ducheng_detail'),
+    url(r'^ducheng-detail-(?P<pk>\d+)/$',DuchengProblemDetailView.as_view(), name='ducheng_problem_detail'),
 ]
 

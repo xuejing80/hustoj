@@ -2,7 +2,7 @@ from django.contrib import admin
 
 # Register your models here.
 from judge.models import Problem, Solution, SourceCode, SourceCodeUser, KnowledgePoint1, KnowledgePoint2, ClassName, \
-    ChoiceProblem, Compileinfo
+    ChoiceProblem, Compileinfo, DuchengProblem
 
 
 class ProblemAdmin(admin.ModelAdmin):
@@ -21,3 +21,4 @@ admin.site.register(ClassName)
 admin.site.register(KnowledgePoint2)
 admin.site.register(KnowledgePoint1)
 admin.site.register(ChoiceProblem)
+admin.site.register(DuchengProblem)

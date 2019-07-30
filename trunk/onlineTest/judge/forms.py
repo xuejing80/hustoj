@@ -228,12 +228,11 @@ class GaicuoProblemAddForm(forms.Form):
         return problem
 
 class DuchengProblemAddForm(forms.Form):
-    title = forms.CharField(label='题干', widget=forms.Textarea(attrs={'class': 'form-control', 'rows': '3'}),
+    title = forms.CharField(label='题干', widget=forms.Textarea(attrs={'class': 'form-control', 'rows': '3', 'placeholder': '若有多个答案，请将答案以空格分隔。'}),
                              required=False)
-    program = forms.CharField(label='程序代码', widget=forms.Textarea(
-        attrs={'class': 'form-control', 'rows': '20',"spellcheck":"false",
-               }),
-                              required=False)
+    #description = forms.CharField(label='问题描述', widget=forms.Textarea(
+        #attrs={'class': 'form-control', 'rows': '8',"spellcheck":"false"
+               #}),required=False)
     answer = forms.CharField(label='正确结果', widget=forms.Textarea(attrs={'class': 'form-control', 'rows': '3'}),
                              required=False)
     classname = forms.ModelChoiceField(label='所属课程', queryset=ClassName.objects.all(),
@@ -244,7 +243,7 @@ class DuchengProblemAddForm(forms.Form):
     def save(self, user, problemid=None):
         cd = self.cleaned_data
         title = cd['title']
-        program = cd['program']
+        #description = cd['description']
         answer = cd['answer']
         keypoint = cd['keypoint'].split(',')
         print(answer)
@@ -255,13 +254,13 @@ class DuchengProblemAddForm(forms.Form):
             problem.creater = user
             problem.knowledgePoint1.clear()
             problem.classname.clear()
-            problem.program = program
+            #problem.description = description
         else:
             problem = DuchengProblem(
                 title=title,
                 answer=answer,
                 creater=user,
-                program=program
+                #description=description
             )
         problem.save()
         for point in keypoint:

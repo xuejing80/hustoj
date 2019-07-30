@@ -61,7 +61,7 @@ def add_problem(request):
         form = ProblemAddForm()
     return render(request, 'problem_add.html', {'form': form, 'title': '新建编程题'})
 
-# 添加阅读程序题
+# 添加填空题
 @permission_required('judge.add_duchengproblem')
 def add_ducheng(request):
     if request.method == 'POST':  # 当提交表单时
@@ -71,7 +71,7 @@ def add_ducheng(request):
             return redirect(reverse("ducheng_problem_detail", args=[problem.ducheng_id]))
     else:  # 当正常访问时
         form = DuchengProblemAddForm()
-    return render(request, 'ducheng_problem_add.html', {'form': form, 'title': '新建阅读程序题'})
+    return render(request, 'ducheng_problem_add.html', {'form': form, 'title': '新建填空题'})
 
 # 添加程序填空题
 @permission_required('judge.add_problem')
@@ -144,7 +144,7 @@ def del_choice_problem(request):
     else:
         return HttpResponse(0)
 
-# 删除读程题
+# 删除填空题
 @permission_required('judge.delete_duchengproblem')
 def del_ducheng_problem(request):
     if request.method == 'POST':
@@ -248,7 +248,7 @@ class GaicuoProblemDetailView(DetailView):
         context['title'] = '程序改错题“' + self.object.title + '”的详细信息'
         return context
 
-# 阅读程序题详细视图
+# 填空题详细视图
 class DuchengProblemDetailView(DetailView):
     model = DuchengProblem
     template_name = 'ducheng_problem_detail.html'
@@ -260,7 +260,7 @@ class DuchengProblemDetailView(DetailView):
         for point in self.object.knowledgePoint2.all():
             str += point.upperPoint.classname.name + ' > ' + point.upperPoint.name + ' > ' + point.name + '\n'
         context['knowledge_point'] = str
-        context['title'] = '阅读程序题“' + self.object.title + '”的详细信息'
+        context['title'] = '填空题“' + self.object.title + '”的详细信息'
         if self.object.creater == self.request.user:
             context['isMine'] = True
         return context
@@ -410,7 +410,7 @@ def update_gaicuo(request, id):
             return redirect(reverse("gaicuo_problem_detail", args=[id]))
     return render(request, 'gaicuo_problem_add.html', {'form': GaicuoProblemAddForm(initial=initial)})
 
-# 更新阅读程序题
+# 更新填空题
 @permission_required('judge.change_duchengproblem')
 def update_ducheng(request, id='0'):
     problem = get_object_or_404(DuchengProblem, pk=id)
@@ -420,7 +420,7 @@ def update_ducheng(request, id='0'):
     for point in problem.knowledgePoint2.all():
         json_dic[point.id] = point.upperPoint.classname.name + ' > ' + point.upperPoint.name + ' > ' + point.name
     initial = {'title': problem.title,
-               'program': problem.program,
+                #'description': problem.description,
                'answer': problem.answer,
                'classname': 0,
                'keypoint': json.dumps(json_dic, ensure_ascii=False).encode('utf8')
@@ -488,11 +488,11 @@ def list_choices(request):
     classnames = ClassName.objects.all()
     return render(request, 'choice_problem_list.html', context={'classnames': classnames, 'title': '选择题题库', 'position': 'choice_list'})
 
-#阅读程序题列表
+# 填空题列表
 @permission_required('judge.add_problem')
 def list_ducheng(request):
     classnames = ClassName.objects.all()
-    return render(request, 'ducheng_problem_list.html', context={'classnames': classnames, 'title': '阅读程序题题库', 'position': 'ducheng_list'})
+    return render(request, 'ducheng_problem_list.html', context={'classnames': classnames, 'title': '填空题题库', 'position': 'ducheng_list'})
 
 # 程序填空题列表
 @permission_required('judge.add_problem')

@@ -12,7 +12,7 @@
 {% block content %}
     <ol class="breadcrumb">
         <li><a href="{% url 'index' %}">主页</a></li>
-        <li class="active"><a href="{% url 'ducheng_problem_list' %}"></a>阅读程序题题库管理</li>
+        <li class="active"><a href="{% url 'ducheng_problem_list' %}"></a>填空题题库管理</li>
         <li class="active">{{ title }}</li>
     </ol>
     <div class="panel panel-default">
@@ -75,16 +75,16 @@
                    </div>
                    </div>
 
-                   <!-- 程序代码 -->
-                   <div class="form-group {% if form.program.errors %} has-error {% endif %}">
+                   <!-- 问题描述 -->
+                   <!-- <div class="form-group {% if form.description.errors %} has-error {% endif %}">
                        <label class="control-label"
-                           for="{% if form.program.errors %} inputError1 {% endif %}">{{ form.program.label }}</label>
-                      {% if form.program.errors %}
-                       <span class="text-danger pull-right">{{ form.program.errors }}</span>
+                           for="{% if form.description.errors %} inputError1 {% endif %}">{{ form.description.label }}</label>
+                      {% if form.description.errors %}
+                       <span class="text-danger pull-right">{{ form.description.errors }}</span>
                       {% endif %}
-                      {{ form.program }}
+                      {{ form.description }}
                     <p class="text-muted">{{ form.output.help_text }}</p>
-                    </div>
+                    </div> -->
                     <!-- 正确结果-->
                     <div class="form-group {% if form.answer.errors %} has-error {% endif %}">
                     <label class="control-label"

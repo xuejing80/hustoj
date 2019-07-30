@@ -93,7 +93,7 @@
 {% endif %}
 
 {% if ducheng_problems %}
-<h2>阅读程序题</h2>
+<h2>填空题</h2>
 <div class="panel-group" id="accordion" role="tablist" aria-multiselectable="true">
     {% for ducheng_problem in ducheng_problems %}
         <div class="panel panel-default">
@@ -114,16 +114,16 @@
                  aria-labelledby="heading{{ ducheng_problem.detail.ducheng_id }}">
                 <div class="panel-body">
                     <div class="section">
-                        <h4><span class="label label-primary">程序代码</span></h4>
+                        <!-- <h4><span class="label label-primary">程序代码</span></h4>
                         <div id="program">{{ ducheng_problem.detail.program|myFilter|safe|linebreaks }}</div>
-                            </div>
+                            </div> -->
                            <!-- <div class="section">-->
                                <!-- <h4><span class="label label-primary">正确结果</span></h4>-->
                                <!-- <div id="answer">{{ ducheng_problem.detail.answer|myFilter|safe|linebreaks }}</div>-->
                                <!-- </div>-->
                             <div class="form-group">
                                 <label for="source{{ ducheng_problem.detail.ducheng_id }}">答案</label>
-                                <textarea class="form-control" cols="20" rows="10"
+                                <textarea class="form-control" cols="20" rows="1"
                                           name="{{ ducheng_problem.detail.ducheng_id }}"
                                           id="{{ ducheng_problem.detail.ducheng_id }}" spellcheck="false"
                                   >{% if ducheng_problem.sample_answer %}{{ ducheng_problem.sample_answer }}{% endif %}</textarea>

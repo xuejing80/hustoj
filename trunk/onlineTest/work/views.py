@@ -379,7 +379,6 @@ def show_homework_result(request, id=0):
     resubmit_number = homework.resubmit_number # 提交次数限制
     is_end = False if homework.start_time < timezone.now() < homework.end_time else True  # 作业是否截止
     
-
     for info in json.loads(homework.choice_problem_info):  # 载入作业的选择题信息，并进行遍历
         if str(info['id']) in wrong_id:  # 如果答案有错
             choice_problems.append(
@@ -388,7 +387,12 @@ def show_homework_result(request, id=0):
         else:  # 如果答案正确
             choice_problems.append(
                 {'detail': ChoiceProblem.objects.get(pk=info['id']), 'right': True})
-    for info in json.loads(homework.ducheng_problem_info):  # 载入作业的读程信息，并进行遍历
+
+    for info in json.loads(homework.ducheng_problem_info):  # 载入作业的填空题信息，并进行遍历
+        # 更改读程题答案显示样式
+        ducheng_answer = DuchengProblem.objects.get(pk=info['id'])
+        ducheng_answer.answer = ducheng_answer.answer.replace('|||',' 或者 ')
+        ducheng_answer.save()
         if str(info['id']) in wrong_ducheng_id:  # 如果答案有错
             ducheng_problems.append(
                 {'detail': DuchengProblem.objects.get(pk=info['id']), 'right': False,
@@ -583,9 +587,9 @@ def do_homework(request, homework_id=0):
             if id and request.POST.get('selection-' + id, 'x') != ChoiceProblem.objects.get(pk=id).right_answer:
                 wrong_ids += id + ','  # 保存错误题目id
                 wrong_info += request.POST.get('selection-' + id, '未回答') + ','  # 保存其回答记录
-        # 判断读程题，保存错误读程题到目录
+        # 判断填空题，保存错误读程题到目录
         for id in homework.ducheng_problem_ids.split(','):
-            if id and request.POST.get(id) != DuchengProblem.objects.get(pk=id).answer:
+            if id and request.POST.get(id) not in (DuchengProblem.objects.get(pk=id).answer).split('|||'):  
                 wrong_ducheng_ids += id + ','  # 保存错误题目id
                 wrong_ducheng_info += str(request.POST.get(id)) + ','  # 保存其回答记录
         # 创建编程题的solution，等待oj后台轮询判题

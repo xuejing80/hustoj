@@ -98,11 +98,11 @@ class HomeworkAnswer(models.Model):
     creator = models.ForeignKey(MyUser, null=True, verbose_name='答题者')
     wrong_choice_problems = models.CharField(max_length=200, null=False, verbose_name='错误的选择题', default='')  #
     wrong_choice_problems_info = models.CharField(max_length=200, null=False, verbose_name='错误的选择题保留信息', default='')
-    wrong_ducheng_problems = models.CharField(max_length=200, null=False, verbose_name='错误的选择题', default='')  #
-    wrong_ducheng_problems_info = models.CharField(max_length=200, null=False, verbose_name='错误的选择题保留信息', default='')
+    wrong_ducheng_problems = models.CharField(max_length=200, null=False, verbose_name='错误的填空题', default='')  #
+    wrong_ducheng_problems_info = models.CharField(max_length=200, null=False, verbose_name='错误的填空题保留信息', default='')
     score = models.IntegerField(null=False, verbose_name='总成绩', default=0)
     choice_problem_score = models.IntegerField(null=False, verbose_name='选择题成绩', default=0)
-    ducheng_problem_score = models.IntegerField(null=False, verbose_name='读程题成绩', default=0)
+    ducheng_problem_score = models.IntegerField(null=False, verbose_name='填空题成绩', default=0)
     problem_score = models.IntegerField(null=False, verbose_name='编程题成绩', default=0)
     tiankong_score = models.IntegerField(null=False, verbose_name='程序填空题成绩', default=0)
     gaicuo_score = models.IntegerField(null=False, verbose_name='程序改错题成绩', default=0)

@@ -20,8 +20,8 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.utils.datastructures import MultiValueDictKeyError
 from django.views.generic.detail import DetailView
 
-from judge.forms import ProblemAddForm, ChoiceAddForm,TiankongProblemAddForm,GaicuoProblemAddForm
-from .models import KnowledgePoint1, ClassName, ChoiceProblem, Problem
+from judge.forms import ProblemAddForm, ChoiceAddForm,TiankongProblemAddForm,GaicuoProblemAddForm,DuchengProblemAddForm
+from .models import KnowledgePoint1, ClassName, ChoiceProblem, Problem, DuchengProblem
 
 import logging
 logger = logging.getLogger('django.request')
@@ -60,6 +60,18 @@ def add_problem(request):
     else:  # 当正常访问时
         form = ProblemAddForm()
     return render(request, 'problem_add.html', {'form': form, 'title': '新建编程题'})
+
+# 添加填空题
+@permission_required('judge.add_duchengproblem')
+def add_ducheng(request):
+    if request.method == 'POST':  # 当提交表单时
+        form = DuchengProblemAddForm(request.POST)  # form 包含提交的数据
+        if form.is_valid():  # 如果提交的数据合法
+            problem = form.save(user=request.user)  # 保存题目
+            return redirect(reverse("ducheng_problem_detail", args=[problem.ducheng_id]))
+    else:  # 当正常访问时
+        form = DuchengProblemAddForm()
+    return render(request, 'ducheng_problem_add.html', {'form': form, 'title': '新建填空题'})
 
 # 添加程序填空题
 @permission_required('judge.add_problem')
@@ -126,6 +138,24 @@ def del_choice_problem(request):
                 problem = ChoiceProblem.objects.get(pk=pk)
                 if request.user.is_admin or request.user == problem.creater:
                     ChoiceProblem.objects.filter(pk=pk).delete()
+        except:
+            return HttpResponse(0)
+        return HttpResponse(1)
+    else:
+        return HttpResponse(0)
+
+# 删除填空题
+@permission_required('judge.delete_duchengproblem')
+def del_ducheng_problem(request):
+    if request.method == 'POST':
+        ids = request.POST.getlist('ids[]')
+        try:
+            for pk in ids:
+                problem = DuchengProblem.objects.get(pk=pk)
+                if request.user.is_admin or request.user == problem.creater:
+                    DuchengProblem.objects.filter(pk=pk).delete()
+                else:
+                    return HttpResponse(2)
         except:
             return HttpResponse(0)
         return HttpResponse(1)
@@ -218,6 +248,22 @@ class GaicuoProblemDetailView(DetailView):
         context['title'] = '程序改错题“' + self.object.title + '”的详细信息'
         return context
 
+# 填空题详细视图
+class DuchengProblemDetailView(DetailView):
+    model = DuchengProblem
+    template_name = 'ducheng_problem_detail.html'
+    context_object_name = 'problem'
+
+    def get_context_data(self, **kwargs):
+        context = super(DuchengProblemDetailView, self).get_context_data(**kwargs)
+        str = ''
+        for point in self.object.knowledgePoint2.all():
+            str += point.upperPoint.classname.name + ' > ' + point.upperPoint.name + ' > ' + point.name + '\n'
+        context['knowledge_point'] = str
+        context['title'] = '填空题“' + self.object.title + '”的详细信息'
+        if self.object.creater == self.request.user:
+            context['isMine'] = True
+        return context
 
  #  程序填空题详细视图
 class TiankongProblemDetailView(DetailView):
@@ -364,6 +410,28 @@ def update_gaicuo(request, id):
             return redirect(reverse("gaicuo_problem_detail", args=[id]))
     return render(request, 'gaicuo_problem_add.html', {'form': GaicuoProblemAddForm(initial=initial)})
 
+# 更新填空题
+@permission_required('judge.change_duchengproblem')
+def update_ducheng(request, id='0'):
+    problem = get_object_or_404(DuchengProblem, pk=id)
+    if request.user != problem.creater and not request.user.is_admin:
+        raise  PermissionDenied
+    json_dic = {}  # 知识点选择的需要的初始化数据
+    for point in problem.knowledgePoint2.all():
+        json_dic[point.id] = point.upperPoint.classname.name + ' > ' + point.upperPoint.name + ' > ' + point.name
+    initial = {'title': problem.title,
+                #'description': problem.description,
+               'answer': problem.answer,
+               'classname': 0,
+               'keypoint': json.dumps(json_dic, ensure_ascii=False).encode('utf8')
+               }  # 生成表单的初始化数据
+    if request.method == "POST":  # 当提交表单时
+        form = DuchengProblemAddForm(request.POST)
+        if form.is_valid():
+            form.save(user=request.user, problemid=id)
+            return redirect(reverse("ducheng_problem_detail", args=[id]))
+    return render(request, 'ducheng_problem_add.html', {'form': DuchengProblemAddForm(initial=initial)})
+
 # 更新程序填空题
 @permission_required('judge.change_problem')
 def update_tiankong(request, id):
@@ -420,6 +488,11 @@ def list_choices(request):
     classnames = ClassName.objects.all()
     return render(request, 'choice_problem_list.html', context={'classnames': classnames, 'title': '选择题题库', 'position': 'choice_list'})
 
+# 填空题列表
+@permission_required('judge.add_problem')
+def list_ducheng(request):
+    classnames = ClassName.objects.all()
+    return render(request, 'ducheng_problem_list.html', context={'classnames': classnames, 'title': '填空题题库', 'position': 'ducheng_list'})
 
 # 程序填空题列表
 @permission_required('judge.add_problem')
@@ -448,6 +521,9 @@ def get_json(request, model_name):
     elif model_name=="TiankongProblem":
         model_name="Problem"
         pro_type="填空"
+    elif model_name=="DuchengProblem":
+        model_name="DuchengProblem"
+        pro_type="读程"
     elif model_name=="GaicuoProblem":
         model_name="Problem"
         pro_type="改错"
@@ -456,10 +532,12 @@ def get_json(request, model_name):
         pro_type="选择" 
     model = apps.get_model(app_label='judge', model_name=model_name)
     
-    if pro_type != "选择" :
+    if pro_type != "选择" and pro_type != "读程" :
    	 problems = model.objects.filter(problem_type=pro_type)
     elif pro_type == "选择" :
    	 problems = model.objects.all()
+    else:
+        problems = model.objects.all()
     
     if knowledgePoint2 != '0' and knowledgePoint2 != '':
         problems = problems.filter(knowledgePoint2__id=knowledgePoint2)

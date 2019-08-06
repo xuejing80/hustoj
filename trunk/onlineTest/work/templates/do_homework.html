@@ -92,6 +92,49 @@
 </div>
 {% endif %}
 
+{% if ducheng_problems %}
+<h2>填空题</h2>
+<div class="panel-group" id="accordion" role="tablist" aria-multiselectable="true">
+    {% for ducheng_problem in ducheng_problems %}
+        <div class="panel panel-default">
+            <div class="panel-heading" role="tab" id="heading{{ ducheng_problem.detail.ducheng_id }}">
+                <h4 class="panel-title">
+                    <a style="line-height:150%" {% if not forloop.first %}class="collapsed"{% endif %} role="button"
+                       data-toggle="collapse"
+                       data-parent="#accordion"
+                       href="#collapse{{ ducheng_problem.detail.ducheng_id }}"
+                       aria-expanded="{% if forloop.first %}true{% else %}false{% endif %}"
+                       aria-controls="collapse{{ ducheng_problem.detail.ducheng_id }}">
+                       {{ forloop.counter }}. ({{ ducheng_problem.score }}分) {{ ducheng_problem.detail.title|myFilter|safe|linebreaksbr }}
+                    </a>
+                </h4>
+            </div>
+            <div id="collapse{{ ducheng_problem.detail.ducheng_id }}"
+                 class="panel-collapse collapse {% if forloop.first %}in{% endif %}" role="tabpanel"
+                 aria-labelledby="heading{{ ducheng_problem.detail.ducheng_id }}">
+                <div class="panel-body">
+                    <div class="section">
+                        <!-- <h4><span class="label label-primary">程序代码</span></h4>
+                        <div id="program">{{ ducheng_problem.detail.program|myFilter|safe|linebreaks }}</div>
+                            </div> -->
+                           <!-- <div class="section">-->
+                               <!-- <h4><span class="label label-primary">正确结果</span></h4>-->
+                               <!-- <div id="answer">{{ ducheng_problem.detail.answer|myFilter|safe|linebreaks }}</div>-->
+                               <!-- </div>-->
+                            <div class="form-group">
+                                <label for="source{{ ducheng_problem.detail.ducheng_id }}">答案</label>
+                                <textarea class="form-control" cols="20" rows="1"
+                                          name="{{ ducheng_problem.detail.ducheng_id }}"
+                                          id="{{ ducheng_problem.detail.ducheng_id }}" spellcheck="false"
+                                  >{% if ducheng_problem.sample_answer %}{{ ducheng_problem.sample_answer }}{% endif %}</textarea>
+                                </div>
+                    </div>
+               </div>
+         </div>
+      {% endfor %}
+</div>
+{% endif %}
+
 {% for problems in problemsList %}
     {% if forloop.counter == 1 and problems %}
 	<h2>编程题</h2>

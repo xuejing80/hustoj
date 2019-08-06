@@ -9,9 +9,9 @@
     <ol class="breadcrumb">
         <li><a href="{% url 'index' %}">主页</a></li>
         <li class="active">题库管理</li>
-        <li class="active">阅读程序题列表</li>
+        <li class="active">填空题列表</li>
     </ol>
-    <h1>阅读程序题题库</h1>
+    <h1>填空题题库</h1>
     <div class="btn-group">
         <button type="button" id="remove" class="btn btn-danger"><i class="glyphicon glyphicon-remove">删除选中</i></button>
         <a class="btn btn-primary btn-l" href="{% url 'add_ducheng' %}" role="button"><i class="glyphicon glyphicon-plus">添加题目</i></a>
@@ -97,9 +97,10 @@
                                 if (data == 1) {
                                     $table.bootstrapTable('refresh');
                                     return false
-                                } else {
+                                } else if (data == 0) {
                                     alert('删除失败');
-                                }
+                                } else if (data == 2) {
+                                    alert('无权限');}
                             },
                             error: function () {
                                 alert("删除失败")

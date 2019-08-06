@@ -106,6 +106,72 @@
             {% endif %}
         {% endfor %}
     {% endif %}
+
+    {% if ducheng_problems %}
+     <h3>填空题得分：{{ ducheng_problem_score }}</h3>
+        {% for ducheng_problem in ducheng_problems %}
+            {% if ducheng_problem.right %}
+            <div class="panel panel-success">
+                <div class="panel-heading"><span class="glyphicon glyphicon-ok"
+                                                 aria-hidden="true"></span> {{ forloop.counter }}. {{ ducheng_problem.detail.title }}
+                </div>
+            <!-- <div class="section">
+                        <h4><span class="label label-primary">程序代码</span></h4>
+                        <div id="program">{{ ducheng_problem.detail.program|myFilter|safe|linebreaks }}</div>
+            </div> -->
+            <div class="panel-footer">
+            {% if show_answer == "每次提交后" %}
+                正确答案是: “ {{ ducheng_problem.detail.answer }} ”
+                {% elif show_answer == "提交次数用完后" %}
+                    {% if remained_number != resubmit_number %}
+                    请在作业完成后查看答案
+                    {% else %}
+                    正确答案是: “ {{ ducheng_problem.detail.answer }} ”
+                    {% endif %}
+                {% else %}
+                    {% if not is_end %}
+                    请等待作业截止后查看答案
+                    {% else %}
+                    正确答案是: “ {{ ducheng_problem.detail.answer }} ”
+                    {% endif %}
+                {% endif %}
+            </div>
+            </div>
+            {% else %}
+            <div class="panel panel-danger">
+                <div class="panel-heading"><span class="glyphicon glyphicon-remove"
+                                                 aria-hidden="true"></span> {{ forloop.counter }}. {{ ducheng_problem.detail.title }}
+                </div>
+            <!-- <div class="section">
+                        <h4><span class="label label-primary">程序代码</span></h4>
+                        <div id="program">{{ ducheng_problem.detail.program|myFilter|safe|linebreaks }}</div>
+            </div> -->
+            <div class="panel-footer">
+            {% if show_answer == "每次提交后" %}
+                正确答案是: “ {{ ducheng_problem.detail.answer }} ”
+                你的答案是: {{ ducheng_problem.info }}
+                {% elif show_answer == "提交次数用完后" %}
+                    {% if remained_number != resubmit_number %}
+                    请在作业完成后查看答案
+                    {% else %}
+                    正确答案是: “ {{ ducheng_problem.detail.answer }} ”
+                    你的答案是: {{ ducheng_problem.info }}
+                    {% endif %}
+                {% else %}
+                    {% if not is_end %}
+                    请等待作业截止后查看答案
+                    {% else %}
+                    正确答案是: “ {{ ducheng_problem.detail.answer }} ”
+                    你的答案是: {{ ducheng_problem.info }}
+                    {% endif %}
+                {% endif %}
+            </div>
+            </div>
+
+            {% endif %}
+        {% endfor %}
+    {% endif %}
+
     {% if problems %}
     <h3>编程题得分：{{ problem_score }}</h3>
         {% for problem in problems %}

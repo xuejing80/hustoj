@@ -12,7 +12,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.utils import timezone
 from auth_system.models import MyUser
 from judge.models import ClassName, Problem, ChoiceProblem, Solution, SourceCode, SourceCodeUser, KnowledgePoint1, \
-    KnowledgePoint2, Compileinfo
+    KnowledgePoint2, Compileinfo, DuchengProblem
 from judge.views import get_testCases
 from work.models import HomeWork, HomeworkAnswer, BanJi, MyHomework, TempHomeworkAnswer
 from django.contrib.auth.decorators import permission_required, login_required
@@ -54,11 +54,13 @@ def add_homework(request):
     if request.method == 'POST':
         homework = HomeWork(name=request.POST['name'],
                             choice_problem_ids=request.POST['choice-problem-ids'],
+                            ducheng_problem_ids=request.POST['ducheng-problem-ids'],
                             problem_ids=request.POST['problem-ids'],
                             tiankong_problem_ids=request.POST['tiankong-problem-ids'],
                             gaicuo_problem_ids=request.POST['gaicuo-problem-ids'],
                             problem_info=request.POST['problem-info'],
                             choice_problem_info=request.POST['choice-problem-info'],
+                            ducheng_problem_info=request.POST['ducheng-problem-info'],
                             courser=ClassName.objects.get(pk=request.POST['course']),
                             start_time=request.POST['start_time'],
                             end_time=request.POST['end_time'],
@@ -213,8 +215,11 @@ def ajax_for_homework_info(request):
             homework = MyHomework.objects.get(pk=homework_id)
         else:
             homework = HomeWork.objects.get(pk=homework_id)
-
+        ducheng_problem_info = homework.ducheng_problem_info
         tiankong_info = homework.tiankong_problem_info
+
+        if ducheng_problem_info is None:
+            ducheng_problem_info = "[]"
         if tiankong_info is None:
             tiankong_info = "[]"
         gaicuo_info = homework.gaicuo_problem_info
@@ -222,6 +227,7 @@ def ajax_for_homework_info(request):
             gaicuo_info = "[]"
         result = {'problem_info': json.loads(homework.problem_info),
                   'choice_problem_info': json.loads(homework.choice_problem_info),
+                  'ducheng_problem_info': json.loads(homework.ducheng_problem_info),
                   'tiankong_problem_info': json.loads(tiankong_info),
                   'gaicuo_problem_info': json.loads(gaicuo_info)}
     except:
@@ -243,11 +249,13 @@ def update_public_homework(request, pk):
     if request.method == 'POST':
         homework.name = request.POST['name']
         homework.choice_problem_ids = request.POST['choice-problem-ids']
+        homework.ducheng_problem_ids = request.POST['ducheng-problem-ids']
         homework.problem_ids = request.POST['problem-ids']
         homework.tiankong_problem_ids = request.POST['tiankong-problem-ids']
         homework.gaicuo_problem_ids = request.POST['gaicuo-problem-ids']
         homework.problem_info = request.POST['problem-info']
         homework.choice_problem_info = request.POST['choice-problem-info']
+        homework.ducheng_problem_info = request.POST['ducheng-problem-info']
         homework.tiankong_problem_info = request.POST['tiankong-problem-info']
         homework.gaicuo_problem_info = request.POST['gaicuo-problem-info']
         homework.courser = ClassName.objects.get(pk=request.POST['course'])
@@ -293,6 +301,7 @@ def update_my_homework(request, pk):
     if request.method == 'POST':
         homework.name = request.POST['name']
         homework.choice_problem_ids = request.POST['choice-problem-ids']
+        homework.ducheng_problem_ids=request.POST['ducheng-problem-ids']
         homework.problem_ids = request.POST['problem-ids']
         homework.tiankong_problem_ids = request.POST['tiankong-problem-ids']
         homework.gaicuo_problem_ids = request.POST['gaicuo-problem-ids']
@@ -303,6 +312,7 @@ def update_my_homework(request, pk):
         homework.total_score = request.POST['total_score']
         homework.allowed_languages = ','.join(request.POST.getlist('languages'))
         homework.choice_problem_info = request.POST['choice-problem-info']
+        homework.ducheng_problem_info=request.POST['ducheng-problem-info']
         homework.tiankong_problem_info = request.POST['tiankong-problem-info']
         homework.gaicuo_problem_info = request.POST['gaicuo-problem-info']
         homework.allow_resubmit = True if request.POST['allow_resubmit'] == '1' else False
@@ -347,6 +357,8 @@ def show_homework_result(request, id=0):
     # 作业批改完成而且用户有权查看时
     wrong_id = homework_answer.wrong_choice_problems.split(',')  # todo 应该该讲两个字段合并
     wrong_info = homework_answer.wrong_choice_problems_info.split(',')
+    wrong_ducheng_id = homework_answer.wrong_ducheng_problems.split(',')  # todo 应该该讲两个字段合并
+    wrong_ducheng_info = homework_answer.wrong_ducheng_problems_info.split(',')
     homework = homework_answer.homework
     homework_answers = homework.homeworkanswer_set.all().order_by('create_time')
     banjiList = []
@@ -357,6 +369,7 @@ def show_homework_result(request, id=0):
             break
     homewoek_answers = homework_answers.filter(creator__banJi_students__in=BanJi.objects.filter(id__in=banjiList))
     choice_problems = []
+    ducheng_problems = []
     problems = []
     tiankong_problems = []
     gaicuo_problems = []
@@ -366,7 +379,6 @@ def show_homework_result(request, id=0):
     resubmit_number = homework.resubmit_number # 提交次数限制
     is_end = False if homework.start_time < timezone.now() < homework.end_time else True  # 作业是否截止
     
-
     for info in json.loads(homework.choice_problem_info):  # 载入作业的选择题信息，并进行遍历
         if str(info['id']) in wrong_id:  # 如果答案有错
             choice_problems.append(
@@ -375,6 +387,20 @@ def show_homework_result(request, id=0):
         else:  # 如果答案正确
             choice_problems.append(
                 {'detail': ChoiceProblem.objects.get(pk=info['id']), 'right': True})
+
+    for info in json.loads(homework.ducheng_problem_info):  # 载入作业的填空题信息，并进行遍历
+        # 更改读程题答案显示样式
+        ducheng_answer = DuchengProblem.objects.get(pk=info['id'])
+        ducheng_answer.answer = ducheng_answer.answer.replace('|||',' 或者 ')
+        ducheng_answer.save()
+        if str(info['id']) in wrong_ducheng_id:  # 如果答案有错
+            ducheng_problems.append(
+                {'detail': DuchengProblem.objects.get(pk=info['id']), 'right': False,
+                 'info': wrong_ducheng_info[wrong_ducheng_id.index(str(info['id']))]})
+        else:  # 如果答案正确
+            ducheng_problems.append(
+                {'detail': DuchengProblem.objects.get(pk=info['id']), 'right': True})
+
     # 获得编程题
     try:
         problem_ids = list(map(int, homework.problem_ids.split(",")))
@@ -468,7 +494,9 @@ def show_homework_result(request, id=0):
         gaicuo_problems.append({'code': sourceCode, 'desc': problem.description,
                          'title': problem.title, 'result': result})
     context={'choice_problems': choice_problems, 'problem_score': homework_answer.problem_score,
+                       'ducheng_problems': ducheng_problems,
                        'choice_problem_score': homework_answer.choice_problem_score,
+                       'ducheng_problem_score': homework_answer.ducheng_problem_score,
                        'gaicuo_score': homework_answer.gaicuo_score,
                        'tiankong_score':homework_answer.tiankong_score,
                        'score': homework_answer.score, 'problems': problems,
@@ -495,6 +523,18 @@ def get_choice_score(homework_answer):
                 choice_problem_score += int(info['total_score'])
     return choice_problem_score
 
+def get_ducheng_score(homework_answer):
+    """
+    获取读程题成绩
+    :param homework_answer: 需要获取成绩的作业答案
+    :return: 选择题成绩
+    """
+    ducheng_problem_score = 0
+    if homework_answer.homework.ducheng_problem_info is not None:
+        for info in json.loads(homework_answer.homework.ducheng_problem_info):  # 获取并遍历所属作业的读程题信息
+            if str(info['id']) not in homework_answer.wrong_ducheng_problems.split(','):  # 如果答案正确
+                ducheng_problem_score += int(info['total_score'])
+    return ducheng_problem_score
 
 # 显示作业并处理作业答案
 @login_required()
@@ -507,6 +547,7 @@ def do_homework(request, homework_id=0):
     """
     if request.method == 'POST':  # 当提交作业时
         wrong_ids, wrong_info = '', ''
+        wrong_ducheng_ids, wrong_ducheng_info = '', ''
         homework = get_object_or_404(MyHomework, pk=homework_id)
         log = "执行动作：提交作业，用户信息：{}({}:{})，作业ID：{}，POST数据：{}".format(request.user.username,request.user.pk,request.user.id_num,homework_id,request.POST.dict())
         if time.mktime(homework.end_time.timetuple()) < time.time():
@@ -546,7 +587,11 @@ def do_homework(request, homework_id=0):
             if id and request.POST.get('selection-' + id, 'x') != ChoiceProblem.objects.get(pk=id).right_answer:
                 wrong_ids += id + ','  # 保存错误题目id
                 wrong_info += request.POST.get('selection-' + id, '未回答') + ','  # 保存其回答记录
-
+        # 判断填空题，保存错误读程题到目录
+        for id in homework.ducheng_problem_ids.split(','):
+            if id and request.POST.get(id) not in (DuchengProblem.objects.get(pk=id).answer).split('|||'):  
+                wrong_ducheng_ids += id + ','  # 保存错误题目id
+                wrong_ducheng_info += str(request.POST.get(id)) + ','  # 保存其回答记录
         # 创建编程题的solution，等待oj后台轮询判题
         # output = open('/tmp/error.log', 'w')
         for k, v in request.POST.items():
@@ -587,7 +632,8 @@ def do_homework(request, homework_id=0):
         homeworkAnswer.save()
         logger.info(log + "，执行结果：成功")
         # output.close()
-
+        homeworkAnswer.wrong_ducheng_problems = wrong_ducheng_ids
+        homeworkAnswer.wrong_ducheng_problems_info = wrong_ducheng_info
         # 开启判题进程，保存编程题目分数
         _thread.start_new_thread(judge_homework, (homeworkAnswer,))
         try:  # 如果有暂存的该作业答案，删除掉
@@ -612,6 +658,17 @@ def do_homework(request, homework_id=0):
             'info': '对不起，本作业(ID={})中请求的填空题(ID={})不在题库中，请及时联系管理员：'.format(homework_id,id) + settings.CONTACT_INFO})
         if homework.allow_random:
             random.shuffle(choice_problems)
+        ducheng_problems = []
+        if homework.ducheng_problem_ids is not None:
+            for id in homework.ducheng_problem_ids.split(','):
+                if id:
+                    try:
+                        ducheng_problems.append({'detail':DuchengProblem.objects.get(pk=id),
+                                                 'score': json.loads(homework.ducheng_problem_info)[0]['total_score']})
+                    except ObjectDoesNotExist:
+                       return render(request, 'warning.html', context={
+            'info': '对不起，本作业(ID={})中请求的读程题(ID={})不在题库中，请及时联系管理员：'.format(homework_id,id) + settings.CONTACT_INFO})
+        
         problems = []
         if homework.problem_ids is not None:
             for id in homework.problem_ids.split(','):
@@ -657,6 +714,7 @@ def do_homework(request, homework_id=0):
             return render(request, 'do_homework.html',
                         context={'homework': homework, 'problemsType': ['编程题','程序填空题','程序改错题'],
                                 'choice_problems': choice_problems,
+                                'ducheng_problems': ducheng_problems,
                                 'problemsList':[problems, tiankong_problems, gaicuo_problems],
                                 'title': homework.name, 'work_kind': homework.work_kind, 'remained_number': remained_number})
 
@@ -828,8 +886,10 @@ def copy_to_my_homework(request):
                                   end_time=(datetime.datetime.now()+datetime.timedelta(days=14)).strftime("%Y-%m-%d %H:%M"),
                                   problem_ids=old_homework.problem_ids,
                                   choice_problem_ids=old_homework.choice_problem_ids,
+                                  ducheng_problem_ids=old_homework.ducheng_problem_ids,
                                   problem_info=old_homework.problem_info,
                                   choice_problem_info=old_homework.choice_problem_info,
+                                  ducheng_problem_info=old_homework.ducheng_problem_info,
                                   #2017年9月16日增加新题型
                                   tiankong_problem_ids=old_homework.tiankong_problem_ids,
                                   gaicuo_problem_ids=old_homework.gaicuo_problem_ids,
@@ -1471,11 +1531,14 @@ def judge_homework(homework_answer):
                 continue
         else:  # 如果全部solution都已判断结束
             choice_problem_score = 0
+            ducheng_problem_score = 0
             biancheng_score = 0
             tiankong_score = 0
             gaicuo_score = 0
             choice_problem_score = get_choice_score(homework_answer)  # 获取选择题分数
             homework_answer.choice_problem_score = choice_problem_score
+            ducheng_problem_score = get_ducheng_score(homework_answer)  # 获取读程题分数
+            homework_answer.ducheng_problem_score = ducheng_problem_score
             biancheng_score = get_problem_score(homework_answer)  # 获取编程题分数
             homework_answer.problem_score = biancheng_score
             #2017年9月16日增加新题型
@@ -1488,9 +1551,9 @@ def judge_homework(homework_answer):
             homework_answer.score = zongfen
             homework_answer.judged = True  # 修改判题标记为已经判过
             homework_answer.save()  # 保存
-            logger.info("执行动作：计算成绩，用户信息：{}({}:{})，作业ID：{}，总分：{}(选择题：{}，编程题：{}，程序填空题：{}，程序改错题：{})，执行结果：成功".format( \
+            logger.info("执行动作：计算成绩，用户信息：{}({}:{})，作业ID：{}，总分：{}(选择题：{}，读程题：{}，编程题：{}，程序填空题：{}，程序改错题：{})，执行结果：成功".format( \
                 homework_answer.creator.username,homework_answer.creator.pk,homework_answer.creator.id_num,\
-                homework_answer.homework,zongfen,choice_problem_score,biancheng_score,tiankong_score,gaicuo_score))
+                homework_answer.homework,zongfen,choice_problem_score,ducheng_problem_score,biancheng_score,tiankong_score,gaicuo_score))
             break  # 跳出循环
 
 
@@ -1505,9 +1568,11 @@ def add_myhomework(request):
         allow_resubmit = True if request.POST['allow_resubmit'] == "1" else False
         homework = MyHomework(name=request.POST['name'],
                               choice_problem_ids=request.POST['choice-problem-ids'],
+                              ducheng_problem_ids=request.POST['ducheng-problem-ids'],
                               problem_ids=request.POST['problem-ids'],
                               problem_info=request.POST['problem-info'],
                               choice_problem_info=request.POST['choice-problem-info'],
+                              ducheng_problem_info=request.POST['ducheng-problem-info'],
                               courser=ClassName.objects.get(pk=request.POST['course']),
                               start_time=request.POST['start_time'],
                               end_time=request.POST['end_time'],

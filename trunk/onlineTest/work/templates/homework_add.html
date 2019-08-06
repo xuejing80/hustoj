@@ -263,6 +263,99 @@
         </thead>
     </table>
 
+    <p><p><h3>已选填空题（共<span id="ducheng_count">0</span>题，共<span id="ducheng_score">0</span>分）（拖动进行排序）</h3>
+    <div class="btn-group">
+        <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#modalTable6">
+            添加填空题
+        </button>
+        <button type="button" class="btn btn-danger" id="remove6">移除所选项</button>
+    </div></p>
+
+    <div class="modal fade" id="modalTable6" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title">添加填空题</h4>
+                </div>
+                <div class="modal-body">
+                    <div id="toolbar6">
+                        <div class="form-inline" role="form">
+                            <div class="form-group">
+                                <select class="form-control" id="classname" name="classname">
+                                    <option value="0" selected="selected">全部课程</option>
+                                    {% for classname in classnames %}
+                                        <option value="{{ classname.pk }}">{{ classname.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <select class="form-control" id="id_knowledgePoint1" name="knowledgePoint1">
+                                    <option value="0" selected="selected">全部一级知识点</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <select class="form-control" id="id_knowledgePoint2" name="knowledgePoint2">
+                                    <option value="0" selected="selected">全部二级知识点</option>
+                                </select>
+                            </div>
+                            <button id="ok6" type="submit" class="btn btn-default">筛选</button>
+                        </div>
+                    </div>
+                    <table id="table11"
+                           data-toggle="table"
+                           data-url="{% url 'get_json' 'DuchengProblem' %}"
+                           data-side-pagination="server"
+                           data-pagination="true"
+                           data-page-list="[1, 20, 50, 100, 200]"
+                           data-classes="table table-hover table-condensed"
+                           data-toolbar="#toolbar6"
+                           data-striped="true"
+                           data-query-params="queryParams6"
+                           data-search="true"
+                    >
+                        <thead>
+                        <tr>
+                            <th data-field="state" data-valign="middle" data-checkbox="true" data-formatter="stateFormatter2"></th>
+                            <th data-field="pk" data-sortable="true" data-valign="middle">ID</th>
+                            <th data-field="title" data-sortable="true" data-valign="middle">标题</th>
+                            <th data-field="knowledge_point" data-valign="middle"> 知识点</th>
+                            <th data-valign="middle" data-align="center" data-field="total_score">总分</th>
+                            <th data-field="update_date" data-sortable="true" data-valign="middle">最后修改日期</th>
+                        </tr>
+                        </thead>
+                    </table>
+                </div>
+                <div class="modal-footer">
+                    <button id="get_select6" class="btn btn-success">添加所选到列表</button>
+                    <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+                </div>
+            </div><!-- /.modal-content -->
+        </div><!-- /.modal-dialog -->
+    </div><!-- /.modal -->
+ 
+
+    <table id="table12"
+           data-toggle="table"
+           data-pagination="false"
+           data-classes="table table-hover table-condensed"
+           data-striped="true"
+           data-use-row-attr-func="true"
+           data-unique-id="pk"
+           data-reorderable-rows="true"
+    >
+        <thead>
+        <tr>
+            <th data-field="state" data-valign="middle" data-checkbox="true"></th>
+            <th data-field="pk" data-valign="middle">ID</th>
+            <th data-field="title" data-valign="middle">标题</th>
+            <th data-field="knowledge_point" data-valign="middle">知识点</th>
+            <th data-field="total_score" data-valign="middle" data-align="center" data-editable="true">分数</th>
+        </tr>
+        </thead>
+    </table>
+
     <p><h3>已选编程题(共<span id="problem_count"></span>题，共<span id="problem_score"></span>分)（拖动进行排序）</h3>
     <div class="btn-group">
         <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#modalTable">
@@ -355,99 +448,6 @@
             <th data-field="total_score" data-align="center" data-valign="middle">总分</th>
             <th data-field="tsetcases" data-visible="false" data-formatter="tcFormatter">测试用例</th>
             <th data-field="action" data-valign="middle" data-formatter="actionFormatter">操作</th>
-        </tr>
-        </thead>
-    </table>
-
-    <p><p><h3>已选填空题（共<span id="ducheng_count">0</span>题，共<span id="ducheng_score">0</span>分）（拖动进行排序）</h3>
-    <div class="btn-group">
-        <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#modalTable6">
-            添加填空题
-        </button>
-        <button type="button" class="btn btn-danger" id="remove6">移除所选项</button>
-    </div></p>
-
-    <div class="modal fade" id="modalTable6" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span></button>
-                    <h4 class="modal-title">添加填空题</h4>
-                </div>
-                <div class="modal-body">
-                    <div id="toolbar6">
-                        <div class="form-inline" role="form">
-                            <div class="form-group">
-                                <select class="form-control" id="classname" name="classname">
-                                    <option value="0" selected="selected">全部课程</option>
-                                    {% for classname in classnames %}
-                                        <option value="{{ classname.pk }}">{{ classname.name }}</option>
-                                    {% endfor %}
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <select class="form-control" id="id_knowledgePoint1" name="knowledgePoint1">
-                                    <option value="0" selected="selected">全部一级知识点</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <select class="form-control" id="id_knowledgePoint2" name="knowledgePoint2">
-                                    <option value="0" selected="selected">全部二级知识点</option>
-                                </select>
-                            </div>
-                            <button id="ok6" type="submit" class="btn btn-default">筛选</button>
-                        </div>
-                    </div>
-                    <table id="table11"
-                           data-toggle="table"
-                           data-url="{% url 'get_json' 'DuchengProblem' %}"
-                           data-side-pagination="server"
-                           data-pagination="true"
-                           data-page-list="[1, 20, 50, 100, 200]"
-                           data-classes="table table-hover table-condensed"
-                           data-toolbar="#toolbar6"
-                           data-striped="true"
-                           data-query-params="queryParams6"
-                           data-search="true"
-                    >
-                        <thead>
-                        <tr>
-                            <th data-field="state" data-valign="middle" data-checkbox="true" data-formatter="stateFormatter2"></th>
-                            <th data-field="pk" data-sortable="true" data-valign="middle">ID</th>
-                            <th data-field="title" data-sortable="true" data-valign="middle">标题</th>
-                            <th data-field="knowledge_point" data-valign="middle"> 知识点</th>
-                            <th data-valign="middle" data-align="center" data-field="total_score">总分</th>
-                            <th data-field="update_date" data-sortable="true" data-valign="middle">最后修改日期</th>
-                        </tr>
-                        </thead>
-                    </table>
-                </div>
-                <div class="modal-footer">
-                    <button id="get_select6" class="btn btn-success">添加所选到列表</button>
-                    <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
-                </div>
-            </div><!-- /.modal-content -->
-        </div><!-- /.modal-dialog -->
-    </div><!-- /.modal -->
- 
-
-    <table id="table12"
-           data-toggle="table"
-           data-pagination="false"
-           data-classes="table table-hover table-condensed"
-           data-striped="true"
-           data-use-row-attr-func="true"
-           data-unique-id="pk"
-           data-reorderable-rows="true"
-    >
-        <thead>
-        <tr>
-            <th data-field="state" data-valign="middle" data-checkbox="true"></th>
-            <th data-field="pk" data-valign="middle">ID</th>
-            <th data-field="title" data-valign="middle">标题</th>
-            <th data-field="knowledge_point" data-valign="middle">知识点</th>
-            <th data-field="total_score" data-valign="middle" data-align="center" data-editable="true">分数</th>
         </tr>
         </thead>
     </table>

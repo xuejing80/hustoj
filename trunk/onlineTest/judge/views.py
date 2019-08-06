@@ -536,7 +536,7 @@ def get_json(request, model_name):
    	 problems = model.objects.filter(problem_type=pro_type)
     elif pro_type == "选择" :
    	 problems = model.objects.all()
-    elif pro_type == "读程" :
+    else:
         problems = model.objects.all()
     
     if knowledgePoint2 != '0' and knowledgePoint2 != '':

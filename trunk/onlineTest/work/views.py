@@ -390,9 +390,6 @@ def show_homework_result(request, id=0):
 
     for info in json.loads(homework.ducheng_problem_info):  # 载入作业的填空题信息，并进行遍历
         # 更改读程题答案显示样式
-        ducheng_answer = DuchengProblem.objects.get(pk=info['id'])
-        ducheng_answer.answer = ducheng_answer.answer.replace('|||',' 或者 ')
-        ducheng_answer.save()
         if str(info['id']) in wrong_ducheng_id:  # 如果答案有错
             ducheng_problems.append(
                 {'detail': DuchengProblem.objects.get(pk=info['id']), 'right': False,

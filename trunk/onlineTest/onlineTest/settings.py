@@ -93,6 +93,9 @@ TEMPLATES = [
                 'django.contrib.messages.context_processors.messages',
                 'work.views.global_settings',
             ],
+            'libraries': {
+                'filters': 'work.templatetags.filters',
+            },
         },
     },
 ]

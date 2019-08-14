@@ -12,7 +12,7 @@
         <li><a href="{% url 'list_do_homework' %}">我的作业列表</a></li>
         <li class="active">作业结果详细</li>
     </ol>
-    <h2>总分：{{ score }}</h2>
+    <h2>当前分数：{{ current_score }}</h2>
     {% if choice_problems %}
     <h3>选择题得分：{{ choice_problem_score }}</h3>
         {% for choice_problem in choice_problems %}
@@ -234,7 +234,7 @@
       <label for="teacher_comment"><h3>教师评语</h3></label>
       <textarea name="teacher_comment" rows="6" class="form-control">{% if teacher_comment %}{{teacher_comment}}{% endif %}</textarea>
       <label for="teacher_comment"><h3>重新评分</h3></label><br>
-      <input type="text" id="change" name="change" class="form-control" placeholder="当前分数：{{ score }}" onkeyup="this.value=this.value.replace(/\D/g,'')" onafterpaste="this.value=this.value.replace(/\D/g,'')"><br>
+      <input type="text" id="change" name="change" class="form-control" placeholder="当前分数：{{ current_score }}" onkeyup="this.value=this.value.replace(/\D/g,'')" onafterpaste="this.value=this.value.replace(/\D/g,'')"><br>
       <button type="button" id="comment" class="btn btn-info">提交教师意见</button>
     </div>
     {% else %}

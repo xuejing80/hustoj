@@ -72,7 +72,9 @@ def add_homework(request):
                             allow_resubmit = True if request.POST['allow_resubmit'] == '1' else False,
                             allow_random = True if request.POST['allow_random'] == '1' else False,
                             allow_similarity = True if request.POST['allow_similarity'] == '1' else False,
-                            show_answer = request.POST['show_answer'])
+                            show_answer = request.POST['show_answer'],
+                            show_score = request.POST['show_score'])
+
         homework.save()
         return redirect(reverse("homework_detail", args=[homework.pk]))
     classnames = ClassName.objects.all()
@@ -270,6 +272,7 @@ def update_public_homework(request, pk):
         # 新增
         homework.resubmit_number = request.POST['resubmit_number']
         homework.show_answer = request.POST['show_answer']
+        homework.show_score = request.POST['show_score']
         homework.save()
         return redirect(reverse('homework_detail', args=[homework.pk]))
     else:
@@ -282,7 +285,8 @@ def update_public_homework(request, pk):
                    'allow_random': '1' if homework.allow_random else '0',
                    'allow_similarity': '1' if homework.allow_similarity else '0',
                    'allow_resubmit': '1' if homework.allow_resubmit else '0',
-	           'show_answer': homework.show_answer}
+	               'show_answer': homework.show_answer,
+                   'show_score': homework.show_score}
     return render(request, 'homework_add.html', context=context)
 
 def update_my_homework(request, pk):
@@ -319,6 +323,7 @@ def update_my_homework(request, pk):
         homework.allow_random = True if request.POST['allow_random'] == '1' else False
         homework.allow_similarity = True if request.POST['allow_similarity'] == '1' else False
         homework.show_answer = request.POST['show_answer']
+        homework.show_score = request.POST['show_score']
         homework.work_kind = request.POST['work_kind']
         # 2017年9月新增功能
         tiankong_problem_ids = request.POST['tiankong-problem-ids']
@@ -336,6 +341,7 @@ def update_my_homework(request, pk):
                    'allow_random': '1' if homework.allow_random else '0',
                    'allow_similarity': '1' if homework.allow_similarity else '0',
                    'show_answer': homework.show_answer,
+                   'show_score': homework.show_score,
                    'work_kind': homework.work_kind}
     return render(request, 'homework_add.html', context=context)  # 查看作业结果
 
@@ -378,7 +384,7 @@ def show_homework_result(request, id=0):
     remained_number = homework_answer.remained_number  # 已经提交次数
     resubmit_number = homework.resubmit_number # 提交次数限制
     is_end = False if homework.start_time < timezone.now() < homework.end_time else True  # 作业是否截止
-    
+
     for info in json.loads(homework.choice_problem_info):  # 载入作业的选择题信息，并进行遍历
         if str(info['id']) in wrong_id:  # 如果答案有错
             choice_problems.append(
@@ -496,7 +502,7 @@ def show_homework_result(request, id=0):
                        'ducheng_problem_score': homework_answer.ducheng_problem_score,
                        'gaicuo_score': homework_answer.gaicuo_score,
                        'tiankong_score':homework_answer.tiankong_score,
-                       'score': homework_answer.score, 'problems': problems,
+                       'current_score': homework_answer.score_list.split(',')[-2], 'problems': problems,
                        'tiankong_problems': tiankong_problems, 'gaicuo_problems': gaicuo_problems,
                        'work_kind': homework.work_kind, 'summary': homework_answer.summary,
                        'teacher_comment': homework_answer.teacher_comment,
@@ -588,7 +594,7 @@ def do_homework(request, homework_id=0):
         for id in homework.ducheng_problem_ids.split(','):
             if id and request.POST.get(id) not in (DuchengProblem.objects.get(pk=id).answer).split('|||'):  
                 wrong_ducheng_ids += id + ','  # 保存错误题目id
-                wrong_ducheng_info += str(request.POST.get(id)) + ','  # 保存其回答记录
+                wrong_ducheng_info += request.POST.get('selection-' + id, '未回答') + ','  # 保存其回答记录
         # 创建编程题的solution，等待oj后台轮询判题
         # output = open('/tmp/error.log', 'w')
         for k, v in request.POST.items():
@@ -899,7 +905,8 @@ def copy_to_my_homework(request):
                                   work_kind=old_homework.work_kind,
                                   total_score=old_homework.total_score,  # todo 有更好的方法
                                   resubmit_number = old_homework.resubmit_number,
-                                  show_answer = old_homework.show_answer)
+                                  show_answer = old_homework.show_answer,
+                                  show_score = old_homework.show_score)
             homework.save()
     except:
         logger_request.exception("Exception Logged")
@@ -1544,7 +1551,17 @@ def judge_homework(homework_answer):
             gaicuo_score = get_gaicuo_score(homework_answer)
             homework_answer.gaicuo_score = gaicuo_score
 
-            zongfen = choice_problem_score + biancheng_score + tiankong_score + gaicuo_score  # 计算总分
+            # 根据作业设置计算最终总分
+            homework_answer.score_list += str(choice_problem_score + ducheng_problem_score + biancheng_score + tiankong_score + gaicuo_score) + ','  # 保存每次作业成绩
+            zongfen_list = [int(zongfen) for zongfen in homework_answer.score_list.split(',')[:-1]]  # 转化为成绩列表
+            show_score = get_object_or_404(MyHomework,pk=homework_answer.homework.id).show_score
+            
+            if show_score == '最高分值':
+                zongfen = max(zongfen_list)
+            elif show_score == '平均分值':
+                zongfen = int(sum(zongfen_list)/len(zongfen_list) * 10 + 0.5) / 10 # 四舍五入
+            else:
+                zongfen = zongfen_list[-1]
             homework_answer.score = zongfen
             homework_answer.judged = True  # 修改判题标记为已经判过
             homework_answer.save()  # 保存
@@ -1578,7 +1595,9 @@ def add_myhomework(request):
                               creater=request.user,
                               allow_resubmit=allow_resubmit,
                               resubmit_number = request.POST["resubmit_number"],
-                              work_kind=request.POST['work_kind'])
+                              work_kind=request.POST['work_kind'],
+                              show_answer = request.POST['show_answer'],
+                              show_score = request.POST['show_score'])
         homework.save()
         return redirect(reverse("my_homework_detail", args=[homework.pk]))
     classnames = ClassName.objects.all()

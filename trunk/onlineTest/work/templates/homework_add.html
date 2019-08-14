@@ -125,6 +125,19 @@
                 </label> 
 	</div>	
 
+    <div class="form-group">
+        <label for="show_score">多次提交有效得分为：</label>
+        <label class="radio-inline">
+            <input type="radio" id="show_score" value="最高分值" name="show_score" checked>最高分值
+        </label>
+        <label class="radio-inline">
+                    <input type="radio" id="show_score" value="平均分值" name="show_score">平均分值
+        </label>
+                <label class="radio-inline">
+                    <input type="radio" id="show_score" value="最后一次分值" name="show_score">最后一次分值
+                </label> 
+    </div>  
+
         <div class="row">
             <div class='col-sm-6'>
                 <div class="form-group">
@@ -1077,7 +1090,8 @@
                             $('#allow_random[value="{{ allow_random }}"]').attr('checked', true);
                             $('#allow_similarity[value="{{ allow_similarity }}"]').attr('checked', true);
                             $('#work_kind[value="{{ work_kind }}"]').attr('checked',true);
-                            $('#show_answer[value="{{ show_answer }}').attr('checked',true);
+                            $('#show_answer[value="{{ show_answer }}"]').attr('checked',true);
+                            $('#show_score[value="{{ show_score }}"]').attr('checked',true);
 			    data = window.location.pathname.split('-').pop();
                             if(data.replace("/","")=="myhomework")
                                 return;

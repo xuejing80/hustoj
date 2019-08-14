@@ -47,6 +47,7 @@ class HomeWork(models.Model):
     allow_similarity = models.BooleanField(default=True, verbose_name='是否开启相似度判分>？')
     allow_random = models.BooleanField(default=True, verbose_name='是否打乱选择题选项顺序>？')
     show_answer = models.CharField(max_length=20,verbose_name='何时显示答案',default='每次提交后')
+    show_score = models.CharField(max_length=20,verbose_name='多次提交有效得分为',default='最高分值')
     def __str__(self):
         return str(self.id)
 
@@ -84,6 +85,7 @@ class MyHomework(models.Model):
     work_kind = models.CharField(max_length=20,verbose_name="作业类型",default='作业')
     total_score = models.IntegerField()
     show_answer = models.CharField(max_length=20,verbose_name='何时显示答案',default='每次提交后')
+    show_score = models.CharField(max_length=20,verbose_name='多次提交有效得分为',default='最高分值')
 
     def __str__(self):
         return str(self.id)
@@ -100,7 +102,8 @@ class HomeworkAnswer(models.Model):
     wrong_choice_problems_info = models.CharField(max_length=200, null=False, verbose_name='错误的选择题保留信息', default='')
     wrong_ducheng_problems = models.CharField(max_length=200, null=False, verbose_name='错误的填空题', default='')  #
     wrong_ducheng_problems_info = models.CharField(max_length=200, null=False, verbose_name='错误的填空题保留信息', default='')
-    score = models.IntegerField(null=False, verbose_name='总成绩', default=0)
+    score_list = models.CharField(max_length=200, verbose_name='总成绩列表', null=True, blank=True)
+    score = models.FloatField(null=False, verbose_name='总成绩', default=0)
     choice_problem_score = models.IntegerField(null=False, verbose_name='选择题成绩', default=0)
     ducheng_problem_score = models.IntegerField(null=False, verbose_name='填空题成绩', default=0)
     problem_score = models.IntegerField(null=False, verbose_name='编程题成绩', default=0)

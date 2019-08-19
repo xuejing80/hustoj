@@ -520,10 +520,10 @@ def get_json(request, model_name):
         pro_type="编程"
     elif model_name=="TiankongProblem":
         model_name="Problem"
-        pro_type="填空"
+        pro_type="填空" #这里是程序填空题
     elif model_name=="DuchengProblem":
         model_name="DuchengProblem"
-        pro_type="读程"
+        pro_type="读程" #这里是普通填空题
     elif model_name=="GaicuoProblem":
         model_name="Problem"
         pro_type="改错"
@@ -533,7 +533,7 @@ def get_json(request, model_name):
     model = apps.get_model(app_label='judge', model_name=model_name)
     
     if pro_type != "选择" and pro_type != "读程" :
-   	    problems = model.objects.filter(problem_type=pro_type)
+        problems = model.objects.filter(problem_type=pro_type)
     else:
         problems = model.objects.all()
     

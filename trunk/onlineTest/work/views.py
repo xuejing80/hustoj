@@ -597,7 +597,7 @@ def do_homework(request, homework_id=0):
                 wrong_ids += id + ','  # 保存错误题目id
                 wrong_info += request.POST.get('selection-' + id, '未回答') + ','  # 保存其回答记录
         # 判断填空题，保存错误读程题到目录
-        if homework.ducheng_problem_ids
+        if homework.ducheng_problem_ids:
             for id in homework.ducheng_problem_ids.split(','):
                 if id and request.POST.get(id) not in (DuchengProblem.objects.get(pk=id).answer).split('|||'):  
                     wrong_ducheng_ids += id + ','  # 保存错误题目id

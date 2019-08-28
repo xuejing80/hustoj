@@ -394,6 +394,8 @@ def show_homework_result(request, id=0):
             choice_problems.append(
                 {'detail': ChoiceProblem.objects.get(pk=info['id']), 'right': True})
 
+    if not homework.ducheng_problem_info:
+        homework.ducheng_problem_info = '[]'
     for info in json.loads(homework.ducheng_problem_info):  # 载入作业的填空题信息，并进行遍历
         # 更改读程题答案显示样式
         if str(info['id']) in wrong_ducheng_id:  # 如果答案有错
@@ -496,13 +498,17 @@ def show_homework_result(request, id=0):
         problem = Problem.objects.get(pk=solution.problem_id)
         gaicuo_problems.append({'code': sourceCode, 'desc': problem.description,
                          'title': problem.title, 'result': result})
+    if not homework_answer.score_list:
+        current_score = homework_answer.score
+    else:
+        current_score = homework_answer.score_list.split(',')[-2]
     context={'choice_problems': choice_problems, 'problem_score': homework_answer.problem_score,
                        'ducheng_problems': ducheng_problems,
                        'choice_problem_score': homework_answer.choice_problem_score,
                        'ducheng_problem_score': homework_answer.ducheng_problem_score,
                        'gaicuo_score': homework_answer.gaicuo_score,
                        'tiankong_score':homework_answer.tiankong_score,
-                       'current_score': homework_answer.score_list.split(',')[-2], 'problems': problems,
+                       'current_score': int(current_score), 'problems': problems,
                        'tiankong_problems': tiankong_problems, 'gaicuo_problems': gaicuo_problems,
                        'work_kind': homework.work_kind, 'summary': homework_answer.summary,
                        'teacher_comment': homework_answer.teacher_comment,
@@ -591,10 +597,11 @@ def do_homework(request, homework_id=0):
                 wrong_ids += id + ','  # 保存错误题目id
                 wrong_info += request.POST.get('selection-' + id, '未回答') + ','  # 保存其回答记录
         # 判断填空题，保存错误读程题到目录
-        for id in homework.ducheng_problem_ids.split(','):
-            if id and request.POST.get(id) not in (DuchengProblem.objects.get(pk=id).answer).split('|||'):  
-                wrong_ducheng_ids += id + ','  # 保存错误题目id
-                wrong_ducheng_info += request.POST.get('selection-' + id, '未回答') + ','  # 保存其回答记录
+        if homework.ducheng_problem_ids
+            for id in homework.ducheng_problem_ids.split(','):
+                if id and request.POST.get(id) not in (DuchengProblem.objects.get(pk=id).answer).split('|||'):  
+                    wrong_ducheng_ids += id + ','  # 保存错误题目id
+                    wrong_ducheng_info += request.POST.get('selection-' + id, '未回答') + ','  # 保存其回答记录
         # 创建编程题的solution，等待oj后台轮询判题
         # output = open('/tmp/error.log', 'w')
         for k, v in request.POST.items():

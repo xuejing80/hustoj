@@ -102,7 +102,7 @@ class HomeworkAnswer(models.Model):
     wrong_choice_problems_info = models.CharField(max_length=200, null=False, verbose_name='错误的选择题保留信息', default='')
     wrong_ducheng_problems = models.CharField(max_length=200, null=False, verbose_name='错误的填空题', default='')  #
     wrong_ducheng_problems_info = models.CharField(max_length=200, null=False, verbose_name='错误的填空题保留信息', default='')
-    score_list = models.CharField(max_length=200, verbose_name='总成绩列表', null=True, blank=True,default='')
+    score_list = models.CharField(max_length=200, verbose_name='总成绩列表',default='')
     score = models.FloatField(null=False, verbose_name='总成绩', default=0)
     choice_problem_score = models.IntegerField(null=False, verbose_name='选择题成绩', default=0)
     ducheng_problem_score = models.IntegerField(null=False, verbose_name='填空题成绩', default=0)

@@ -1095,7 +1095,7 @@
                             end_time = '{{ end_time|date:"Y-m-d H:i" }}'
                             if(end_time!='')
                                 $('#end_time').val(end_time);
-                            $("#course option[value='{{ courser_id }}']").attr("selected", true);
+                            $("#course option[value='{{ courser_id }}']").prop("selected", true);
                             $('#allow_resubmit[value="{{ allow_resubmit }}"]').attr('checked', true);
                             $("#resubmit_number option[value='{{ resubmit_number }}']").attr('selected', true);
                             $('#allow_random[value="{{ allow_random }}"]').attr('checked', true);

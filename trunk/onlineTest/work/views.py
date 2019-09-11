@@ -229,7 +229,7 @@ def ajax_for_homework_info(request):
             gaicuo_info = "[]"
         result = {'problem_info': json.loads(homework.problem_info),
                   'choice_problem_info': json.loads(homework.choice_problem_info),
-                  'ducheng_problem_info': json.loads(homework.ducheng_problem_info),
+                  'ducheng_problem_info': json.loads(ducheng_problem_info),
                   'tiankong_problem_info': json.loads(tiankong_info),
                   'gaicuo_problem_info': json.loads(gaicuo_info)}
     except:

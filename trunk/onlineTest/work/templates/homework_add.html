@@ -186,7 +186,7 @@
             </button>
             <ul class="dropdown-menu" role="menu">
                 {% for i in '123456789012345'|make_list %}
-                    <li><a href="javascript:void(0)" onclick="quick_change_score({{ forloop.counter }})">每题{{ forloop.counter }}分</a></li>
+                    <li><a href="javascript:void(0)" onclick="quick_change_choice_score({{ forloop.counter }})">每题{{ forloop.counter }}分</a></li>
                 {% endfor %}
             </ul>
         </div>
@@ -282,6 +282,17 @@
             添加填空题
         </button>
         <button type="button" class="btn btn-danger" id="remove6">移除所选项</button>
+        <div class="btn-group">
+            <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
+                批量修改填空题分数
+                <span class="caret"></span>
+            </button>
+            <ul class="dropdown-menu" role="menu">
+                {% for i in '123456789012345'|make_list %}
+                    <li><a href="javascript:void(0)" onclick="quick_change_ducheng_score({{ forloop.counter }})">每题{{ forloop.counter }}分</a></li>
+                {% endfor %}
+            </ul>
+        </div>
     </div></p>
 
     <div class="modal fade" id="modalTable6" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
@@ -1193,7 +1204,7 @@
                 + parseInt($('#tiankong_score').text()) + parseInt($('#gaicuo_score').text()));
         }
 
-        function quick_change_score(score) {
+        function quick_change_choice_score(score) {
             $.each($table4.bootstrapTable('getData'), function (i, item) {
                 if (item.total_score) {
                     item.total_score=score;
@@ -1202,7 +1213,7 @@
             });
         }
         
-        function quick_change_score(score) {
+        function quick_change_ducheng_score(score) {
             $.each($table12.bootstrapTable('getData'), function (i, item) {
                 if (item.total_score) {
                     item.total_score=score;

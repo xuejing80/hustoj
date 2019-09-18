@@ -37,21 +37,21 @@
 <h2>选择题</h2>
     {% for choice_problem in choice_problems %}
 	<div class="panel panel-default" name='sss'>
-	    <div class="panel-heading" role="tab" id="heading{{ choice_problem.detail.id }}">
+	    <div class="panel-heading" role="tab" id="heading_xz_{{ choice_problem.detail.id }}">
 		<h4 class="panel-title">
 		    <a style="line-height:150%" {% if not forloop.first %}class="collapsed"{% endif %} role="button"
 		       data-toggle="collapse"
 		       data-parent="#accordion"
-		       href="#collapse{{ choice_problem.detail.id }}"
+		       href="#collapse_xz_{{ choice_problem.detail.id }}"
 		       aria-expanded="{% if forloop.first %}true{% else %}false{% endif %}"
-		       aria-controls="collapse{{ choice_problem.detail.id }}">
+		       aria-controls="collapse_xz_{{ choice_problem.detail.id }}">
 		       {{ forloop.counter }}. ({{ choice_problem.score }}分) {{ choice_problem.detail.title|myFilter|safe|linebreaksbr }}
 		    </a>
 		</h4>
 	    </div>
-	    <div id="collapse{{ choice_problem.detail.id }}"
+	    <div id="collapse_xz_{{ choice_problem.detail.id }}"
  		 class="panel-collapse collapse {% if forloop.first %}in{% endif %}" role="tabpanel"
-		 aria-labelledby="heading{{ choice_problem.detail.id }}">
+		 aria-labelledby="heading_xz_{{ choice_problem.detail.id }}">
 		<div class="panel-body" name='nhh'>
 		    <!--<div class="row">-->
 			<div class="col-lg-6 col-md-6">
@@ -95,21 +95,21 @@
 <h2>填空题</h2>
     {% for ducheng_problem in ducheng_problems %}
         <div class="panel panel-default">
-            <div class="panel-heading" role="tab" id="heading{{ ducheng_problem.detail.ducheng_id }}">
+            <div class="panel-heading" role="tab" id="heading_dc_{{ ducheng_problem.detail.ducheng_id }}">
                 <h4 class="panel-title">
                     <a style="line-height:150%" class="collapsed" role="button"
                        data-toggle="collapse"
                        data-parent="#accordion"
-                       href="#collapse{{ ducheng_problem.detail.ducheng_id }}"
+                       href="#collapse_dc_{{ ducheng_problem.detail.ducheng_id }}"
                        aria-expanded="false"
                        aria-controls="collapse{{ ducheng_problem.detail.ducheng_id }}">
                        {{ forloop.counter }}. ({{ ducheng_problem.score }}分) {{ ducheng_problem.detail.title|myFilter|safe|linebreaksbr }}
                     </a>
                 </h4>
             </div>
-            <div id="collapse{{ ducheng_problem.detail.ducheng_id }}"
+            <div id="collapse_dc_{{ ducheng_problem.detail.ducheng_id }}"
                  class="panel-collapse collapse" role="tabpanel"
-                 aria-labelledby="heading{{ ducheng_problem.detail.ducheng_id }}">
+                 aria-labelledby="heading_dc_{{ ducheng_problem.detail.ducheng_id }}">
                 <div class="panel-body">
                     <div class="section">
                         <!-- <h4><span class="label label-primary">程序代码</span></h4>

@@ -10,7 +10,7 @@ sudo ln -s /usr/bin/python3.5 /usr/bin/python3
 pip3 install -U pip -i https://pypi.douban.com/simple/
 
 sudo rm /usr/local/bin/pip
-sudo ln -s /usr/local/bin/pip /usr/local/bin/pip3.5
+sudo ln -s /usr/local/bin/pip3.5 /usr/local/bin/pip
 
 cp src/install/onlineTestNginx.conf /etc/nginx/sites-available
 cp src/install/daphne.conf /etc/supervisor/conf.d/

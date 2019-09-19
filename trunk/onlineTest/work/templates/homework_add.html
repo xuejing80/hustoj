@@ -50,9 +50,11 @@
             <label class="radio-inline">
                 <input type="radio" id="work_kind" value="实验" name="work_kind">实验
             </label>
+            <!--
 	    <label class="radio-inline">
 	        <input type="radio" id="work_kind" value="课堂练习" name="work_kind">课堂练习
 	    </label>
+            -->
         </div>
         <div class="form-group">
             <label for="languages">允许的编译器类型：</label>
@@ -186,7 +188,7 @@
             </button>
             <ul class="dropdown-menu" role="menu">
                 {% for i in '123456789012345'|make_list %}
-                    <li><a href="javascript:void(0)" onclick="quick_change_score({{ forloop.counter }})">每题{{ forloop.counter }}分</a></li>
+                    <li><a href="javascript:void(0)" onclick="quick_change_choice_score({{ forloop.counter }})">每题{{ forloop.counter }}分</a></li>
                 {% endfor %}
             </ul>
         </div>
@@ -282,6 +284,17 @@
             添加填空题
         </button>
         <button type="button" class="btn btn-danger" id="remove6">移除所选项</button>
+        <div class="btn-group">
+            <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
+                批量修改填空题分数
+                <span class="caret"></span>
+            </button>
+            <ul class="dropdown-menu" role="menu">
+                {% for i in '123456789012345'|make_list %}
+                    <li><a href="javascript:void(0)" onclick="quick_change_ducheng_score({{ forloop.counter }})">每题{{ forloop.counter }}分</a></li>
+                {% endfor %}
+            </ul>
+        </div>
     </div></p>
 
     <div class="modal fade" id="modalTable6" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
@@ -829,6 +842,9 @@
             $('#ok4').click(function () {
                 $table7.bootstrapTable('refresh');
             });
+            $('#ok6').click(function () {
+                $table11.bootstrapTable('refresh');
+            });
         });
 
         function queryParams(params) {
@@ -1084,9 +1100,9 @@
                             end_time = '{{ end_time|date:"Y-m-d H:i" }}'
                             if(end_time!='')
                                 $('#end_time').val(end_time);
-                            $("#course option[value='{{ courser_id }}']").attr("selected", true);
+                            $("#course option[value='{{ courser_id }}']").prop("selected", true);
                             $('#allow_resubmit[value="{{ allow_resubmit }}"]').attr('checked', true);
-                            $("#resubmit_number option[value='{{ resubmit_number }}']").attr('selected', true);
+                            $("#resubmit_number option[value='{{ resubmit_number }}']").prop('selected', true);
                             $('#allow_random[value="{{ allow_random }}"]').attr('checked', true);
                             $('#allow_similarity[value="{{ allow_similarity }}"]').attr('checked', true);
                             $('#work_kind[value="{{ work_kind }}"]').attr('checked',true);
@@ -1193,7 +1209,7 @@
                 + parseInt($('#tiankong_score').text()) + parseInt($('#gaicuo_score').text()));
         }
 
-        function quick_change_score(score) {
+        function quick_change_choice_score(score) {
             $.each($table4.bootstrapTable('getData'), function (i, item) {
                 if (item.total_score) {
                     item.total_score=score;
@@ -1202,7 +1218,7 @@
             });
         }
         
-        function quick_change_score(score) {
+        function quick_change_ducheng_score(score) {
             $.each($table12.bootstrapTable('getData'), function (i, item) {
                 if (item.total_score) {
                     item.total_score=score;

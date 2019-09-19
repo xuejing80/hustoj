@@ -229,7 +229,7 @@ def ajax_for_homework_info(request):
             gaicuo_info = "[]"
         result = {'problem_info': json.loads(homework.problem_info),
                   'choice_problem_info': json.loads(homework.choice_problem_info),
-                  'ducheng_problem_info': json.loads(homework.ducheng_problem_info),
+                  'ducheng_problem_info': json.loads(ducheng_problem_info),
                   'tiankong_problem_info': json.loads(tiankong_info),
                   'gaicuo_problem_info': json.loads(gaicuo_info)}
     except:
@@ -1026,17 +1026,20 @@ def ajax_add_students(request):
                 if student.username == username:
                     student.groups.add(Group.objects.get(name='学生'))
                 else:
-                    return HttpResponse(json.dumps({'result': 0, 'count': 0, 'allow': 1,'message':'该学号被其他用户占用，请联系管理员老师'}))
+                    return HttpResponse(json.dumps({'result': 0, 'count': 0, 'allow': 1,'message':'该学号被占用'}))
                 #if student.username != username:
                 #    student = MyUser(id_num=teacher.school_short+id_num, email=id_num + '@' + teacher.school_short.lower() + '.edu.cn', username=username, school=teacher.school, school_short=teacher.school_short)
                 #    student.set_password(teacher.school_short+id_num)
                 #    student.save()
                 #    student.groups.add(Group.objects.get(name='学生'))
             except:
-                student = MyUser(id_num=teacher.school_short+id_num, email=id_num + '@' + teacher.school_short.lower() + '.edu.cn', username=username, school=teacher.school, school_short=teacher.school_short)
-                student.set_password(teacher.school_short+id_num)
-                student.save()
-                student.groups.add(Group.objects.get(name='学生'))
+                if len(MyUser.objects.filter(email=id_num + '@' + teacher.school_short.lower() + '.edu.cn'))==0:
+                    student = MyUser(id_num=teacher.school_short+id_num, email=id_num + '@' + teacher.school_short.lower() + '.edu.cn', username=username, school=teacher.school, school_short=teacher.school_short)
+                    student.set_password(teacher.school_short+id_num)
+                    student.save()
+                    student.groups.add(Group.objects.get(name='学生'))
+                else:
+                    return HttpResponse(json.dumps({'result': 0, 'count': 0, 'allow': 1,'message':'该邮箱被占用'}))
     banji = BanJi.objects.get(pk=banji_id)
     if teacher.create_num > 0:
         banji.students.add(student)

@@ -121,10 +121,10 @@
                                <!-- </div>-->
                             <div class="form-group">
                                 <label for="source{{ ducheng_problem.detail.ducheng_id }}">答案</label>
-                                <textarea class="form-control" cols="20" rows="1"
-                                          name="{{ ducheng_problem.detail.ducheng_id }}"
-                                          id="{{ ducheng_problem.detail.ducheng_id }}" spellcheck="false"
-                                  >{% if ducheng_problem.sample_answer %}{{ ducheng_problem.sample_answer }}{% endif %}</textarea>
+                                <input type="text" class="form-control" cols="20" rows="1"
+                                          name="ducheng-{{ ducheng_problem.detail.ducheng_id }}"
+                                          id="ducheng-{{ ducheng_problem.detail.ducheng_id }}" spellcheck="false"
+                                  >{% if ducheng_problem.sample_answer %}{{ ducheng_problem.sample_answer }}{% endif %}</input>
                             </div>
                     </div>        
                 </div>
@@ -455,6 +455,8 @@
                             if (key.indexOf('selection') != -1) {
                                 $("input[type='radio'][name=" + key + "][value=" + value + "]").prop("checked", true)
                             }
+                            if (key.indexOf('ducheng') != -1) {
+                                $("input[name=" + key + "]").val(value)
                             if (key.indexOf('source') != -1) {
                                 editors[key.replace('-', '')].setValue(value)
                             }

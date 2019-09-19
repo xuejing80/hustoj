@@ -601,7 +601,7 @@ def do_homework(request, homework_id=0):
             for id in homework.ducheng_problem_ids.split(','):
                 if id and request.POST.get(id) not in (DuchengProblem.objects.get(pk=id).answer).split('|||'):  
                     wrong_ducheng_ids += id + ','  # 保存错误题目id
-                    wrong_ducheng_info += request.POST.get('selection-' + id, '未回答') + ','  # 保存其回答记录
+                    wrong_ducheng_info += request.POST.get('ducheng-' + id, '未回答') + ','  # 保存其回答记录
         # 创建编程题的solution，等待oj后台轮询判题
         # output = open('/tmp/error.log', 'w')
         for k, v in request.POST.items():
@@ -635,6 +635,8 @@ def do_homework(request, homework_id=0):
                 homeworkAnswer.solution_set.add(solution)
         homeworkAnswer.wrong_choice_problems = wrong_ids
         homeworkAnswer.wrong_choice_problems_info = wrong_info
+        homeworkAnswer.wrong_ducheng_problems = wrong_ducheng_ids
+        homeworkAnswer.wrong_ducheng_problems_info = wrong_ducheng_info
         try:
             homeworkAnswer.summary = request.POST['summary']
         except:
@@ -642,8 +644,7 @@ def do_homework(request, homework_id=0):
         homeworkAnswer.save()
         logger.info(log + "，执行结果：成功")
         # output.close()
-        homeworkAnswer.wrong_ducheng_problems = wrong_ducheng_ids
-        homeworkAnswer.wrong_ducheng_problems_info = wrong_ducheng_info
+        
         # 开启判题进程，保存编程题目分数
         _thread.start_new_thread(judge_homework, (homeworkAnswer,))
         try:  # 如果有暂存的该作业答案，删除掉

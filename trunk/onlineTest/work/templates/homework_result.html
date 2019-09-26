@@ -121,18 +121,18 @@
             </div> -->
             <div class="panel-footer">
             {% if show_answer == "每次提交后" %}
-                正确答案是: “ {{ ducheng_problem.detail.answer|myFilter }} ”
+                正确答案是: {{ ducheng_problem.detail.answer|myFilter }}
                 {% elif show_answer == "提交次数用完后" %}
                     {% if remained_number != resubmit_number %}
                     请在作业完成后查看答案
                     {% else %}
-                    正确答案是: “ {{ ducheng_problem.detail.answer|myFilter }} ”
+                    正确答案是: {{ ducheng_problem.detail.answer|myFilter }}
                     {% endif %}
                 {% else %}
                     {% if not is_end %}
                     请等待作业截止后查看答案
                     {% else %}
-                    正确答案是: “ {{ ducheng_problem.detail.answer|myFilter }} ”
+                    正确答案是: {{ ducheng_problem.detail.answer|myFilter }}
                     {% endif %}
                 {% endif %}
             </div>
@@ -148,20 +148,20 @@
             </div> -->
             <div class="panel-footer">
             {% if show_answer == "每次提交后" %}
-                正确答案是: “ {{ ducheng_problem.detail.answer|myFilter }} ”
+                正确答案是: {{ ducheng_problem.detail.answer|myFilter }}
                 你的答案是: {{ ducheng_problem.info }}
                 {% elif show_answer == "提交次数用完后" %}
                     {% if remained_number != resubmit_number %}
                     请在作业完成后查看答案
                     {% else %}
-                    正确答案是: “ {{ ducheng_problem.detail.answer|myFilter }} ”
+                    正确答案是: {{ ducheng_problem.detail.answer|myFilter }}
                     你的答案是: {{ ducheng_problem.info }}
                     {% endif %}
                 {% else %}
                     {% if not is_end %}
                     请等待作业截止后查看答案
                     {% else %}
-                    正确答案是: “ {{ ducheng_problem.detail.answer|myFilter }} ”
+                    正确答案是: {{ ducheng_problem.detail.answer|myFilter }}
                     你的答案是: {{ ducheng_problem.info }}
                     {% endif %}
                 {% endif %}

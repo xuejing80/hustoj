@@ -598,10 +598,16 @@ def do_homework(request, homework_id=0):
                 wrong_info += request.POST.get('selection-' + id, '未回答') + ','  # 保存其回答记录
         # 判断填空题，保存错误读程题到目录
         if homework.ducheng_problem_ids:
+            #print("批改填空题")
             for id in homework.ducheng_problem_ids.split(','):
-                if id and request.POST.get(id) not in (DuchengProblem.objects.get(pk=id).answer).split('|||'):  
+                #print("标准答案：",(DuchengProblem.objects.get(pk=id).answer).split('|||'))
+                #print("用户答案：",request.POST.get('ducheng-' + id))
+                if id and request.POST.get('ducheng-' + id) not in (DuchengProblem.objects.get(pk=id).answer).split('|||'):  
                     wrong_ducheng_ids += id + ','  # 保存错误题目id
-                    wrong_ducheng_info += request.POST.get('ducheng-' + id, '未回答') + ','  # 保存其回答记录
+                    if request.POST.get('ducheng-' + id)=="":
+                        wrong_ducheng_info += '未回答' + ','  # 保存其回答记录
+                    else:
+                        wrong_ducheng_info += request.POST.get('ducheng-' + id) + ','  # 保存其回答记录
         # 创建编程题的solution，等待oj后台轮询判题
         # output = open('/tmp/error.log', 'w')
         for k, v in request.POST.items():

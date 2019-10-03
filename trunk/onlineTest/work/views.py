@@ -413,19 +413,23 @@ def show_homework_result(request, id=0):
         problem_ids = []
     info = json.loads(homework.problem_info)
     for pid in problem_ids:
+        #print("Step 1, pid =:",pid)
         result = 0
         for inf in info:
             if inf['id'] == pid:
                 total_score = int(inf['total_score'])
+        #print("Step 2, total_score = ",total_score)
         similar_code_owners = []
         try:
             solution = Solution.objects.get(problem_id=pid,homework_answer=homework_answer)
             result = solution.result
+            #print("Step 3, result =",result)
             try:
                 sourceCode = SourceCode.objects.get(solution_id=solution.solution_id).source
             except ObjectDoesNotExist:
                 sourceCode = "代码未找到"
             try:
+                #print("Step 4, allow_similarity =",allow_similarity)
                 if allow_similarity:
                     if result == 4:
                         score = total_score
@@ -436,12 +440,13 @@ def show_homework_result(request, id=0):
                         score = total_score
                     else:
                         score = 0
+                #print("Step 5, score =",score)
                 if request.user.isTeacher() :
                     for homework_answer_compare in homework_answers:
-                        solution_compare = Solution.objects.get(problem_id=pid, homework_answer=homework_answer_compare)
-                        if solution_compare.solution_id == solution.solution_id:
-                            continue
                         try:
+                            solution_compare = Solution.objects.get(problem_id=pid, homework_answer=homework_answer_compare)
+                            if solution_compare.solution_id == solution.solution_id:
+                                continue
                             sourceCode_compare = SourceCode.objects.get(solution_id=solution_compare.solution_id).source
                             # 如果用于比较的代码早于此题的代码提交且相似度高于0.8
                             if get_similarity_v2(sourceCode,sourceCode_compare) >= 0.9:
@@ -450,9 +455,11 @@ def show_homework_result(request, id=0):
                                                             'homework_answer_compare_id':homework_answer_compare.id})
                         except ObjectDoesNotExist:
                             sourceCode_compare = "用于比较的代码未找到"
-            except:
+            except Exception as e:
+                #print("Step 6, except:",e)
                 score = 0
-        except:
+        except Exception as e:
+            #print("Step 7, except:",e)
             sourceCode = "未回答"
             score = 0
         problem = Problem.objects.get(pk=pid)
@@ -1212,11 +1219,13 @@ def get_problem_score(homework_answer, judged_score=0):
     :param homework_answer: 已提交的作业
     :return: 作业的编程题部分分数
     """
+    #print("开始一次编程题判分")
     score = judged_score
     homework = homework_answer.homework
     solutions = homework_answer.solution_set
     problem_info = []
     for info in json.loads(homework.problem_info):
+        #print("开始判题，题目信息如下：",str(info))
         try:
             solution = solutions.get(problem_id=info['id'])  # 获取题目
             # 根据测试用例获取编程题总分
@@ -1233,6 +1242,7 @@ def get_problem_score(homework_answer, judged_score=0):
                     break
                 if json.loads(solution.oi_info)[str(case['desc']) + '.in']['result'] == 4:  # 参照测试点，依次加测试点分数
                     score += int(case['score'])
+            #print("判题完毕，本题共{}分，得分为{}".format(total_score,score))
             if solution.result == 4:
                 id = solution.solution_id # 更新答案库
                 update_ansdb(id)

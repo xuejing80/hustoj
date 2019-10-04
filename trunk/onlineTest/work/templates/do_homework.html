@@ -152,7 +152,7 @@
 		       href="#collapse-{{ problem.problem_id }}"
 		       aria-expanded="{% if forloop.first %}true{% else %}false{% endif %}"
 		       aria-controls="collapse-{{ problem.problem_id }}">
-			{{ forloop.counter }}.{{ problem.title }}
+			{{ forloop.counter }}. ({{ problem.score }}分) {{ problem.title }}
 		    </a>
 		</h4>
 	    </div>

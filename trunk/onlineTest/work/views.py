@@ -698,7 +698,12 @@ def do_homework(request, homework_id=0):
             for id in homework.problem_ids.split(','):
                 if id:
                     try:
-                        problems.append(Problem.objects.get(pk=id))
+                        p = Problem.objects.get(pk=id)
+                        for info in json.loads(homework.problem_info):
+                            if info['id']==int(id):
+                                p.score = info['total_score']
+                                break
+                        problems.append(p)
                     except ObjectDoesNotExist:
                        return render(request, 'warning.html', context={
             'info': '对不起，本作业(ID={})中请求的编程题(ID={})不在题库中，请及时联系管理员：'.format(homework_id,id) + settings.CONTACT_INFO}) 
@@ -707,7 +712,12 @@ def do_homework(request, homework_id=0):
             for id in homework.tiankong_problem_ids.split(','):
                 if id:
                     try:
-                        tiankong_problems.append(Problem.objects.get(pk=id))
+                        p = Problem.objects.get(pk=id)
+                        for info in json.loads(homework.tiankong_problem_info):
+                            if info['id']==int(id):
+                                p.score = info['total_score']
+                                break
+                        tiankong_problems.append(p)
                     except ObjectDoesNotExist:
                        return render(request, 'warning.html', context={
             'info': '对不起，本作业(ID={})中请求的程序填空题(ID={})不在题库中，请及时联系管理员：'.format(homework_id,id) + settings.CONTACT_INFO})
@@ -716,7 +726,12 @@ def do_homework(request, homework_id=0):
             for id in homework.gaicuo_problem_ids.split(','):
                 if id:
                     try:
-                        gaicuo_problems.append(Problem.objects.get(pk=id))
+                        p = Problem.objects.get(pk=id)
+                        for info in json.loads(homework.gaicuo_problem_info):
+                            if info['id']==int(id):
+                                p.score = info['total_score']
+                                break
+                        gaicuo_problems.append(p)
                     except ObjectDoesNotExist:
                        return render(request, 'warning.html', context={
             'info': '对不起，本作业(ID={})中请求的程序改错题(ID={})不在题库中，请及时联系管理员：'.format(homework_id,id) + settings.CONTACT_INFO})

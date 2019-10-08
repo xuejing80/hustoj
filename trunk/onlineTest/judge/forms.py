@@ -62,7 +62,7 @@ class ProblemAddForm(forms.Form):
             problem.sample_output2 = sample_output2
             #problem.creater = user
             problem.knowledgePoint1.clear()
-            problem.knowledgePoint1.clear()
+            problem.knowledgePoint2.clear()
             problem.program = program
         else:
             problem = Problem(
@@ -126,6 +126,7 @@ class ChoiceAddForm(forms.Form):
                 #choiceProblem.creater = user
                 choiceProblem.classname.clear()
                 choiceProblem.knowledgePoint1.clear()
+                choiceProblem.knowledgePoint2.clear()
                 choiceProblem.save()
         else:
             choiceProblem = ChoiceProblem(title=cd['title'], a=cd['a'], b=cd['b'], c=cd['c'], d=cd['d'],
@@ -199,7 +200,7 @@ class GaicuoProblemAddForm(forms.Form):
             problem.sample_output2 = sample_output2
             #problem.creater = user
             problem.knowledgePoint1.clear()
-            problem.knowledgePoint1.clear()
+            problem.knowledgePoint2.clear()
             problem.sample_code = sample_code
         else:
             problem = Problem(
@@ -252,6 +253,7 @@ class DuchengProblemAddForm(forms.Form):
             problem.answer = answer
             problem.creater = user
             problem.knowledgePoint1.clear()
+            problem.knowledgePoint2.clear()
             problem.classname.clear()
             #problem.description = description
         else:
@@ -330,7 +332,7 @@ class TiankongProblemAddForm(forms.Form):
             problem.sample_output2 = sample_output2
             #problem.creater = user
             problem.knowledgePoint1.clear()
-            problem.knowledgePoint1.clear()
+            problem.knowledgePoint2.clear()
             problem.sample_code = sample_code
         else:
             problem = Problem(

@@ -25,7 +25,7 @@ USER_FILE_DIR = "/home/judge/user_file/"
 SECRET_KEY = 'CPP'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 SITE_NAME = "程序设计类课程作业平台"
 CONTACT_INFO = "薛景老师（QQ群：230689474）"

@@ -46,6 +46,7 @@ urlpatterns = [
     url(r'^wenda/',include('wenda.urls')),
     url(r'^message/', include('message.urls')),
     url(r'^media/(?P<path>.*)', serve, {'document_root':settings.MEDIA_ROOT}),
+    url(r'^$',include('auth_system.urls')),
 ]
 
 handler403 = permission_denied

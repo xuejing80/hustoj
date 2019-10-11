@@ -221,8 +221,16 @@
                     </ul>
                 </li>
                 {% if user.is_superuser %}
-                    <li><a href="{% url 'admin:index' %}" target="_blank"><i class="fa fa-key" aria-hidden="true"></i>
-                    <span>系统管理</span></a></li>
+                <li class="sub-menu">
+                    <a href="javascript:;">
+                        <i class="fa fa-user" aria-hidden="true"></i>
+                        <span>系统管理</span>
+                    </a>
+                    <ul class="sub">
+                        <li><a href="{% url 'dashboard' %}">后台可视图</a></li>
+                        <li><a href="{% url 'admin:index' %}">Django后台</a></li>
+                    </ul>
+                </li>
                 {% endif %}
 		{% if user.is_authenticated %}
                 <script>

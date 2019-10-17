@@ -40,7 +40,14 @@
                                 </li>
                                 <li class="layui-col-md2 layui-col-xs6">
                                     <a href="javascript:;" class="x-admin-backlog-body">
-                                        <h3>读程题题数</h3>
+                                        <h3>选择题题数</h3>
+                                        <p>
+                                            <cite>{{ choice_problem_count }}</cite></p>
+                                    </a>
+                                </li>
+                                <li class="layui-col-md2 layui-col-xs6">
+                                    <a href="javascript:;" class="x-admin-backlog-body">
+                                        <h3>填空题题数</h3>
                                         <p>
                                             <cite>{{ ducheng_problem_count }}</cite></p>
                                     </a>
@@ -50,13 +57,6 @@
                                         <h3>编程题题数</h3>
                                         <p>
                                             <cite>{{ problem_count }}</cite></p>
-                                    </a>
-                                </li>
-                                <li class="layui-col-md2 layui-col-xs6">
-                                    <a href="javascript:;" class="x-admin-backlog-body">
-                                        <h3>选择题题数</h3>
-                                        <p>
-                                            <cite>{{ choice_problem_count }}</cite></p>
                                     </a>
                                 </li>
                             </ul>
@@ -100,13 +100,13 @@
                 // 指定图表的配置项和数据
                 var option = {
                     title: {
-                        text: '注册人数统计'
+                        text: '用户人数'
                     },
                     tooltip: {
                         trigger: 'axis'
                     },
                     legend: {
-                        data:['注册人数',]
+                        data:['用户人数',]
                     },
                     grid: {
                         left: '3%',
@@ -129,7 +129,7 @@
                     },
                     series: [
                         {
-                            name:'注册人数',
+                            name:'用户人数',
                             type:'line',
                             stack: '总量',
                             data:{{A}}
@@ -148,13 +148,13 @@
                 // 指定图表的配置项和数据
                 var option = {
                     title: {
-                        text: '题型统计'
+                        text: '题量统计'
                     },
                     tooltip: {
                         trigger: 'axis'
                     },
                     legend: {
-                        data:['选择题','编程题','填空题',]
+                        data:['选择题','填空题','编程题',]
                     },
                     grid: {
                         left: '3%',
@@ -183,16 +183,16 @@
                             data:{{B}}
                         },
                         {
-                            name:'编程题',
-                            type:'line',
-                            stack: '总量',
-                            data:{{C}}
-                        },
-                        {
                             name:'填空题',
                             type:'line',
                             stack: '总量',
                             data:{{D}}
+                        },
+                        {
+                            name:'编程题',
+                            type:'line',
+                            stack: '总量',
+                            data:{{C}}
                         },
                     ]
                 };

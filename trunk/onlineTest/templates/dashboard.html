@@ -1,0 +1,297 @@
+{% extends "base.html" %}
+{% block title %}Dash Board{% endblock %}
+{% load static %}
+{% block extrahead %}
+    <script src="{% static "dashboard/lib/layui/layui.js" %}" charset="utf-8"></script>
+    <script src="{% static "dashboard/js/xadmin.js" %}" type="text/javascript"></script>
+    <link href="{% static "dashboard/css/font.css" %}" rel="stylesheet">
+    <link href="{% static "dashboard/css/xadmin.css" %}" rel="stylesheet">
+{% endblock %}
+{% block content %}
+        <div class="layui-fluid">
+            <div class="layui-row layui-col-space15">
+                <div class="layui-col-md12">
+                    <div class="layui-card">
+                        <div class="layui-card-header">数据统计</div>
+                        <div class="layui-card-body ">
+                            <ul class="layui-row layui-col-space10 layui-this x-admin-carousel x-admin-backlog">
+                                <li class="layui-col-md2 layui-col-xs6">
+                                    <a href="javascript:;" class="x-admin-backlog-body">
+                                        <h3>已注册用户</h3>
+                                        <p>
+                                            <cite>{{ all_users_count }}</cite></p>
+                                    </a>
+                                </li>
+                                <li class="layui-col-md2 layui-col-xs6">
+                                    <a href="javascript:;" class="x-admin-backlog-body">
+                                        <h3>教师人数</h3>
+                                        <p>
+                                            <cite>
+                                            {{ all_teachers_count }}
+                                            </cite></p>
+                                    </a>
+                                </li>                                
+                                <li class="layui-col-md2 layui-col-xs6">
+                                    <a href="javascript:;" class="x-admin-backlog-body">
+                                        <h3>班级数量</h3>
+                                        <p>
+                                            <cite>{{ banji_count }}</cite></p>
+                                    </a>
+                                </li>
+                                <li class="layui-col-md2 layui-col-xs6">
+                                    <a href="javascript:;" class="x-admin-backlog-body">
+                                        <h3>读程题题数</h3>
+                                        <p>
+                                            <cite>{{ ducheng_problem_count }}</cite></p>
+                                    </a>
+                                </li>
+                                <li class="layui-col-md2 layui-col-xs6">
+                                    <a href="javascript:;" class="x-admin-backlog-body">
+                                        <h3>编程题题数</h3>
+                                        <p>
+                                            <cite>{{ problem_count }}</cite></p>
+                                    </a>
+                                </li>
+                                <li class="layui-col-md2 layui-col-xs6">
+                                    <a href="javascript:;" class="x-admin-backlog-body">
+                                        <h3>选择题题数</h3>
+                                        <p>
+                                            <cite>{{ choice_problem_count }}</cite></p>
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div class="layui-fluid">
+                    <div class="layui-row layui-col-space15">
+                        <div class="layui-col-md4">
+                            <div class="layui-card">
+                                <div class="layui-card-body ">
+                                    <!-- 为 ECharts 准备一个具备大小（宽高）的 DOM -->
+                                    <div id="main" style="width: 100%;height:400px;"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="layui-col-md4">
+                            <div class="layui-card">
+                                <div class="layui-card-body ">
+                                    <!-- 为 ECharts 准备一个具备大小（宽高）的 DOM -->
+                                    <div id="main1" style="width: 100%;height:400px;"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="layui-col-md4">
+                            <div class="layui-card">
+                                <div class="layui-card-body ">
+                                    <!-- 为 ECharts 准备一个具备大小（宽高）的 DOM -->
+                                    <div id="main2" style="width: 100%;height:400px;"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+                 <script src="https://cdn.bootcss.com/echarts/4.2.1-rc1/echarts.min.js"></script>
+                <script type="text/javascript">
+                // 基于准备好的dom，初始化echarts实例
+                var myChart = echarts.init(document.getElementById('main'));
+        
+                // 指定图表的配置项和数据
+                var option = {
+                    title: {
+                        text: '注册人数统计'
+                    },
+                    tooltip: {
+                        trigger: 'axis'
+                    },
+                    legend: {
+                        data:['注册人数',]
+                    },
+                    grid: {
+                        left: '3%',
+                        right: '4%',
+                        bottom: '3%',
+                        containLabel: true
+                    },
+                    toolbox: {
+                        feature: {
+                            saveAsImage: {}
+                        }
+                    },
+                    xAxis: {
+                        type: 'category',
+                        boundaryGap: false,
+                        data: {{dates|safe}}
+                    },
+                    yAxis: {
+                        type: 'value'
+                    },
+                    series: [
+                        {
+                            name:'注册人数',
+                            type:'line',
+                            stack: '总量',
+                            data:{{A}}
+                        },
+                    ]
+                };
+        
+        
+                // 使用刚指定的配置项和数据显示图表。
+                myChart.setOption(option);
+            </script>
+            <script type="text/javascript">
+                // 基于准备好的dom，初始化echarts实例
+                var myChart = echarts.init(document.getElementById('main1'));
+        
+                // 指定图表的配置项和数据
+                var option = {
+                    title: {
+                        text: '题型统计'
+                    },
+                    tooltip: {
+                        trigger: 'axis'
+                    },
+                    legend: {
+                        data:['选择题','编程题','填空题',]
+                    },
+                    grid: {
+                        left: '3%',
+                        right: '4%',
+                        bottom: '3%',
+                        containLabel: true
+                    },
+                    toolbox: {
+                        feature: {
+                            saveAsImage: {}
+                        }
+                    },
+                    xAxis: {
+                        type: 'category',
+                        boundaryGap: false,
+                        data: {{dates|safe}}
+                    },
+                    yAxis: {
+                        type: 'value'
+                    },
+                    series: [
+                        {
+                            name:'选择题',
+                            type:'line',
+                            stack: '总量',
+                            data:{{B}}
+                        },
+                        {
+                            name:'编程题',
+                            type:'line',
+                            stack: '总量',
+                            data:{{C}}
+                        },
+                        {
+                            name:'填空题',
+                            type:'line',
+                            stack: '总量',
+                            data:{{D}}
+                        },
+                    ]
+                };
+        
+        
+                // 使用刚指定的配置项和数据显示图表。
+                myChart.setOption(option);
+            </script>
+
+<script src="https://cdn.bootcss.com/echarts/4.2.1-rc1/extension/bmap.min.js"></script>
+<script type="text/javascript">
+// 基于准备好的dom，初始化echarts实例
+var myChart = echarts.init(document.getElementById('main2'));
+
+// 指定图表的配置项和数据
+option = {
+    backgroundColor: '#2c343c',
+
+    title: {
+        text: '数据统计',
+        left: 'center',
+        top: 20,
+        textStyle: {
+            color: '#ccc'
+        }
+    },
+
+    tooltip : {
+        trigger: 'item',
+        formatter: "{a} <br/>{b} : {c} ({d}%)"
+    },
+
+    visualMap: {
+        show: false,
+        min: 80,
+        max: 600,
+        inRange: {
+            colorLightness: [0, 1]
+        }
+    },
+    series : [
+        {
+            name:'访问来源',
+            type:'pie',
+            radius : '55%',
+            center: ['50%', '50%'],
+            data:[
+                {value:{{pythons}}, name:'Python语言程序设计'},
+                {value:{{javas}}, name:'Java语言程序设计'},
+                {value:{{cpps}}, name:'面向对象程序设计'},
+                {value:{{advances}}, name:'高级语言程序设计'},
+            ].sort(function (a, b) { return a.value - b.value}),
+            roseType: 'angle',
+            label: {
+                normal: {
+                    textStyle: {
+                        color: 'rgba(255, 255, 255, 0.3)'
+                    }
+                }
+            },
+            labelLine: {
+                normal: {
+                    lineStyle: {
+                        color: 'rgba(255, 255, 255, 0.3)'
+                    },
+                    smooth: 0.2,
+                    length: 10,
+                    length2: 20
+                }
+            },
+            itemStyle: {
+                normal: {
+                    color: '#c23531',
+                    shadowBlur: 200,
+                    shadowColor: 'rgba(0, 0, 0, 0.5)'
+                }
+            }
+        }
+    ]
+};
+
+
+
+// 使用刚指定的配置项和数据显示图表。
+myChart.setOption(option);
+</script>
+            <script>
+                var _hmt = _hmt || [];
+                (function() {
+                  var hm = document.createElement("script");
+                  hm.src = "https://hm.baidu.com/hm.js?b393d153aeb26b46e9431fabaf0f6190";
+                  var s = document.getElementsByTagName("script")[0]; 
+                  s.parentNode.insertBefore(hm, s);
+                })();
+                </script>
+                <style id="welcome_style"></style>
+                
+            </div>
+        </div>
+        </div>
+{% endblock %}
+

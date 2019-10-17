@@ -59,10 +59,12 @@ INSTALLED_APPS = [
     'sign',             #基于地理位置的签到
     'message',          #消息系统
     'wenda',            #异步问答模块
+    'census',           #数据记录
 ]
 
 CRONJOBS = [
     ('0 20 * * 7', 'warning.m.warning', '>> /home/judge/log/warning.log'),
+    ('55 15 * * *', 'census.views.Record', '>> /home/judge/log/census.log'),
 ]
 
 MIDDLEWARE_CLASSES = [

@@ -2,7 +2,7 @@ from django.conf.urls import url
 from django.views.generic import TemplateView
 
 from auth_system.views import UserControl, change_password, list_users, get_users, create_users, update_user, change_email
-
+from . import views
 urlpatterns = [
     url(r'^login/$', TemplateView.as_view(template_name="demo/login.html"), name='login'),
     url(r'^register/$', TemplateView.as_view(template_name="demo/register.html"), name='register'),
@@ -22,4 +22,5 @@ urlpatterns = [
     url(r'^resetpassword_mail$', change_email, name='_resetpassword_mail'),
     url(r'^resetpassword_mail/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<umailb64>[0-9A-Za-z_\-]+)/(?P<token>.+)/$',
         TemplateView.as_view(template_name="demo/resetpassword_mail.html")),
+    url(r'^dashboard$', views.dash_board, name='dashboard'),
 ]

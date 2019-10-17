@@ -14,8 +14,12 @@ from django.utils.http import urlsafe_base64_decode
 from django.utils.encoding import force_bytes
 from django.contrib.auth.decorators import login_required
 from django.forms import ValidationError
+from django.db.models import Count
 from .forms import VmaigUserCreationForm, VmaigPasswordRestForm, PasswordChangeForm, EmailChangeForm, SetPasswordForm
 from .models import MyUser
+from census.views import Nums, Dates
+from judge.models import ChoiceProblem, DuchengProblem, Problem, ClassName
+from work.models import BanJi
 import json, base64
 from django.http import HttpResponse, Http404
 import logging
@@ -24,7 +28,6 @@ logger_request = logging.getLogger('django.request')
 import re,os
 from django.db.models import Q
 from django.conf import settings
-
 # logger
 logger = logging.getLogger('django')
 
@@ -416,3 +419,31 @@ def page_error(request):
 def permission_denied(request):
     return render(request, 'warning.html', context={'info': '您无权访问该页面！'})
 
+
+
+def dash_board(request):
+    A = 'registered_users'
+    B = 'choices'
+    C = 'programms'
+    D = 'fills'
+    
+    group = Group.objects.get(name='老师')
+    teachers = group.user_set.all()
+    context = {}
+    context['javas'] = len(ChoiceProblem.objects.filter(classname=4))
+    context['cpps'] = len(ChoiceProblem.objects.filter(classname=3))
+    context['advances'] = len(ChoiceProblem.objects.filter(classname=1))
+    context['dates'] = Dates()
+    context['A'] = Nums(A)
+    context['B'] = Nums(B)
+    context['C'] = Nums(C)
+    context['D'] = Nums(D)
+    context['all_users_count'] = len(MyUser.objects.annotate(Count('Number_user')))
+    context['all_teachers_count'] = len(teachers)
+    context['choice_problem_count'] = len(ChoiceProblem.objects.annotate(Count('id')))
+    context['pythons'] = context['choice_problem_count']-(context['javas']+context['cpps']+context['advances'])
+    context['ducheng_problem_count'] = len(DuchengProblem.objects.annotate(Count('ducheng_id')))
+    context['problem_count'] = len(Problem.objects.annotate(Count('problem_id')))
+    context['banji_count'] = len(BanJi.objects.annotate(Count('banji')))
+    # context['online_visitors'] = online_vistors
+    return render(request, "dashboard.html", context)

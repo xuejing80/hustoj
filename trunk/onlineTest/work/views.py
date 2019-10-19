@@ -517,6 +517,9 @@ def show_homework_result(request, id=0):
                        'show_answer': show_answer, 'remained_number': remained_number,
                        'resubmit_number': resubmit_number, 'is_end': is_end}
     #logger.info(str(context))
+    #mxy
+    log = "执行动作：查看作业详细，用户信息：{}({}:{})，详细：{}".format(request.user.username, request.user.pk, request.user.id_num, t)
+    logger.info(log + "执行结果：成功")
     return render(request, 'homework_result.html',context)
 
 def get_choice_score(homework_answer):
@@ -1117,6 +1120,8 @@ def list_do_homework(request):
 @login_required()
 def get_my_homework_todo(request):
     log = "执行动作：读取作业列表，用户信息：{}({}:{})，POST数据：{}".format(request.user.username,request.user.pk,request.user.id_num,request.POST.dict())
+    #mxy
+    logger.info(log+"执行结果：成功")
     user = request.user
     json_data = {}
     recodes = []
@@ -1811,6 +1816,18 @@ def send_zipfile(request,id):
     response['Content-Type'] = 'application/octet-stream'
     response['Content-Disposition'] = 'attachment; filename=%s' %zipfilename
     return response
+
+#mxy
+@login_required()
+def submit_homework_temp(request):
+	radio_id = request.POST['radio_id']
+	log = "执行动作：选择题点击操作，用户信息：{}({}:{})，POST数据：{}".format(request.user.username,request.user.pk,request.user.id_num,request.POST.dict())
+	logger.info(log + "，执行结果：成功")
+@login_required()
+def mxy_click_temp(request):
+    log = "执行动作：点击操作，用户信息：{}({}:{})，POST数据：{}".format(request.user.username,request.user.pk,request.user.id_num,request.POST.dict())
+    logger.info(log+"，执行结果：成功")
+
 
 # def list_depl_homeworks(request):
 #     return render(request,'depl_homework_list.html')

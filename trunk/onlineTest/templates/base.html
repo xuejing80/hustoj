@@ -234,18 +234,43 @@
                             url: "{% url 'get_courser_name' %}",
                             success: function (data) {
                                 var lh = data.length
-                                var nhh = "<li><a href='{% url 'add_course' %}'>添加课程</a></li>";
+                                var nhh = "<li><a href='{% url 'add_course' %}' onclick='click'>添加课程</a></li>";
                                 var x = document.getElementById('courser_name')
                                 for(var k in data)
                                 {    
-                                    nhh = nhh +"<li><a href='{% url '_list_course'  %}"+k+"'>"+data[k]+"</a></li>";
+                                    nhh = nhh +"<li><a href='{% url '_list_course'  %}"+k+"'onclick='click'>"+data[k]+"</a></li>";
                                 }
                                 x.innerHTML = nhh
                             },
                             error: function (XMLHttpRequest, textStatus, errorThrown) {
                                 alert(XMLHttpRequest.responseText);
                             }
-                        }); 
+                        });
+
+                        //mxy
+                         $("#courser_name").on('click','a',function () {
+            var a_val=$(this).text().replace(/[\s\n] /g,"") ;
+            var a_url=$(this).attr('href');
+            setTimeout(aClick(a_url,a_val), 0);
+        });
+        function aClick(url,val){
+            $.ajax({
+                type:"post",
+                url:"{% url 'mxy_click' %}",
+                dataType:"json",
+                async:false,
+                data:{
+                    'a_url':url,
+                    'a_val':val
+                },
+                success:function(data){
+
+
+                },
+            });
+        };
+                //
+
                     });
                 </script>
                 {% endif %}
@@ -298,6 +323,38 @@
 
 <!--common script for all pages-->
 <script src="{% static "assets/js/common-scripts.js" %}"></script>
+
+
+    <!--mxy-->
+<script>
+    $(function(){
+        $("a").click(function () {
+            var a_val=$(this).text().replace(/[\s\n] /g,"") ;
+            var a_url=$(this).attr('href');
+            setTimeout(aClick(a_url,a_val), 0);
+        });
+        function aClick(url,val){
+            $.ajax({
+                type:"post",
+                url:"{% url 'mxy_click' %}",
+                dataType:"json",
+                async:false,
+                data:{
+                    'a_url':url,
+                    'a_val':val
+                },
+                success:function(data){
+
+
+                },
+            });
+        };
+
+
+    } )
+
+</script>
+
 
 <!--script for this page-->
 
@@ -422,6 +479,9 @@
         }
 
     })
+
+
+
 </script>
 
 </body>

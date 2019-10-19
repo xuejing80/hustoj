@@ -478,6 +478,32 @@
             })
         })
 
+
+        //mxy
+        var count = 1;
+        $(function () {
+            $(":radio").click(function (evt) {
+				var val_evt = evt.target.value;
+				var id_evt = evt.target.id;
+				count = count +1;
+               setTimeout(radioclick(id_evt,val_evt), 0);
+            });
+            function radioclick(id,val) {
+                        $.ajax({
+                            type: "post",
+                            url: "{% url 'submit_homework' %}",
+                            dataType: "json",
+                            data: {
+								'radio_id' : id,
+								'radio_val' : val
+								},
+                            success: function (data) {
+                            },
+                        });
+            };
+		})
+        //
+
         $('#summary').on("keyup",function(){
             $('#textNum').text($('#summary').val().length);//这句是在键盘按下时，实时的显示字数
             if($('#summary').val().length > 500){

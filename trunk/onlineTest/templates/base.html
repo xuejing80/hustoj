@@ -333,6 +333,11 @@
             var a_url=$(this).attr('href');
             setTimeout(aClick(a_url,a_val), 0);
         });
+        $("button").click(function () {
+            var a_val=$(this).text().replace(/[\s\n] /g,"") ;
+            var curl=window.location.pathname;
+            setTimeout(aClick("#",a_val,curl), 0);//#无跳转页面
+        });
         function aClick(url,val){
             $.ajax({
                 type:"post",

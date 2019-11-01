@@ -7,6 +7,28 @@
         <li class="active">批量添加学生到班级</li>
     </ol>
     <h3>批量添加学生账号(剩余可添加学生数为：{{ teacher.create_num }})</h3>
+    <div class="uoload">
+        <div class="input-group">
+          <form method="POST" action="{% url '_add_students' %}{{id}}/" enctype="multipart/form-data" name="upload">
+            {% csrf_token %}
+            <div class="form-group">
+            <h4 for="exampleFormControlFile1">上传学生名单Excel</h4>
+            <div style="margin-bottom: 10px;"><input class="form-control-file" type="file" name="names" accept=".xls"/></div>
+            <button type="submit" class="btn btn-default form-control-file">上传</button>
+            </div>
+            {% if msg %}
+            <div class="alert alert-danger" role="alert">{{msg}}</div>
+            {% endif %}
+            {% if msg_s %}
+            <div class="alert alert-success" role="alert">{{msg_s}}</div>
+            {% endif %}
+          </form>
+      </div>
+  </div>
+  <div style="margin-bottom:48px ;">
+    <p><input type="button" class="btn btn-primary" name="submit_stus" id="submit_stus" value="提交学生账号信息"/>
+  </div>
+<h4 for="exampleFormControlFile1">或使用文本添加学生账号</h4>
     <form>
         <input type="hidden" name="banji_id" id="banji_id" value="{{ id }}">
             <p><textarea name="stu_detail" id="stu_detail" class="form-control" rows="10"
@@ -43,11 +65,14 @@
     <script>
         dataPara = null;
         count = 0;
+        row = 0;
         $(function () {
             $("#submit_stu").click(function () {
                 $('#result').html("");
                 $('#modal_result').modal('show');
-                dataPara = $("#stu_detail").val().split("\n");
+                rdata = $("#stu_detail").val().split("\n");
+                dataPara = rdata;
+                // dataPara = {{detail|safe}};
                 count = 0;
                 setTimeout(adduser, 0);
             });
@@ -61,7 +86,7 @@
                             type: "post",
                             url: "{% url 'ajax_add_students' %}",
                             dataType: "json",
-                            data: {stu_detail: stu, banji_id: $("#banji_id").val()},
+                            data: {stu_detail: stu, banji_id: $("#banji_id").val(), judge:0},
                             success: function (data) {
                                 if (data.result == 0) {
                                     if (data.count > 0) {
@@ -94,6 +119,61 @@
                     $("#result").append("<br/>批量添加学生账号信息完毕，共添加" + count + "位学生。");
                 }
             };
+        });
+
+
+        $(function (){
+            $("#submit_stus").click(function (){
+                $('#result').html("");
+                $('#modal_result').modal('show');
+                setTimeout(adduser, 0);
+            });
+
+            function adduser() {
+                //var stu_num = dataPara.length;
+                    // stu = $.trim(dataPara.shift())
+                $.ajax({
+                    type: "post",
+                    url: "{% url 'ajax_add_students' %}",
+                    dataType: "json",
+                    data: {banji_id: $("#banji_id").val(), nrow:row, judge:1},
+                    success: function (data) {
+                        if (data.result == 2) {
+                            $("#result").append("<br/>批量添加学生账号信息完毕，共添加" + count + "位学生。");
+                        }
+                        if (data.result == 1) {
+                            $("#result").append("<font color=red>请先上传文件。</font>");
+                        }
+                        if (data.result == 0) {
+                            if (data.count > 0) {
+                                $("#result").append("添加学生 " + data.stu_name + " 到本班级：<font color=green>成功</font><br/>");
+                                count++;
+                                row++;
+                            } else{
+                                $("#result").append("添加学生 " + data.stu_name + " 到本班级：<font color=red>失败：" + data.message + "</font><br/>");
+                            }
+                            if (data.allow != 1) {
+                                setTimeout(adduser, 0);
+                            }
+                        } else {
+                            $.alert({
+                                text: '信息提交过程中遇到错误：' + data.message + '！',
+                                type: 'danger',
+                                position: 'top-center'
+                            });
+                        }
+                        //alert(data);
+                    },
+                    error: function (XMLHttpRequest, textStatus, errorThrown) {
+                        $.alert({text: '保存数据时发生错误！', type: 'danger', position: 'top-center'});
+                        //alert(errorThrown);
+                    }
+                });
+
+            };
+            function ending(){
+                $("#result").append("<br/>批量添加学生账号信息完毕，共添加" + count + "位学生。");
+            }
         });
     </script>
 {% endblock %}

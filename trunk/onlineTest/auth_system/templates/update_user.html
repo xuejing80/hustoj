@@ -23,7 +23,7 @@
     </form>
     <script>
         $(function () {
-            $("#groups option[value='{{ current_group_id }}']").attr("selected", true);
+            $("#groups option[value='{{ current_group_id }}']").prop("selected", true);
         });
     </script>
 {% endblock %}

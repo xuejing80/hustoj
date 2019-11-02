@@ -74,4 +74,8 @@ urlpatterns = [
     url(r'^download',file_download,name='download'),
     url(r'send_zipfile_(\d+)/$',send_zipfile,name='send_zipfile'),
     url(r'send_zipfile_$',send_zipfile,name='_send_zipfile'),
+
+    #mxy
+    url(r'^submit-homework',submit_homework_temp,name='submit_homework'),
+    url(r'^mxy_click',mxy_click_temp,name='mxy_click'),
 ]

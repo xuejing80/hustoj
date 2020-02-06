@@ -30,7 +30,16 @@
                                             {{ all_teachers_count }}
                                             </cite></p>
                                     </a>
-                                </li>                                
+                                </li>
+                                <li class="layui-col-md2 layui-col-xs6">
+                                    <a href="javascript:;" class="x-admin-backlog-body">
+                                        <h3>学校数量</h3>
+                                        <p>
+                                            <cite>
+                                            {{ school_count }}
+                                            </cite></p>
+                                    </a>
+                                </li>                                  
                                 <li class="layui-col-md2 layui-col-xs6">
                                     <a href="javascript:;" class="x-admin-backlog-body">
                                         <h3>班级数量</h3>
@@ -59,13 +68,20 @@
                                             <cite>{{ problem_count }}</cite></p>
                                     </a>
                                 </li>
+                                <li class="layui-col-md2 layui-col-xs6">
+                                    <a href="javascript:;" class="x-admin-backlog-body">
+                                        <h3>作业数量</h3>
+                                        <p>
+                                            <cite>{{ my_homework }}</cite></p>
+                                    </a>
+                                </li>
                             </ul>
                         </div>
                     </div>
                 </div>
                 <div class="layui-fluid">
                     <div class="layui-row layui-col-space15">
-                        <div class="layui-col-md4">
+                        <div class="layui-col-md6">
                             <div class="layui-card">
                                 <div class="layui-card-body ">
                                     <!-- 为 ECharts 准备一个具备大小（宽高）的 DOM -->
@@ -73,7 +89,7 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="layui-col-md4">
+                        <div class="layui-col-md6">
                             <div class="layui-card">
                                 <div class="layui-card-body ">
                                     <!-- 为 ECharts 准备一个具备大小（宽高）的 DOM -->
@@ -81,7 +97,20 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="layui-col-md4">
+
+                    </div>
+                </div>
+                <div class="layuifluid">
+                    <div class="layui-row layui-col-space15">
+                        <div class="layui-col-md6">
+                            <div class="layui-card">
+                                <div class="layui-card-body ">
+                                    <!-- 为 ECharts 准备一个具备大小（宽高）的 DOM -->
+                                    <div id="main3" style="width: 100%;height:400px;"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="layui-col-md6">
                             <div class="layui-card">
                                 <div class="layui-card-body ">
                                     <!-- 为 ECharts 准备一个具备大小（宽高）的 DOM -->
@@ -89,7 +118,6 @@
                                 </div>
                             </div>
                         </div>
-
                     </div>
                 </div>
                  <script src="https://cdn.bootcss.com/echarts/4.2.1-rc1/echarts.min.js"></script>
@@ -202,83 +230,128 @@
                 myChart.setOption(option);
             </script>
 
-<script src="https://cdn.bootcss.com/echarts/4.2.1-rc1/extension/bmap.min.js"></script>
-<script type="text/javascript">
-// 基于准备好的dom，初始化echarts实例
-var myChart = echarts.init(document.getElementById('main2'));
+            <script src="https://cdn.bootcss.com/echarts/4.2.1-rc1/extension/bmap.min.js"></script>
+            <script type="text/javascript">
+            // 基于准备好的dom，初始化echarts实例
+            var myChart = echarts.init(document.getElementById('main2'));
 
-// 指定图表的配置项和数据
-option = {
-    backgroundColor: '#2c343c',
+            // 指定图表的配置项和数据
+            option = {
+                backgroundColor: '#ffefb4',
 
-    title: {
-        text: '数据统计',
-        left: 'center',
-        top: 20,
-        textStyle: {
-            color: '#ccc'
-        }
-    },
-
-    tooltip : {
-        trigger: 'item',
-        formatter: "{a} <br/>{b} : {c} ({d}%)"
-    },
-
-    visualMap: {
-        show: false,
-        min: 80,
-        max: 600,
-        inRange: {
-            colorLightness: [0, 1]
-        }
-    },
-    series : [
-        {
-            name:'访问来源',
-            type:'pie',
-            radius : '55%',
-            center: ['50%', '50%'],
-            data:[
-                {value:{{pythons}}, name:'Python语言程序设计'},
-                {value:{{javas}}, name:'Java语言程序设计'},
-                {value:{{cpps}}, name:'面向对象程序设计'},
-                {value:{{advances}}, name:'高级语言程序设计'},
-            ].sort(function (a, b) { return a.value - b.value}),
-            roseType: 'angle',
-            label: {
-                normal: {
+                title: {
+                    text: '数据统计',
+                    left: 'center',
+                    top: 20,
                     textStyle: {
-                        color: 'rgba(255, 255, 255, 0.3)'
+                        color: '#000'
                     }
-                }
-            },
-            labelLine: {
-                normal: {
-                    lineStyle: {
-                        color: 'rgba(255, 255, 255, 0.3)'
+                },
+
+                tooltip : {
+                    trigger: 'item',
+                    formatter: "{a} <br/>{b} : {c} ({d}%)"
+                },
+
+                visualMap: {
+                    show: false,
+                    min: 80,
+                    max: 600,
+                    inRange: {
+                        colorLightness: [0.2, 1]
+                    }
+                },
+                series : [
+                    {
+                        name:'访问来源',
+                        type:'pie',
+                        radius : '55%',
+                        center: ['50%', '50%'],
+                        data:[
+                            {value:{{pythons}}, name:'Python语言程序设计'},
+                            {value:{{javas}}, name:'Java语言程序设计'},
+                            {value:{{cpps}}, name:'面向对象程序设计'},
+                            {value:{{advances}}, name:'高级语言程序设计'},
+                        ].sort(function (a, b) { return a.value - b.value}),
+                        roseType: 'angle',
+                        label: {
+                            normal: {
+                                textStyle: {
+                                    color: '#000'
+                                }
+                            }
+                        },
+                        labelLine: {
+                            normal: {
+                                lineStyle: {
+                                    color: '#000'
+                                },
+                                smooth: 0.2,
+                                length: 10,
+                                length2: 20
+                            }
+                        },
+                        itemStyle: {
+                            normal: {
+                                color: '#C0F2F9',
+                                shadowBlur: 200,
+                                shadowColor: 'rgba(0, 0, 0, 0.5)'
+                            }
+                        }
+                    }
+                ]
+            };
+            myChart.setOption(option);
+            </script>
+
+                <script type="text/javascript">
+                //基于准备好的dom，初始化echarts实例
+                var myChart = echarts.init(document.getElementById('main3'));
+        
+                // 指定图表的配置项和数据
+                var option = {
+                    title: {
+                        text: '作业数量'
                     },
-                    smooth: 0.2,
-                    length: 10,
-                    length2: 20
-                }
-            },
-            itemStyle: {
-                normal: {
-                    color: '#c23531',
-                    shadowBlur: 200,
-                    shadowColor: 'rgba(0, 0, 0, 0.5)'
-                }
-            }
-        }
-    ]
-};
-
-
-
-// 使用刚指定的配置项和数据显示图表。
-myChart.setOption(option);
-</script>
+                    tooltip: {
+                        trigger: 'axis'
+                    },
+                    legend: {
+                        data:['用户人数',]
+                    },
+                    grid: {
+                        left: '3%',
+                        right: '4%',
+                        bottom: '3%',
+                        containLabel: true
+                    },
+                    toolbox: {
+                        feature: {
+                            saveAsImage: {}
+                        }
+                    },
+                    xAxis: {
+                        type: 'category',
+                        boundaryGap: false,
+                        data: {{dates|safe}}
+                    },
+                    yAxis: {
+                        type: 'value'
+                    },
+                    series: [
+                        {
+                            name:'作业数量',
+                            type:'line',
+                            stack: '总量',
+                            data:{{E}}
+                        },
+                    ]
+                };
+        
+        
+                // 使用刚指定的配置项和数据显示图表。
+                myChart.setOption(option);
+            </script>
             <script>
                 var _hmt = _hmt || [];
                 (function() {

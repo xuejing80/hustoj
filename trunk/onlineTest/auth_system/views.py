@@ -14,12 +14,12 @@ from django.utils.http import urlsafe_base64_decode
 from django.utils.encoding import force_bytes
 from django.contrib.auth.decorators import login_required
 from django.forms import ValidationError
-from django.db.models import Count
+from django.db.models import Count, Sum
 from .forms import VmaigUserCreationForm, VmaigPasswordRestForm, PasswordChangeForm, EmailChangeForm, SetPasswordForm
 from .models import MyUser
-from census.views import Nums, Dates
+from census.views import Nums, Dates, Record
 from judge.models import ChoiceProblem, DuchengProblem, Problem, ClassName
-from work.models import BanJi
+from work.models import BanJi, MyHomework
 import json, base64
 from django.http import HttpResponse, Http404
 import logging
@@ -426,7 +426,8 @@ def dash_board(request):
     B = 'choices'
     C = 'programms'
     D = 'fills'
-    
+    E = 'homework'
+    Record()
     group = Group.objects.get(name='老师')
     teachers = group.user_set.all()
     context = {}
@@ -438,8 +439,12 @@ def dash_board(request):
     context['B'] = Nums(B)
     context['C'] = Nums(C)
     context['D'] = Nums(D)
+    context['E'] = Nums(E)
     context['all_users_count'] = len(MyUser.objects.annotate(Count('Number_user')))
+    result = MyUser.objects.aggregate(total=Count('school', distinct=True))
+    context['school_count'] = result['total']
     context['all_teachers_count'] = len(teachers)
+    context['my_homework'] = len(MyHomework.objects.all())
     context['choice_problem_count'] = len(ChoiceProblem.objects.annotate(Count('id')))
     context['pythons'] = context['choice_problem_count']-(context['javas']+context['cpps']+context['advances'])
     context['ducheng_problem_count'] = len(DuchengProblem.objects.annotate(Count('ducheng_id')))

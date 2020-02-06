@@ -1,9 +1,13 @@
 # encoding: utf-8
 import os, shutil, zipfile, string, json, datetime, time, random
 import _thread
+import xlrd
+import shutil
 from django.contrib.auth.models import Group
 from django.core.exceptions import ObjectDoesNotExist, PermissionDenied
-
+from onlineTest.settings import BASE_DIR
+from os.path import isdir, dirname, join
+from os import mkdir
 from django.core.urlresolvers import reverse
 from django.http import HttpResponse, StreamingHttpResponse, JsonResponse
 from django.shortcuts import render, get_object_or_404, redirect
@@ -1017,65 +1021,148 @@ def get_students(request,banji=None):
 
 @permission_required('work.change_banji')
 def add_students(request, pk):
+    if request.FILES.get('names'):
+        teacher = MyUser.objects.get(id=request.user.id)
+        tea_name = teacher.username
+        uploadDir = BASE_DIR+'/upload/'+tea_name
+        if not isdir(uploadDir):
+            mkdir(uploadDir)
+        uploadedFile = request.FILES.get('names')
+        if not uploadedFile:
+            return render(request, 'add_students.html', {'msg':'错误：没有选择文件！','id': pk, 'teacher':teacher, 'title': '添加学生到班级'})
+        if not uploadedFile.name.endswith('dmc.xls'):
+            return render(request, 'add_students.html', {'msg':'错误：请选择初始点名文档！','id': pk, 'teacher':teacher, 'title': '添加学生到班级'})
+        dstFilename = join(uploadDir, uploadedFile.name)
+        newname = join(uploadDir, tea_name+'.xls')
+        with open(dstFilename, 'wb') as fp:
+            for chunk in uploadedFile.chunks():
+                fp.write(chunk)
+        os.rename(dstFilename, newname)
+        return render(request, 'add_students.html', {'msg_s':'上传成功！','id': pk, 'teacher':teacher, 'title': '添加学生到班级'})
     teacher = MyUser.objects.get(id=request.user.id)
     return render(request, 'add_students.html', context={'id': pk, 'teacher':teacher, 'title': '添加学生到班级'})
 
 
 @permission_required('work.change_banji')
 def ajax_add_students(request):
-    stu_detail = request.POST['stu_detail']
-    banji_id = request.POST['banji_id']
-    teacher = MyUser.objects.get(id=request.user.id)
-    allow_num = teacher.allow_num
-    if teacher.create_num < 1:
-        return HttpResponse(json.dumps({'result': 0, 'count': 0, 'allow': 1,'message':'已达到允许添加学生数量上限'}))
-    if len(stu_detail.split()) > 1:
-        id_num, username = stu_detail.split()[0], stu_detail.split()[1]
-        if teacher.school == '' and teacher.school_short == '':
-            try:
-                student = MyUser.objects.get(id_num=id_num)
-                if student.username == username:
-                    student.groups.add(Group.objects.get(name='学生'))
-                else:
-                    return HttpResponse(json.dumps({'result': 0, 'count': 0, 'allow': 1,'message':'该学号被其他用户占用，请联系管理员老师'}))
-                #if student.username != username:
-                #    student = MyUser(id_num=id_num, email=id_num + '@njupt.edu.cn', username=username)
-                #    student.set_password(id_num)
-                #    student.save()
-                #    student.groups.add(Group.objects.get(name='学生'))
-            except:
-                student = MyUser(id_num=id_num, email=id_num + '@njupt.edu.cn', username=username)
-                student.set_password(id_num)
-                student.save()
-                student.groups.add(Group.objects.get(name='学生'))
-            
-        else:
-            try:
-                student = MyUser.objects.get(id_num=teacher.school_short+id_num)
-                if student.username == username:
-                    student.groups.add(Group.objects.get(name='学生'))
-                else:
-                    return HttpResponse(json.dumps({'result': 0, 'count': 0, 'allow': 1,'message':'该学号被占用'}))
-                #if student.username != username:
-                #    student = MyUser(id_num=teacher.school_short+id_num, email=id_num + '@' + teacher.school_short.lower() + '.edu.cn', username=username, school=teacher.school, school_short=teacher.school_short)
-                #    student.set_password(teacher.school_short+id_num)
-                #    student.save()
-                #    student.groups.add(Group.objects.get(name='学生'))
-            except:
-                if len(MyUser.objects.filter(email=id_num + '@' + teacher.school_short.lower() + '.edu.cn'))==0:
-                    student = MyUser(id_num=teacher.school_short+id_num, email=id_num + '@' + teacher.school_short.lower() + '.edu.cn', username=username, school=teacher.school, school_short=teacher.school_short)
-                    student.set_password(teacher.school_short+id_num)
+    
+    if request.POST['judge']=='1':
+        banji_id = request.POST['banji_id']
+        row = request.POST['nrow']
+        teacher = MyUser.objects.get(id=request.user.id)
+        tea_name = teacher.username
+        allow_num = teacher.allow_num
+        dstFilename = BASE_DIR+'/upload/'+tea_name+'/'+tea_name+'.xls'
+        if not (os.path.exists(dstFilename)):
+            return HttpResponse(json.dumps({'result': 1, 'count': 0, 'allow': 1}))
+        excel = xlrd.open_workbook(dstFilename) 
+        table = excel.sheets()[0]
+        rows = table.nrows
+        if int(row)+5 == rows:
+            shutil.rmtree(BASE_DIR+'/upload/'+tea_name)
+            return HttpResponse(json.dumps({'result': 2, 'count': 0, 'allow': 1}))
+        st = table.row_values(int(row)+5, start_colx=1, end_colx=3)
+        if len(st) > 1:
+            id_num, username = st
+            if teacher.create_num < 1:
+                return HttpResponse(json.dumps({'stu_name':username, 'result': 0, 'count': 0, 'allow': 1,'message':'已达到允许添加学生数量上限'}))
+            if teacher.school == '' and teacher.school_short == '':
+                try:
+                    student = MyUser.objects.get(id_num=id_num)
+                    if student.username == username:
+                        student.groups.add(Group.objects.get(name='学生'))
+                    else:
+                        return HttpResponse(json.dumps({'stu_name':username, 'result': 0, 'count': 0, 'allow': 1,'message':'该学号被其他用户占用，请联系管理员老师'}))
+                    #if student.username != username:
+                    #    student = MyUser(id_num=id_num, email=id_num + '@njupt.edu.cn', username=username)
+                    #    student.set_password(id_num)
+                    #    student.save()
+                    #    student.groups.add(Group.objects.get(name='学生'))
+                except:
+                    student = MyUser(id_num=id_num, email=id_num + '@njupt.edu.cn', username=username)
+                    student.set_password(id_num)
                     student.save()
                     student.groups.add(Group.objects.get(name='学生'))
-                else:
-                    return HttpResponse(json.dumps({'result': 0, 'count': 0, 'allow': 1,'message':'该邮箱被占用'}))
-    banji = BanJi.objects.get(pk=banji_id)
-    if teacher.create_num > 0:
-        banji.students.add(student)
-        teacher.create_num -= 1
-        teacher.save()
-        return HttpResponse(json.dumps({'result': 0, 'count': 1}))
-
+                
+            else:
+                try:
+                    student = MyUser.objects.get(id_num=teacher.school_short+id_num)
+                    if student.username == username:
+                        student.groups.add(Group.objects.get(name='学生'))
+                    else:
+                        return HttpResponse(json.dumps({'stu_name':username, 'result': 0, 'count': 0, 'allow': 1,'message':'该学号被占用'}))
+                    #if student.username != username:
+                    #    student = MyUser(id_num=teacher.school_short+id_num, email=id_num + '@' + teacher.school_short.lower() + '.edu.cn', username=username, school=teacher.school, school_short=teacher.school_short)
+                    #    student.set_password(teacher.school_short+id_num)
+                    #    student.save()
+                    #    student.groups.add(Group.objects.get(name='学生'))
+                except:
+                    if len(MyUser.objects.filter(email=id_num + '@' + teacher.school_short.lower() + '.edu.cn'))==0:
+                        student = MyUser(id_num=teacher.school_short+id_num, email=id_num + '@' + teacher.school_short.lower() + '.edu.cn', username=username, school=teacher.school, school_short=teacher.school_short)
+                        student.set_password(teacher.school_short+id_num)
+                        student.save()
+                        student.groups.add(Group.objects.get(name='学生'))
+                    else:
+                        return HttpResponse(json.dumps({'stu_name':username, 'result': 0, 'count': 0, 'allow': 1,'message':'该邮箱被占用'}))
+        banji = BanJi.objects.get(pk=banji_id)
+        if teacher.create_num > 0:
+            banji.students.add(student)
+            teacher.create_num -= 1
+            teacher.save()
+            return HttpResponse(json.dumps({'stu_name':username, 'result': 0, 'count': 1}))
+    if request.POST['judge']=='0':
+        banji_id = request.POST['banji_id']
+        stu_detail = request.POST['stu_detail']
+        teacher = MyUser.objects.get(id=request.user.id)
+        allow_num = teacher.allow_num
+        if teacher.create_num < 1:
+            return HttpResponse(json.dumps({'result': 0, 'count': 0, 'allow': 1,'message':'已达到允许添加学生数量上限'}))
+        if len(stu_detail.split()) > 1:
+            id_num, username = stu_detail.split()[0], stu_detail.split()[1]
+            if teacher.school == '' and teacher.school_short == '':
+                try:
+                    student = MyUser.objects.get(id_num=id_num)
+                    if student.username == username:
+                        student.groups.add(Group.objects.get(name='学生'))
+                    else:
+                        return HttpResponse(json.dumps({'result': 0, 'count': 0, 'allow': 1,'message':'该学号被其他用户占用，请联系管理员老师'}))
+                    #if student.username != username:
+                    #    student = MyUser(id_num=id_num, email=id_num + '@njupt.edu.cn', username=username)
+                    #    student.set_password(id_num)
+                    #    student.save()
+                    #    student.groups.add(Group.objects.get(name='学生'))
+                except:
+                    student = MyUser(id_num=id_num, email=id_num + '@njupt.edu.cn', username=username)
+                    student.set_password(id_num)
+                    student.save()
+                    student.groups.add(Group.objects.get(name='学生'))
+                
+            else:
+                try:
+                    student = MyUser.objects.get(id_num=teacher.school_short+id_num)
+                    if student.username == username:
+                        student.groups.add(Group.objects.get(name='学生'))
+                    else:
+                        return HttpResponse(json.dumps({'result': 0, 'count': 0, 'allow': 1,'message':'该学号被占用'}))
+                    #if student.username != username:
+                    #    student = MyUser(id_num=teacher.school_short+id_num, email=id_num + '@' + teacher.school_short.lower() + '.edu.cn', username=username, school=teacher.school, school_short=teacher.school_short)
+                    #    student.set_password(teacher.school_short+id_num)
+                    #    student.save()
+                    #    student.groups.add(Group.objects.get(name='学生'))
+                except:
+                    if len(MyUser.objects.filter(email=id_num + '@' + teacher.school_short.lower() + '.edu.cn'))==0:
+                        student = MyUser(id_num=teacher.school_short+id_num, email=id_num + '@' + teacher.school_short.lower() + '.edu.cn', username=username, school=teacher.school, school_short=teacher.school_short)
+                        student.set_password(teacher.school_short+id_num)
+                        student.save()
+                        student.groups.add(Group.objects.get(name='学生'))
+                    else:
+                        return HttpResponse(json.dumps({'result': 0, 'count': 0, 'allow': 1,'message':'该邮箱被占用'}))
+        banji = BanJi.objects.get(pk=banji_id)
+        if teacher.create_num > 0:
+            banji.students.add(student)
+            teacher.create_num -= 1
+            teacher.save()
+            return HttpResponse(json.dumps({'result': 0, 'count': 1}))
 
 def reset_stupassword(request):
     if request.method == 'POST':
@@ -1843,32 +1930,3 @@ def send_zipfile(request,id):
     response['Content-Type'] = 'application/octet-stream'
     response['Content-Disposition'] = 'attachment; filename=%s' %zipfilename
     return response
-
-# def list_depl_homeworks(request):
-#     return render(request,'depl_homework_list.html')
-#
-# def get_depl_homeworks(request):
-#     json_data = {}
-#     recodes = []
-#     offset = int(request.GET['offset'])
-#     limit = int(request.GET['limit'])
-#     homeworks = MyHomework.objects.filter(creater=request.user).filter(banjis)
-#     try:
-#         homeworks = homeworks.filter(name__icontains=request.GET['search'])
-#     except:
-#         pass
-#     try:
-#         sort = request.GET['sort']
-#     except MultiValueDictKeyError:
-#         sort = 'pk'
-#     json_data['total'] = homeworks.count()
-#     if request.GET['order'] == 'desc':
-#         sort = '-' + sort
-#     for homework in homeworks.all().order_by(sort)[offset:offset + limit]:
-#         recode = {'name': homework.name, 'pk': homework.pk,
-#                   'courser': homework.courser.name, 'id': homework.pk,
-#                   'start_time': homework.start_time.strftime('%Y-%m-%d %H:%M:%S'),
-#                   'end_time': homework.end_time.strftime('%Y-%m-%d %H:%M:%S')}
-#         recodes.append(recode)
-#     json_data['rows'] = recodes
-#     return HttpResponse(json.dumps(json_data))

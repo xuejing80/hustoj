@@ -3,7 +3,7 @@ from django.contrib.auth.models import Group
 from django.db.models import Count
 from .models import Census, Weights
 from auth_system.models import MyUser
-from judge.models import ChoiceProblem, DuchengProblem, Problem, ClassName
+from judge.models import ChoiceProblem, DuchengProblem, Problem, ClassName, MyHomework
 from django.utils import timezone
 from django.db.models import Sum
 import datetime
@@ -14,14 +14,15 @@ def Record():
     choices = len(ChoiceProblem.objects.annotate(Count('id')))
     programms = len(Problem.objects.annotate(Count('problem_id')))
     fills = len(DuchengProblem.objects.annotate(Count('ducheng_id')))
+    homework = len(MyHomework.objects.all())
     save_time = timezone.now().date()
-    record = Census(registered_users=registered_users, choices=choices, programms=programms, fills=fills, save_time=save_time)
+    record = Census(registered_users=registered_users, choices=choices, programms=programms, fills=fills, homework=homework, save_time=save_time)
     record.save()
 
 def Nums(A):
     today = timezone.now().date()
     sta = []
-    for i in range(7, 0, -1):
+    for i in range(14, 0, -1):
         date = today - datetime.timedelta(days=i)
         temp = Census.objects.filter(save_time=date).aggregate(sum=Sum(A))
         nums = temp['sum'] or 0
@@ -31,7 +32,7 @@ def Nums(A):
 def Dates():
     today = timezone.now().date()
     dates = []
-    for i in range(7, 0, -1):
+    for i in range(14, 0, -1):
         date = today - datetime.timedelta(days=i)
         dates.append(date.strftime('%m/%d'))
     return dates

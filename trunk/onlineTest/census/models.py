@@ -8,6 +8,7 @@ class Census(models.Model):
     choices = models.IntegerField()
     programms = models.IntegerField()
     fills = models.IntegerField()
+    homework = models.IntegerField()
     save_time = models.DateField()
 
 class Weights(models.Model):

@@ -104,7 +104,8 @@ function StringFormat(str, match_array, data) {
     for (var i = 0; i < match_array.length; i++) {
         var key = match_array[i];
         var re = new RegExp('\\{' + key + '\\}', 'gm');
-        str = str.replace(re, data[key]);
+        tmp = data[key].toString().replace(/<\/?[^>]*>/g, ''); //去除HTML Tag
+        str = str.replace(re, tmp);
     }
     return str;
 }
@@ -169,9 +170,9 @@ function LoadAnswer(qusid, node, answeritem) {
                 var answerTemplate;
                 var role = getCookie("role");
                 if(role == 'a'){
-                    answerTemplate  = answerTemplate1;
+                    answerTemplate  = answerTemplate2;
                 }else{
-                    answerTemplate = answerTemplate2;
+                    answerTemplate = answerTemplate1;
                 }
 
                 appendAnswer(answerTemplate,recommend,answeritem,collectId);
@@ -230,10 +231,11 @@ function LoadQuestion(_url) {
             var card;
             var role = getCookie("role");
             var questionTemplate;
+            list.append("<div></div>");
             if(role == 'a'){
-                questionTemplate = questionTemplate1;
-            }else{
                 questionTemplate = questionTemplate2;
+            }else{
+                questionTemplate = questionTemplate1;
             }
             for (var i = 0; i < data.length ;i++){
                 if(data[i]['description'] == null){
@@ -246,9 +248,6 @@ function LoadQuestion(_url) {
                        ZoomBig(this);
                    })
                 }
-
-    
-                
                 list.append(card);
             }
 
@@ -257,9 +256,6 @@ function LoadQuestion(_url) {
             $("#loadBar").addClass("hideoff");
             $("#loadquesStatus").attr("value","1");
         },
-
-
-
     })
 }
 

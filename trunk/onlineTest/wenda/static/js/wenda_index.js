@@ -233,9 +233,9 @@ function LoadQuestion(_url) {
             var questionTemplate;
             list.append("<div></div>");
             if(role == 'a'){
-                questionTemplate = questionTemplate2;
-            }else{
                 questionTemplate = questionTemplate1;
+            }else{
+                questionTemplate = questionTemplate2;
             }
             for (var i = 0; i < data.length ;i++){
                 if(data[i]['description'] == null){

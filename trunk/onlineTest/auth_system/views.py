@@ -326,23 +326,31 @@ def get_users(request):
     recodes = []
     offset = int(request.GET['offset'])
     limit = int(request.GET['limit'])
+    usergroup = request.GET['usergroup']
     try:
-        qset = ( Q(username__icontains=request.GET['search']) | 
-                 Q(email__icontains=request.GET['search']) |
-                 Q(id_num__icontains=request.GET['search']) )
+        qset = Q()
+        if 'search' in request.GET.dict().keys():
+            qset = ( Q(username__icontains=request.GET['search']) | 
+                     Q(email__icontains=request.GET['search']) |
+                     Q(id_num__icontains=request.GET['search']) )
+        if usergroup != '0':
+            qset = qset & Q(groups=usergroup)
         users = MyUser.objects.filter(qset)
-    except:
+    except Exception as e:
+        #import traceback
+        #print(traceback.print_exc())
         users = MyUser.objects
-    try:
+    if 'sort' in request.GET.dict().keys():
         sort = request.GET['sort']
-    except MultiValueDictKeyError:
+    else:
         sort = 'pk'
     json_data['total'] = users.count()
     if request.GET['order'] == 'desc':
         sort = '-' + sort
     for user in users.all().order_by(sort)[offset:offset + limit]:
         recode = {'username': user.username, 'pk': user.pk,
-                  'email': user.email, 'id_num': user.id_num, 'group': user.groups.all()[0].name, 'id': user.pk}
+                  'email': user.email, 'id_num': user.id_num, 
+                  'group': user.groups.all()[0].name, 'school': user.school, 'id': user.pk}
         recodes.append(recode)
     json_data['rows'] = recodes
     return HttpResponse(json.dumps(json_data))

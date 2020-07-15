@@ -365,11 +365,13 @@
             var score_span = $("#score-" + id);
             var score_input = $("#score-input-" + id);
             var code = editors['source' + id].getValue();
+            var btn = $("#button-" + id);
             if(code==""){
                 result_div.html('<div class="alert alert-danger" role="alert">错误！代码不可以为空！</div>')
                 return false;
             }
-            result_div.html('<div class="alert alert-default" role="alert"><i class="fa fa-spinner fa-spin fa-3x fa-fw"></i>正在判断程序运行情况</div>')
+            result_div.html('<div class="alert alert-default" role="alert"><i class="fa fa-spinner fa-spin fa-3x fa-fw"></i>正在判断程序运行情况</div>');
+            btn.attr('disabled',true);
             $.ajax({
                 type: "post",
                 url: "{% url 'test_run' %}",
@@ -417,8 +419,9 @@
                                                     result_div.html('<div class="alert alert-success" role="alert">恭喜你通过了所有的测试点</div>');
                                             }
                                             score_span.html(data.info.score);
-                                            score_input.val(data.info.score)
-                                            int = window.clearInterval(int)
+                                            score_input.val(data.info.score);
+                                            int = window.clearInterval(int);
+                                            btn.attr('disabled',false);
                                         } else{
                                             result_div.html('<div class="alert alert-default" role="alert"><i class="fa fa-spinner fa-spin fa-3x fa-fw"></i>正在判断程序运行情况</div>');
                                         }
@@ -430,7 +433,7 @@
                                     },
                                 })
                             },
-                            1000);
+                            3000);
                     }
                 }
             });

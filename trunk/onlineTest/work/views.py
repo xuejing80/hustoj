@@ -1343,7 +1343,7 @@ def get_problem_score(homework_answer, judged_score=0):
                 if solution.oi_info is None:
                     break
                 if json.loads(solution.oi_info)[str(case['desc']) + '.in']['result'] == 4:  # 参照测试点，依次加测试点分数
-                    score += int(case['score'])
+                    score += eval(case['score'])
             #print("判题完毕，本题共{}分，得分为{}".format(total_score,score))
             if solution.result == 4:
                 id = solution.solution_id # 更新答案库
@@ -1370,7 +1370,7 @@ def get_tiankong_score(homework_answer, judged_score=0):
                     if solution.oi_info is None:
                         break
                     if json.loads(solution.oi_info)[str(case['desc'])+'.in']['result'] == 4:
-                        score += int(case['score'])
+                        score += eval(case['score'])
             except ObjectDoesNotExist:
                 user = homework_answer.creator;
                 logger_request.exception("获取程序填空题得分失败{{homework_id:{},answer_id:{},problem_id:{},user:{}({},{})}}".format(homework.pk,homework_answer.pk,info['id'],user.username,user.id_num,user.email))
@@ -1391,7 +1391,7 @@ def get_gaicuo_score(homework_answer, judged_score=0):
                     if solution.oi_info is None:
                         break
                     if json.loads(solution.oi_info)[str(case['desc'])+'.in']['result'] == 4:
-                        score += int(case['score'])
+                        score += eval(case['score'])
         except ObjectDoesNotExist:
             user = homework_answer.creator;
             logger_request.exception("获取程序改错题得分失败{{homework_id:{},answer_id:{},problem_id:{},user:{}({},{})}}".format(homework.pk,homework_answer.pk,info['id'],user.username,user.id_num,user.email))
@@ -1682,7 +1682,7 @@ def judge_homework(homework_answer):
 
             # 根据作业设置计算最终总分
             homework_answer.score_list += str(choice_problem_score + ducheng_problem_score + biancheng_score + tiankong_score + gaicuo_score) + ','  # 保存每次作业成绩
-            zongfen_list = [int(zongfen) for zongfen in homework_answer.score_list.split(',')[:-1]]  # 转化为成绩列表
+            zongfen_list = [eval(zongfen) for zongfen in homework_answer.score_list.split(',')[:-1]]  # 转化为成绩列表
             show_score = get_object_or_404(MyHomework,pk=homework_answer.homework.id).show_score
             
             if show_score == '最高分值':
@@ -1791,7 +1791,7 @@ def test_run(request):
                             oi_info = json.loads(solution.oi_info)
                             if oi_info[str(case['desc']) + '.in']['result'] == 4:  # 参照测试点，依次加测试点分数
                                 case['result'] = True
-                                score += int(case['score'])
+                                score += eval(case['score'])
                                 right_num += 1
                             else:
                                 case['result'] = False

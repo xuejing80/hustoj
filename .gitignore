@@ -8,3 +8,5 @@ trunk/onlineTest/codeZip/*
 trunk/onlineTest/reportFile/*
 trunk/onlineTest/upload/*
 .idea
+.DS_Store
+*/.idea

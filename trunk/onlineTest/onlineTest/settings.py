@@ -29,7 +29,7 @@ DEBUG = False
 
 SITE_NAME = "程序设计类课程作业平台"
 CONTACT_INFO = "薛景老师（QQ群：230689474）"
-ADMINS = [('XueJing', 'xuejing@c.njupt.edu.cn', 'xuejing_cn@163.com'),]#第一项为管理员名称>    ，第二项为发件人邮箱，第三项为收系统邮件邮箱
+ADMINS = [('XueJing', 'xuejing@c.njupt.edu.cn', 'xuejing_cn@163.com'), ]  # 第一项为管理员名称>    ，第二项为发件人邮箱，第三项为收系统邮件邮箱
 SITE_DOMAIN = "c.njupt.edu.cn"
 
 ALLOWED_HOSTS = ['*']
@@ -45,21 +45,21 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'auth_system',
-    'teetest',          #验证码
-    'judge',            #题库管理系统
-    'work',             #作业管理系统
-    'faq',              #智能问答系统
-    'mooc',             #慕课资源管理系统
-    'process',          #程序相似度计算
-    'qqlogin',          #QQ登录模块
-    'channels',         #django-channels，使用websocket来实时推送消息
-    'code_week',        #程序设计课过程管理系统
-    'warning',          #成绩预警模块
-    'django_crontab',   #定时发送邮件
-    'sign',             #基于地理位置的签到
-    'message',          #消息系统
-    'wenda',            #异步问答模块
-    'census',           #数据记录
+    'teetest',  # 验证码
+    'judge',  # 题库管理系统
+    'work',  # 作业管理系统
+    'faq',  # 智能问答系统
+    'mooc',  # 慕课资源管理系统
+    'process',  # 程序相似度计算
+    'qqlogin',  # QQ登录模块
+    'channels',  # django-channels，使用websocket来实时推送消息
+    'code_week',  # 程序设计课过程管理系统
+    'warning',  # 成绩预警模块
+    'django_crontab',  # 定时发送邮件
+    'sign',  # 基于地理位置的签到
+    'message',  # 消息系统
+    'wenda',  # 异步问答模块
+    'census',  # 数据记录
 ]
 
 CRONJOBS = [
@@ -76,7 +76,8 @@ MIDDLEWARE_CLASSES = [
     'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'django.middleware.locale.LocaleMiddleware'
+    'django.middleware.locale.LocaleMiddleware',
+    'auth_system.monitorMiddleware.MonitorMiddleware',  # auth_system包 monitorMiddleware.py MonitorMiddleware类
 ]
 
 ROOT_URLCONF = 'onlineTest.urls'
@@ -172,7 +173,7 @@ STATICFILES_DIRS = [os.path.join(BASE_DIR, "static"), ]
 # 需要与site.cnf 设置的静态文件路径相同
 STATIC_ROOT = '/var/www/html/static'
 MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(USER_FILE_DIR,'media')
+MEDIA_ROOT = os.path.join(USER_FILE_DIR, 'media')
 LOGIN_URL = '/accounts/login/'
 
 # Channel settings
@@ -189,18 +190,18 @@ CHANNEL_LAYERS = {
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
-    'formatters': {#格式器
-        'verbose': {#详细
+    'formatters': {  # 格式器
+        'verbose': {  # 详细
             'format': '>>[%(asctime)s][%(name)s:%(lineno)d][%(levelname)s]-%(message)s'
         },
-        'simple': {#简单
+        'simple': {  # 简单
             'format': '$[%(threadName)s:%(thread)d] [%(levelname)s]- %(message)s'
         },
     },
     'filters': {
         'require_debug_false': {
             '()': 'django.utils.log.RequireDebugFalse',
-            },
+        },
     },
     'handlers': {
         'mail_admins': {
@@ -208,55 +209,55 @@ LOGGING = {
             'class': 'django.utils.log.AdminEmailHandler',
             'include_html': True,
         },
-        #'default': {
+        # 'default': {
         #    'level':'DEBUG',
         #    'class':'logging.handlers.RotatingFileHandler',
         #    'filename': os.path.join('/home/judge/log/','django_all.log'), #日志所在路径
         #    'maxBytes': 1024*1024*50, # 5 MB
         #    'backupCount': 5,
         #    'formatter':'verbose',
-        #},
-        'console':{
+        # },
+        'console': {
             'level': 'DEBUG',
             'class': 'logging.StreamHandler',
             'formatter': 'simple'
         },
-        'file':{
-            'level':'INFO',
-            'class':'logging.handlers.RotatingFileHandler',
-            'filename': os.path.join('/home/judge/log/','django.log'),
-            'maxBytes': 1024*1024*50, # 50 MB
-            'backupCount': 100, # 保留日志的数量，0代表不自动删除
-            'formatter':'verbose',
-            'encoding':'UTF-8',
+        'file': {
+            'level': 'INFO',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': os.path.join('/home/judge/log/', 'django.log'),
+            'maxBytes': 1024 * 1024 * 50,  # 50 MB
+            'backupCount': 100,  # 保留日志的数量，0代表不自动删除
+            'formatter': 'verbose',
+            'encoding': 'UTF-8',
         },
-        'detail':{
-            'level':'INFO',
-            'class':'logging.handlers.TimedRotatingFileHandler',
-            'filename': os.path.join('/home/judge/log/','detail.log'),
+        'detail': {
+            'level': 'INFO',
+            'class': 'logging.handlers.TimedRotatingFileHandler',
+            'filename': os.path.join('/home/judge/log/', 'detail.log'),
             'when': 'MIDNIGHT',
             'interval': 1,
             'backupCount': 180,
-            'formatter':'verbose',
-            'encoding':'UTF-8',
+            'formatter': 'verbose',
+            'encoding': 'UTF-8',
         },
-        'request':{
-            'level':'INFO',
-            'class':'logging.FileHandler',
-            'filename': os.path.join('/home/judge/log/','request.log'),
-            'formatter':'verbose',
-            'encoding':'UTF-8',
+        'request': {
+            'level': 'INFO',
+            'class': 'logging.FileHandler',
+            'filename': os.path.join('/home/judge/log/', 'request.log'),
+            'formatter': 'verbose',
+            'encoding': 'UTF-8',
         },
     },
     'loggers': {
         'django': {
-            'handlers': ['file','detail'],
+            'handlers': ['file', 'detail'],
             'level': 'INFO',
             'propagate': False
         },
-        'django.request':{
-            'handlers':['request'],
-            'level':'WARNING',
+        'django.request': {
+            'handlers': ['request'],
+            'level': 'WARNING',
             'propagate': False,
         },
     }

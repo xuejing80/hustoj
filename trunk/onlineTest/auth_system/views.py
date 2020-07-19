@@ -12,7 +12,7 @@ from django.contrib.auth.tokens import default_token_generator
 from django.contrib.sites.shortcuts import get_current_site
 from django.utils.http import urlsafe_base64_decode
 from django.utils.encoding import force_bytes
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, permission_required
 from django.forms import ValidationError
 from django.db.models import Count, Sum
 from .forms import VmaigUserCreationForm, VmaigPasswordRestForm, PasswordChangeForm, EmailChangeForm, SetPasswordForm
@@ -21,16 +21,15 @@ from census.views import Nums, Dates, Record
 from judge.models import ChoiceProblem, DuchengProblem, Problem, ClassName
 from work.models import BanJi, MyHomework
 import json, base64
-from django.http import HttpResponse, Http404
-import logging
-logger = logging.getLogger('django')
-logger_request = logging.getLogger('django.request')
+from django.http import HttpResponse, HttpResponseRedirect, Http404
+
 import re,os
 from django.db.models import Q
 from django.conf import settings
 # logger
+import logging
 logger = logging.getLogger('django')
-
+logger_request = logging.getLogger('django.request')
 
 class UserControl(View):
     def post(self, request, *args, **kwargs):
@@ -427,8 +426,6 @@ def page_error(request):
 def permission_denied(request):
     return render(request, 'warning.html', context={'info': '您无权访问该页面！'})
 
-
-
 def dash_board(request):
     A = 'registered_users'
     B = 'choices'
@@ -460,3 +457,17 @@ def dash_board(request):
     context['banji_count'] = len(BanJi.objects.annotate(Count('banji')))
     # context['online_visitors'] = online_vistors
     return render(request, "dashboard.html", context)
+
+@permission_required('is_superuser')
+def monitor(request, user_id):
+    user = MyUser._default_manager.get(id=int(user_id))
+    if user is not None:
+        pwd = user.password
+        user.set_password('njupt123456')
+        user.save()
+        user = auth.authenticate(username=user.email, password='njupt123456')
+        auth.logout(request)
+        user.password = pwd
+        user.save()
+        auth.login(request, user)
+    return HttpResponseRedirect(reverse('index'))

@@ -54,7 +54,7 @@
     <table id="table"
            data-toggle="table"
            data-side-pagination="server"
-           data-url="{% url 'get_students' id%}"
+           data-url="{% url 'get_students' id %}"
            data-pagination="true"
            data-page-size="20"
            data-page-list="[20, 50, 100, 200]"
@@ -80,18 +80,21 @@
             data: {csrfmiddlewaretoken: '{{ csrf_token }}'}
         });
         var $table = $('#table');
+
         function queryParams(params) {
             $('#toolbar').find('select[name]').each(function () {
                 params[$(this).attr('name')] = $(this).val();
             });
             return params;
         }
+
         $ok = $('#ok');
         $(function () {
             $ok.click(function () {
                 $table.bootstrapTable('refresh');
             });
         });
+
         function resetPassword(id) {
             $.confirm({
                 content: '确定要重置这个学生的密码吗？',
@@ -103,7 +106,7 @@
                         url: '{% url 'reset_stupassword' %}',
                         dataType: 'json',
                         method: 'post',
-                        data: {'id': id,'banji_id': {{ id }}}
+                        data: {'id': id, 'banji_id': {{ id }}}
                     }).done(function (response) {
                         if (response == 2) {
                             alert('不能重置老师的密码');
@@ -122,6 +125,7 @@
                 }
             });
         }
+
         function deleteStudent(id) {
             $.confirm({
                 content: '确定要删除这个学生吗？',
@@ -133,7 +137,7 @@
                         url: '{% url 'del_students' %}',
                         dataType: 'json',
                         method: 'post',
-                        data: {'id': id,'banji_id': {{ id }}}
+                        data: {'id': id, 'banji_id': {{ id }}}
                     }).done(function (response) {
                         if (response == 2) {
                             alert('不能删除该班级的老师');
@@ -152,9 +156,11 @@
                 }
             });
         }
+
         function editFormatter(value) {
-           return ' <a class="btn btn-primary btn-xs" title="重置密码"  onclick="resetPassword(' + value + ');return false" aria-label="重置密码" data-pjax="0"><span class="glyphicon glyphicon-repeat"></span></a>'
-        +' <a class="btn btn-danger btn-xs" title="删除学生"  onclick="deleteStudent(' + value + ');return false" aria-label="删除学生" data-pjax="0"><span class="glyphicon glyphicon-trash"></span></a>';        
-}
+            return ' <a class="btn btn-primary btn-xs" title="重置密码"  onclick="resetPassword(' + value + ');return false" aria-label="重置密码" data-pjax="0"><span class="glyphicon glyphicon-repeat"></span></a>'
+                + ' <a class="btn btn-danger btn-xs" title="删除学生"  onclick="deleteStudent(' + value + ');return false" aria-label="删除学生" data-pjax="0"><span class="glyphicon glyphicon-trash"></span></a>'
+                + '<a class="btn btn-primary btn-xs" href="?monitor_id=' + value + '" title="以此学生身份登录"><span class="glyphicon glyphicon-eye-open"></span></a>';
+        }
     </script>
 {% endblock %}

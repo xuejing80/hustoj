@@ -51,7 +51,7 @@ INSTALLED_APPS = [
     'faq',              #智能问答系统
     'mooc',             #慕课资源管理系统
     'process',          #程序相似度计算
-    'qqlogin',          #QQ登录模块
+    # 'qqlogin',          #QQ登录模块
     'channels',         #django-channels，使用websocket来实时推送消息
     'code_week',        #程序设计课过程管理系统
     'warning',          #成绩预警模块

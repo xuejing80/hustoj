@@ -55,7 +55,6 @@
             $('#toolbar').find('select[name]').each(function () {
                 params[$(this).attr('name')] = $(this).val();
             });
-            console.log(params);
             return params;
         }
         $ok = $('#ok');
@@ -66,7 +65,7 @@
         });
 
         function editFormatter(value) {
-            return '<a class="btn btn-primary btn-xs" href="{% url '_update_user' %}' + value + '/" title="编辑"><span class="glyphicon glyphicon-edit"></span></a> <a class="btn btn-primary btn-xs" href="{% url '_monitor' %}' + value + '/" title="模拟登录"><span class="glyphicon glyphicon-log-in"></span></a>';
+            return '<a class="btn btn-primary btn-xs" href="{% url 'update_user' %}?pk=' + value + '" title="编辑"><span class="glyphicon glyphicon-edit"></span></a> <a class="btn btn-primary btn-xs" href="{% url 'monitor' %}?user_id=' + value + '" title="模拟登录"><span class="glyphicon glyphicon-log-in"></span></a>';
         }
     </script>
 {% endblock %}

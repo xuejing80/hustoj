@@ -6,18 +6,28 @@
 {% endblock %}
 
 {% block content %}
-    <script>
-    function stop(){
-        var video = document.getElementById("index-video");
-        video.pause();
-    }
-    </script>
+<script>
+function stop(){
+    var video = document.getElementById("index-video");
+    video.pause();
+}
+$(document).ready(function(){
+    Liy_Info = new Array('每天进步一点点',
+                         '好好学习，天天向上',
+                         '差之毫厘，谬以千里',
+                         '不积跬步，无以至千里，<br>不积小流，无以成江海。',
+                         '黑发不知勤学早，白首方悔读书迟。',
+                         '书山有路勤为径，学海无涯苦作舟。',);
+    Liy_InfoId = Math.floor(Math.random()*Liy_Info.length);
+    $('#tips').html(Liy_Info[Liy_InfoId]);
+});
+</script>
     <div>
         <div class="site-index">
             <div class="jumbotron">
 {#                                <div class="alert alert-danger" role="alert">系统维护中，部分作业可能！</div>#}
-                <h1>每天进步一点点</h1>
-                <p class="lead">南京邮电大学程序设计类课程作业平台欢迎您！</p>
+                <h1 name='tips' id='tips'></h1>
+                <p class="lead">南京邮电大学{{ SITE_NAME }}欢迎您！</p>
 
                 <p><a class="btn btn-lg btn-success" href="{% url 'list_do_homework' %}">进入作业列表</a>
                     <button type="button" class="btn btn-primary btn-lg" data-toggle="modal" data-target="#myModal">
@@ -41,7 +51,7 @@
                         </div>
                         <div class="modal-body">
                             <div class="container video-container" id="video-container">
-                                <video width="" height="auto" controls id="index-video">
+                                <video width="" height="auto" controls id="index-video" preload="metadata">
                                     <source src="{% static 'videos/intro.mp4' %}" type="video/mp4">
                                 </video>
                             </div>
@@ -57,10 +67,12 @@
                         <h2>高级语言程序设计<br>（C&amp;C++）</h2>
 
                         <p>
-                            本课程是各专业的大学生所必须掌握的一门核心基础课程。本课程的教学目的是，通过理论教学与上机实践，使学生掌握C语言的基本语法，培养初步的动手编程能力，形成良好的编程风格，熟悉一些常用的简单算法，并了解结构化程序设计的基本思想和方法。该课程是诸多专业课程的先修课程，也是学生自学其他高级语言的基础。</p>
+                            本课程是各专业的大学生所必须掌握的一门核心基础课程。本课程的教学目的是，通过理论教学与上机实践，使学生掌握C语言的基本语法，培养初步的动手编程能力，形成良好的编程风格，熟悉常用的简单算法，并了解结构化程序设计的思想和方法。该课程是诸多专业课程的先修课程，也是自学其他高级语言的基础。</p>
 
-                        <p><a class="btn btn-default" href="http://pan.baidu.com/s/1sk5qjG5"
-                              target="_blank">下载开发环境 &raquo;</a></p>
+                        <p><a class="btn btn-default" href="https://pan.baidu.com/s/15B-ZzbjFHNVBEWW7t0QZgw"
+                              target="_blank">下载开发环境(提取码:gc6k) &raquo;</a>
+                        <a class="btn btn-default" href="https://pan.baidu.com/s/1dUxi2WMyN1uY9N_Au8_vKQ"
+                              target="_blank">教学资源 &raquo;</a></p>
                     </div>
                     <div class="col-lg-4">
                         <h2>程序设计基础<br>（ Java语言）</h2>
@@ -79,8 +91,10 @@
                         <p>本课程面向各类热爱编程的同学，培养运用 Python 编程语言解决实际问题的编程能力。使学生掌握 Python
                             语言的基本语法、语句以及结构化程序设计的基本思想和方法，了解基本的算法和数据结构，培养良好的程序设计风格，为进一步学习其他专业课程和从事软件开发工作打下坚实的基础。</p>
 
-                        <p><a class="btn btn-default" href="http://pan.baidu.com/s/1XoXXW"
-                              target="_blank">下载开发环境 &raquo;</a></p>
+                        <p><a class="btn btn-default" href="https://www.python.org/downloads/"
+                              target="_blank">下载开发环境 &raquo;</a>
+                        <a class="btn btn-default" href="/static/file/2020Python.zip"
+                              target="_blank">2020培训素材 &raquo;</a></p>
                     </div>
                 </div>
 

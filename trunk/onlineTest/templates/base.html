@@ -200,8 +200,6 @@
                             {% if user.is_superuser %}
                                 <li><a href="{% url 'user_list' %}">账号管理</a>
                                 </li>
-                                <li><a href="{% url 'add_users' %}">批量创建账号</a>
-                                </li>
                             {% endif %}
                         {% else %}
                             <li><a href="{% url 'register' %}">注册</a></li>

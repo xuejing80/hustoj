@@ -284,7 +284,7 @@ def change_email(request):
             title = "完善您的Email和密码信息"
             message = "你收到这封信是因为你请求完善在 %s 上的个人信息\n\n" % settings.SITE_NAME + \
                    "请访问下方的链接确认你的邮件地址并在页面中设置新的密码:\n\n" + \
-                   protocol + '://' + domain + reverse('_resetpassword_mail') + '/' + uid + '/'  + umail + '/'+ token + '/' + '  \n\n' + \
+                   protocol + '://' + domain + reverse('resetpassword_mail',args=(uid,umail,token)) + '  \n\n' + \
                    "感谢使用！\n\n"
             try:
                 os.system("echo '%s' | mail -s %s %s -aFrom:%s\<%s\>" % (message,title,email,settings.ADMINS[0][0],settings.ADMINS[0][1]))
@@ -309,20 +309,20 @@ def change_email(request):
 def change_password(request):
     return render(request, 'demo/changepassword.html')
 
-@login_required()
+@permission_required('is_superuser')
 def list_users(request):
-    if request.user.is_superuser:
-        return render(request, 'user_list.html')
-    else:
-        raise PermissionDenied
+    return render(request, 'user_list.html')
 
-@login_required()
+@permission_required('is_superuser')
 def get_users(request):
-    if not request.user.is_superuser:
-        raise PermissionDenied
-
     json_data = {}
     recodes = []
+
+    if not request.user.is_superuser:
+        raise PermissionDenied
+    if request.GET.dict()=={}:
+        return HttpResponse(json.dumps(json_data))
+
     offset = int(request.GET['offset'])
     limit = int(request.GET['limit'])
     usergroup = request.GET['usergroup']
@@ -354,8 +354,10 @@ def get_users(request):
     json_data['rows'] = recodes
     return HttpResponse(json.dumps(json_data))
 
-@login_required()
+@permission_required('is_superuser')
 def create_users(request):
+    if request.POST.dict()=={} and request.GET.dict()=={}:
+        return render(request, 'add_users.html')    
     stu_detail = request.POST['stu_detail']
     try:
         id_num, username = stu_detail.split()[0], stu_detail.split()[1]
@@ -374,9 +376,11 @@ def create_users(request):
         except:
             return HttpResponse(json.dumps({'result': 0, 'message': '注册时出现问题'}))
 
-@login_required()
-def update_user(request, pk):
-    if not request.user.is_superuser:
+@permission_required('is_superuser')
+def update_user(request):
+    try:
+        pk = int(request.GET['pk'])
+    except:
         raise PermissionDenied
 
     user = MyUser.objects.get(pk=pk)
@@ -426,6 +430,7 @@ def page_error(request):
 def permission_denied(request):
     return render(request, 'warning.html', context={'info': '您无权访问该页面！'})
 
+@permission_required('is_superuser')
 def dash_board(request):
     A = 'registered_users'
     B = 'choices'
@@ -459,8 +464,13 @@ def dash_board(request):
     return render(request, "dashboard.html", context)
 
 @permission_required('is_superuser')
-def monitor(request, user_id):
-    user = MyUser._default_manager.get(id=int(user_id))
+def monitor(request):
+    try:
+        user_id = int(request.GET['user_id'])
+    except:
+        raise PermissionDenied
+
+    user = MyUser._default_manager.get(id=user_id)
     if user is not None:
         pwd = user.password
         user.set_password('njupt123456')

@@ -1,12 +1,13 @@
 {% extends 'base.html' %}
 {% block extrahead %}
-    <script src="//cdn.bootcss.com/bootstrap-tagsinput/0.8.0/bootstrap-tagsinput.min.js"></script>
-    <link href="//cdn.bootcss.com/bootstrap-tagsinput/0.8.0/bootstrap-tagsinput-typeahead.css" rel="stylesheet">
-    <link href="//cdn.bootcss.com/bootstrap-tagsinput/0.8.0/bootstrap-tagsinput.css" rel="stylesheet">
-    <link href="//cdn.bootcss.com/bootstrap-fileinput/4.3.3/css/fileinput.min.css" rel="stylesheet">
-    <script src="//cdn.bootcss.com/bootstrap-fileinput/4.3.3/js/fileinput.min.js"></script>
-    <script src="//cdn.bootcss.com/bootstrap-fileinput/4.3.3/js/locales/zh.min.js"></script>
-    <script src="//cdn.bootcss.com/jquery-form-validator/2.3.26/jquery.form-validator.min.js"></script>
+    {% load static %}
+    <script src="{% static 'assets/js/bootstrap-tagsinput.min.js' %}"></script>
+    <link href="{% static 'assets/css/bootstrap-tagsinput-typeahead.css' %}" rel="stylesheet">
+    <link href="{% static 'assets/css/bootstrap-tagsinput.css' %}" rel="stylesheet">
+    <script src="{% static 'assets/js/jquery.form-validator.min.js' %}"></script>
+    <link href="{% static 'assets/css/fileinput.min.css' %}" rel="stylesheet">
+    <script src="{% static 'assets/js/file_input/fileinput.min.js' %}"></script>
+    <script src="{% static 'assets/js/file_input/zh.js' %}"></script>
 {% endblock %}
 {% block content %}
     <ol class="breadcrumb">

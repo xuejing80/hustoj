@@ -12,10 +12,10 @@ import zipfile
 import cgi
 
 from django.apps import apps
-from django.contrib.auth.decorators import permission_required
-from django.contrib.auth.decorators import PermissionDenied
+from django.contrib.auth.decorators import permission_required, login_required
+from django.core.exceptions import PermissionDenied
 from django.core.urlresolvers import reverse
-from django.http import HttpResponse
+from django.http import HttpResponse, Http404
 from django.shortcuts import render, redirect, get_object_or_404
 from django.utils.datastructures import MultiValueDictKeyError
 from django.views.generic.detail import DetailView
@@ -54,7 +54,6 @@ def add_problem(request):
             shutil.move(old_path, '/home/judge/data/')
             os.rename('/home/judge/data/' + request.POST['file_name'] + '_files',
                       '/home/judge/data/' + str(problem.problem_id))
-            print(request.POST['random_name'])
             shutil.rmtree('/tmp/' + request.POST['random_name'])
             return redirect(reverse("problem_detail", args=[problem.problem_id]))
     else:  # 当正常访问时
@@ -62,7 +61,7 @@ def add_problem(request):
     return render(request, 'problem_add.html', {'form': form, 'title': '新建编程题'})
 
 # 添加填空题
-@permission_required('judge.add_duchengproblem')
+@permission_required('judge.add_problem')
 def add_ducheng(request):
     if request.method == 'POST':  # 当提交表单时
         form = DuchengProblemAddForm(request.POST)  # form 包含提交的数据
@@ -84,7 +83,6 @@ def add_tiankong(request):
             shutil.move(old_path, '/home/judge/data/')
             os.rename('/home/judge/data/' + request.POST['file_name'] + '_files',
                       '/home/judge/data/' + str(problem.problem_id))
-            print(request.POST['random_name'])
             shutil.rmtree('/tmp/' + request.POST['random_name'])
             return redirect(reverse("tiankong_problem_detail", args=[problem.problem_id]))
     else:  # 当正常访问时
@@ -103,7 +101,6 @@ def add_gaicuo(request):
             shutil.move(old_path, '/home/judge/data/')
             os.rename('/home/judge/data/' + request.POST['file_name'] + '_files',
                       '/home/judge/data/' + str(problem.problem_id))
-            print(request.POST['random_name'])
             shutil.rmtree('/tmp/' + request.POST['random_name'])
             return redirect(reverse("gaicuo_problem_detail", args=[problem.problem_id]))
     else:  # 当正常访问时
@@ -125,10 +122,8 @@ def delete_problem(request):
             return HttpResponse(0)
         return HttpResponse(1)
     else:
-        return HttpResponse(0)
+        raise Http404()
 
-
-# 删除选择题
 @permission_required('judge.delete_choiceproblem')
 def del_choice_problem(request):
     if request.method == 'POST':
@@ -142,10 +137,10 @@ def del_choice_problem(request):
             return HttpResponse(0)
         return HttpResponse(1)
     else:
-        return HttpResponse(0)
+        raise Http404()
 
 # 删除填空题
-@permission_required('judge.delete_duchengproblem')
+@permission_required('judge.delete_problem')
 def del_ducheng_problem(request):
     if request.method == 'POST':
         ids = request.POST.getlist('ids[]')
@@ -160,8 +155,7 @@ def del_ducheng_problem(request):
             return HttpResponse(0)
         return HttpResponse(1)
     else:
-        return HttpResponse(0)
-
+        raise Http404()
 
 # 删除gaicuo题
 @permission_required('judge.delete_problem')
@@ -177,26 +171,26 @@ def delete_gaicuo(request):
             return HttpResponse(0)
         return HttpResponse(1)
     else:
-        return HttpResponse(0)
-
+        raise Http404()
 
 # 删除程序填空题
 @permission_required("judge.delete_problem")
 def delete_tiankong(request):
-        if request.method == 'POST':
-            ids = request.POST.getlist('ids[]')
-            try:
-                for pk in ids:
-                    if os.path.exists('/home/judge/data/' + str(pk)):
-                        shutil.rmtree('/home/judge/data/' + str(pk))
-                    Problem.objects.filter(pk=pk).delete()
-            except:
-                return HttpResponse(0)
-            return HttpResponse(1)
-        else:
+    if request.method == 'POST':
+        ids = request.POST.getlist('ids[]')
+        try:
+            for pk in ids:
+                if os.path.exists('/home/judge/data/' + str(pk)):
+                    shutil.rmtree('/home/judge/data/' + str(pk))
+                Problem.objects.filter(pk=pk).delete()
+        except:
             return HttpResponse(0)
+        return HttpResponse(1)
+    else:
+        raise Http404()
 
 # 处理选择知识点时的ajax请求
+@login_required
 def select_point(request):
     response_data = {}
     course = request.POST.get('course', -1)
@@ -215,7 +209,6 @@ def select_point(request):
         pass
     return HttpResponse(json.dumps(response_data), content_type='application/json')
 
-
 #  编程题详细视图
 class ProblemDetailView(DetailView):
     model = Problem
@@ -223,6 +216,8 @@ class ProblemDetailView(DetailView):
     context_object_name = 'problem'
 
     def get_context_data(self, **kwargs):
+        if (not self.request.user.is_authenticated()) or (not self.request.user.isTeacher()):
+            raise Http404()
         context = super(ProblemDetailView, self).get_context_data(**kwargs)
         str = ''
         for point in self.object.knowledgePoint2.all():
@@ -240,6 +235,8 @@ class GaicuoProblemDetailView(DetailView):
     context_object_name = 'problem'
 
     def get_context_data(self, **kwargs):
+        if (not self.request.user.is_authenticated()) or (not self.request.user.isTeacher()):
+            raise Http404()
         context = super(GaicuoProblemDetailView, self).get_context_data(**kwargs)
         str = ''
         for point in self.object.knowledgePoint2.all():
@@ -255,6 +252,8 @@ class DuchengProblemDetailView(DetailView):
     context_object_name = 'problem'
 
     def get_context_data(self, **kwargs):
+        if (not self.request.user.is_authenticated()) or (not self.request.user.isTeacher()):
+            raise Http404()
         context = super(DuchengProblemDetailView, self).get_context_data(**kwargs)
         str = ''
         for point in self.object.knowledgePoint2.all():
@@ -267,19 +266,20 @@ class DuchengProblemDetailView(DetailView):
 
  #  程序填空题详细视图
 class TiankongProblemDetailView(DetailView):
-        model = Problem
-        template_name = 'tiankong_problem_detail.html'
-        context_object_name = 'problem'
+    model = Problem
+    template_name = 'tiankong_problem_detail.html'
+    context_object_name = 'problem'
 
-        def get_context_data(self, **kwargs):
-            context = super( TiankongProblemDetailView, self).get_context_data(**kwargs)
-            str = ''
-            for point in self.object.knowledgePoint2.all():
-                str += point.upperPoint.classname.name + ' > ' + point.upperPoint.name + ' > ' + point.name + '\n'
-            context['knowledge_point'] = str
-            context['title'] = '程序填空题“' + self.object.title + '”的详细信息'
-            return context
-
+    def get_context_data(self, **kwargs):
+        if (not self.request.user.is_authenticated()) or (not self.request.user.isTeacher()):
+            raise Http404()
+        context = super( TiankongProblemDetailView, self).get_context_data(**kwargs)
+        str = ''
+        for point in self.object.knowledgePoint2.all():
+            str += point.upperPoint.classname.name + ' > ' + point.upperPoint.name + ' > ' + point.name + '\n'
+        context['knowledge_point'] = str
+        context['title'] = '程序填空题“' + self.object.title + '”的详细信息'
+        return context
 
 # 选择题详细视图
 class ChoiceProblemDetailView(DetailView):
@@ -288,6 +288,8 @@ class ChoiceProblemDetailView(DetailView):
     context_object_name = 'problem'
 
     def get_context_data(self, **kwargs):
+        if (not self.request.user.is_authenticated()) or (not self.request.user.isTeacher()):
+            raise Http404()
         context = super(ChoiceProblemDetailView, self).get_context_data(**kwargs)
         str = ''
         for point in self.object.knowledgePoint2.all():
@@ -297,7 +299,6 @@ class ChoiceProblemDetailView(DetailView):
         if self.object.creater == self.request.user:
             context['isMine'] = True
         return context
-
 
 # 更新编程题
 @permission_required('judge.change_problem')
@@ -344,8 +345,8 @@ def update_problem(request, id):
 
 
 @permission_required('judge.change_choiceproblem')
-def update_choice_problem(request, id):
-    problem = get_object_or_404(ChoiceProblem, pk=id)
+def update_choice_problem(request,id):
+    problem = get_object_or_404(ChoiceProblem, pk=int(id))
     if request.user != problem.creater and not request.user.is_admin:
         raise PermissionDenied
     json_dic = {}  # 知识点选择的需要的初始化数据
@@ -411,7 +412,7 @@ def update_gaicuo(request, id):
     return render(request, 'gaicuo_problem_add.html', {'form': GaicuoProblemAddForm(initial=initial)})
 
 # 更新填空题
-@permission_required('judge.change_duchengproblem')
+@permission_required('judge.change_problem')
 def update_ducheng(request, id='0'):
     problem = get_object_or_404(DuchengProblem, pk=id)
     if request.user != problem.creater and not request.user.is_admin:
@@ -660,7 +661,7 @@ def verify_file(request):
     except Exception as e:
         logger.exception("保存测试用例失败：用户信息：{}({}:{})，POST数据：{}".format(request.user.username,request.user.pk,request.user.id_num,request.POST.dict()))
         return HttpResponse(
-            json.dumps({'result': 0, 'info': '上传测试用例文件时遇到错误，请稍后再试，或联系管理员老师'}))
+            json.dumps({'result': 0, 'info': r'上传测试用例文件时遇到错误，请稍后再试，或联系管理员老师'}))
 
     r3 = re.compile('\d+ \d+ #.*#')
     r2 = re.compile('^\d+ \d+$')
@@ -750,3 +751,6 @@ def remove_bom(filepath):
             print('Converted: ' + filepath)
         else:
             print(filepath + " file_encoding is utf8 without BOM.")
+
+def emptyView(request):
+    raise Http404()

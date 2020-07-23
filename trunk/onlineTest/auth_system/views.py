@@ -1,6 +1,6 @@
 # coding:utf-8
 from django.contrib.auth.models import Group, AbstractUser
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.core.urlresolvers import reverse
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.datastructures import MultiValueDictKeyError
@@ -381,9 +381,9 @@ def update_user(request):
     try:
         pk = int(request.GET['pk'])
     except:
-        raise PermissionDenied
-
-    user = MyUser.objects.get(pk=pk)
+        raise Http404()
+    
+    user = get_object_or_404(MyUser, pk=pk)
     if request.method == 'POST':
         group = Group.objects.get(pk=request.POST['group_id'])
         if request.POST['password']!="":
@@ -468,7 +468,7 @@ def monitor(request):
     try:
         user_id = int(request.GET['user_id'])
     except:
-        raise PermissionDenied
+        raise Http404()
 
     user = MyUser._default_manager.get(id=user_id)
     if user is not None:

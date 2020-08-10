@@ -508,7 +508,10 @@ def list_gaicuo(request):
     return render(request, 'gaicuo_problem_list.html', context={'classnames': classnames, 'title': '程序改错题题库', 'position': 'gaicuo_list'})
 
 # 返回含有问题数据的json
+@permission_required('work.add_homework')
 def get_json(request, model_name):
+    if {'offset','limit','knowledgePoint2','classname','knowledgePoint1'} - set(request.GET.dict()) != set():
+        raise Http404()
     json_data = {}
     recodes = []
     offset = int(request.GET['offset'])
@@ -516,6 +519,8 @@ def get_json(request, model_name):
     knowledgePoint2 = request.GET['knowledgePoint2']
     classname = request.GET['classname']
     knowledgePoint1 = request.GET['knowledgePoint1']
+    if model_name not in {"Problem","TiankongProblem","DuchengProblem","GaicuoProblem","ChoiceProblem"}:
+        raise Http404()
     if model_name=="Problem":
         model_name="Problem"
         pro_type="编程"
@@ -576,7 +581,6 @@ def get_json(request, model_name):
         recodes.append(recode)
     json_data['rows'] = recodes
     return HttpResponse(json.dumps(json_data))
-
 
 # 获取指定题目的分值信息
 def get_testCases(problem):

@@ -104,7 +104,7 @@
             </label>
         </div>
 
-        <div class="form-group">
+        <div class="form-group" style="display:none;">
             <label for="allow_similarity">是否开启相似度判分：</label>
             <label class="radio-inline">
                 <input type="radio" id="allow_similarity" value="1" name="allow_similarity" >是
@@ -187,6 +187,7 @@
                 <span class="caret"></span>
             </button>
             <ul class="dropdown-menu" role="menu">
+                <li><a href="javascript:void(0)" onclick="quick_change_choice_score(0.5)">每题0.5分</a></li>
                 {% for i in '123456789012345'|make_list %}
                     <li><a href="javascript:void(0)" onclick="quick_change_choice_score({{ forloop.counter }})">每题{{ forloop.counter }}分</a></li>
                 {% endfor %}
@@ -290,6 +291,7 @@
                 <span class="caret"></span>
             </button>
             <ul class="dropdown-menu" role="menu">
+                <li><a href="javascript:void(0)" onclick="quick_change_ducheng_score(0.5)">每题0.5分</a></li>
                 {% for i in '123456789012345'|make_list %}
                     <li><a href="javascript:void(0)" onclick="quick_change_ducheng_score({{ forloop.counter }})">每题{{ forloop.counter }}分</a></li>
                 {% endfor %}
@@ -1077,7 +1079,7 @@
                 var desc = $(this).find("#desc").val()
                 var info = $(this).find("#info").val();
                 var score = $(this).find("#score").val();
-                totalscore += parseInt(score);
+                totalscore += eval(score);
                 testcases.push({'info': info, 'score': score, 'desc': desc})
             });
             var row = $tc_table.bootstrapTable('getRowByUniqueId', id);
@@ -1108,15 +1110,15 @@
                             $('#work_kind[value="{{ work_kind }}"]').attr('checked',true);
                             $('#show_answer[value="{{ show_answer }}"]').attr('checked',true);
                             $('#show_score[value="{{ show_score }}"]').attr('checked',true);
-			    data = window.location.pathname.split('-').pop();
-                            if(data.replace("/","")=="myhomework")
+			    hw_id = window.location.pathname.split('/').slice(-2)[0];
+                            if(hw_id=="myhomework")
                                 return;
                             $.ajax({
                                 type: "post",
                                 url: "{% url 'get_homework_info' %}",
                                 dataType: "json",
                                 data: {
-                                    'homework_id': data.replace("/", ""), 'my': window.location.pathname.indexOf('my') != -1
+                                    'homework_id': hw_id, 'my': window.location.pathname.indexOf('my') != -1
                                 },
                                 success: function (data) {
                                     console.log(data);
@@ -1142,7 +1144,7 @@
             $.each($table4.bootstrapTable('getData'), function (i, item) {
                 if (item.total_score) {
                     count += 1;
-                    score += parseInt(item.total_score);
+                    score += eval(item.total_score);
                 }
             });
             $('#choice_score').html(score);
@@ -1154,7 +1156,7 @@
             var score = 0;
             $.each($table2.bootstrapTable('getData'), function (i, item) {
                 if (item.total_score) {
-                    score += parseInt(item.total_score);
+                    score += eval(item.total_score);
                     count += 1;
                 }
             });
@@ -1167,7 +1169,7 @@
             var score = 0;
             $.each($table6.bootstrapTable('getData'), function (i, item) {
                 if (item.total_score) {
-                    score += parseInt(item.total_score);
+                    score += eval(item.total_score);
                     count += 1;
                 }
             });
@@ -1180,7 +1182,7 @@
             var score = 0;
             $.each($table8.bootstrapTable('getData'), function (i, item) {
                 if (item.total_score) {
-                    score += parseInt(item.total_score);
+                    score += eval(item.total_score);
                     count += 1;
                 }
             });
@@ -1194,7 +1196,7 @@
             $.each($table12.bootstrapTable('getData'), function (i, item) {
                 if (item.total_score) {
                     count += 1;
-                    score += parseInt(item.total_score);
+                    score += eval(item.total_score);
                 }
             });
             $('#ducheng_score').html(score);
@@ -1205,8 +1207,8 @@
         function fresh_score() {
             $("#count").html(parseInt($('#choice_count').text()) + parseInt($('#ducheng_count').text()) + parseInt($('#problem_count').text())
                 + parseInt($('#tiankong_count').text()) + parseInt($('#gaicuo_count').text()));
-            $("#score").html(parseInt($('#choice_score').text()) + parseInt($('#ducheng_score').text()) + parseInt($('#problem_score').text())
-                + parseInt($('#tiankong_score').text()) + parseInt($('#gaicuo_score').text()));
+            $("#score").html(eval($('#choice_score').text()) + eval($('#ducheng_score').text()) + eval($('#problem_score').text())
+                + eval($('#tiankong_score').text()) + eval($('#gaicuo_score').text()));
         }
 
         function quick_change_choice_score(score) {

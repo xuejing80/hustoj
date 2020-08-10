@@ -14,38 +14,34 @@ Including another URLconf
     2. Add a URL to urlpatterns:  url(r'^blog/', include('blog.urls'))
 """
 from django.conf.urls import url, include
+from django.conf import settings
 from django.contrib import admin
 from django.views.generic import TemplateView
-from judge.views import get_json
-from mooc.views import get_Resource
 from django.views.generic.base import RedirectView
-from auth_system.views import page_not_found, page_error, permission_denied
 from django.views.static import serve
-from django.conf import settings
-
-favicon_view = RedirectView.as_view(url='/static/favicon.ico', permanent=True)
+from auth_system.views import page_not_found, page_error, permission_denied
+from mooc.views import get_Resource
 
 urlpatterns = [
     url(r'^adm/', admin.site.urls, name='adminView'),
-    url(r'^index/', TemplateView.as_view(template_name='index.html'), name='index'),
+    url(r'^$', TemplateView.as_view(template_name="index.html"), name='index'),
+    url(r'^favicon\.ico$', RedirectView.as_view(url='/static/favicon.ico', permanent=True)),
+    # url(r'^index/', TemplateView.as_view(template_name='index.html'), name='index'),
     url(r'^accounts/', include('auth_system.urls')),
     url(r'^judge/', include('judge.urls')),
     url(r'^work/', include('work.urls')),
     url(r'^faq/', include('faq.urls')),
     url(r'^code_week/', include('code_week.urls')),
-    #url(r'^weixin/', include('weixin.urls')),
-    url(r'get-json-(?P<model_name>\w+)/$', get_json,name='get_json'),
-    url(r'^favicon\.ico$',favicon_view),
-    url(r'^$', TemplateView.as_view(template_name="index.html")),
-    url(r'^qqlogin/', include('qqlogin.urls')),
+    # url(r'^weixin/', include('weixin.urls')),
+    # url(r'^qqlogin/', include('qqlogin.urls')),
     url(r'^teetest/', include('teetest.urls')),
-    url(r'get-Resource/', get_Resource,name='get_Resource'),
     url(r'^mooc/', include('mooc.urls')),
+    url(r'get-Resource/', get_Resource,name='get_Resource'),
     url(r'^sign/', include('sign.urls')),
     url(r'^warning/', include('warning.urls')),
     url(r'^wenda/',include('wenda.urls')),
     url(r'^message/', include('message.urls')),
-    url(r'^media/(?P<path>.*)', serve, {'document_root':settings.MEDIA_ROOT}),
+    # url(r'^media/(?P<path>.*)', serve, {'document_root':settings.MEDIA_ROOT}),
 ]
 
 handler403 = permission_denied

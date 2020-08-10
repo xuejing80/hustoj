@@ -9,7 +9,7 @@ from onlineTest.settings import BASE_DIR
 from os.path import isdir, dirname, join
 from os import mkdir
 from django.core.urlresolvers import reverse
-from django.http import HttpResponse, StreamingHttpResponse, JsonResponse
+from django.http import HttpResponse, StreamingHttpResponse, JsonResponse, Http404
 from django.shortcuts import render, get_object_or_404, redirect
 from django.utils.datastructures import MultiValueDictKeyError
 from django.views.decorators.csrf import csrf_exempt
@@ -46,7 +46,6 @@ solution.result的意义：
 """
 def global_settings(request):
     return{'SITE_NAME':settings.SITE_NAME}
-
 
 @permission_required('work.add_homework')
 def add_homework(request):
@@ -94,6 +93,9 @@ def get_json_work(request):
     """
     json_data = {}
     recodes = []
+    if {'offset','limit','classname','my'} - set(request.GET.dict()) != set():
+        raise Http404()
+
     offset = int(request.GET['offset'])
     limit = int(request.GET['limit'])
     classname = request.GET['classname']
@@ -125,7 +127,6 @@ def get_json_work(request):
     json_data['rows'] = recodes
     return HttpResponse(json.dumps(json_data))
 
-
 @permission_required('work.add_homework')
 def list_homework(request):
     """
@@ -135,7 +136,6 @@ def list_homework(request):
     """
     context = {'classnames': ClassName.objects.all(), 'position': 'public_work_manage'}
     return render(request, 'homework_list.html', context=context)
-
 
 # 删除作业
 @permission_required('work.delete_homework')
@@ -161,8 +161,7 @@ def del_homework(request):
             return HttpResponse(0)
         return HttpResponse(1)
     else:
-        return HttpResponse(0)
-
+        raise Http404()
 
 # 显示作业详细
 @permission_required('work.change_homework')
@@ -214,6 +213,8 @@ def ajax_for_homework_info(request):
     :param request: 请求
     :return: 含有作业信息的json
     """
+    if (request.method != 'POST') and ({'homework_id'} - set(request.POST.dict()) != set()):
+        raise Http404()
     homework_id = request.POST['homework_id']
     result = []
     try:
@@ -239,7 +240,6 @@ def ajax_for_homework_info(request):
     except:
         logger_request.exception("执行动作：请求作业信息，用户信息：{}({}:{})，POST数据：{}".format(request.user.username,request.user.pk,request.user.id_num,request.POST.dict()))
     return JsonResponse(result)
-
 
 @permission_required('work.change_homework')
 def update_public_homework(request, pk):
@@ -293,6 +293,7 @@ def update_public_homework(request, pk):
                    'show_score': homework.show_score}
     return render(request, 'homework_add.html', context=context)
 
+@permission_required('work.change_homework')
 def update_my_homework(request, pk):
     """
     更新私有作业
@@ -361,7 +362,8 @@ def show_homework_result(request, id=0):
 
     if request.user != homework_answer.creator and homework_answer.homework.creater != request.user and (
             not request.user.is_superuser):  # 检测用户是否有权查看
-        return render(request, 'warning.html', context={'info': '您无权查看其他同学的作业结果'})
+        raise Http404()
+        # return render(request, 'warning.html', context={'info': '您无权查看其他同学的作业结果'})
     if not homework_answer.judged:  # 如果作业还未批改完成
         return render(request, 'information.html', context={'info': '作业正在批改,请稍后刷新查看或到已完成作业列表中查看'})
     # 作业批改完成而且用户有权查看时
@@ -519,7 +521,7 @@ def show_homework_result(request, id=0):
                        'ducheng_problem_score': homework_answer.ducheng_problem_score,
                        'gaicuo_score': homework_answer.gaicuo_score,
                        'tiankong_score':homework_answer.tiankong_score,
-                       'current_score': int(current_score), 'problems': problems,
+                       'current_score': current_score, 'problems': problems,
                        'tiankong_problems': tiankong_problems, 'gaicuo_problems': gaicuo_problems,
                        'work_kind': homework.work_kind, 'summary': homework_answer.summary,
                        'teacher_comment': homework_answer.teacher_comment,
@@ -565,10 +567,23 @@ def do_homework(request, homework_id=0):
     :param homework_id:作业的id
     :return: 重定向
     """
+    homework = get_object_or_404(MyHomework, pk=homework_id)
+    # 检查当前用户是否有权限打开当前作业
+    if not request.user.is_superuser:
+        if request.user.is_teacher:
+            homeworks = MyHomework.objects.filter(creater=request.user).all()
+            if homework not in homeworks:
+                raise Http404()
+        else:
+            banji = BanJi.objects.filter(Q(myhomework=homework))
+            for bj in banji:
+                if request.user in bj.students.all():
+                    break
+            else:
+                raise Http404()
     if request.method == 'POST':  # 当提交作业时
         wrong_ids, wrong_info = '', ''
         wrong_ducheng_ids, wrong_ducheng_info = '', ''
-        homework = get_object_or_404(MyHomework, pk=homework_id)
         log = "执行动作：提交作业，用户信息：{}({}:{})，作业ID：{}，POST数据：{}".format(request.user.username,request.user.pk,request.user.id_num,homework_id,request.POST.dict())
         if time.mktime(homework.end_time.timetuple()) < time.time():
             logger.info(log + "，执行结果：失败（时间不允许）")
@@ -672,7 +687,6 @@ def do_homework(request, homework_id=0):
             logger.info(log + "，执行结果：无暂存作业")
         return redirect(reverse('show_homework_result', args=[homeworkAnswer.id]))
     else:  # 当正常访问时
-        homework = get_object_or_404(MyHomework, pk=homework_id)
         log = "执行动作：打开作业，用户信息：{}({}:{})，作业ID：{}".format(request.user.username,request.user.pk,request.user.id_num,homework_id)
         choice_problems = []
         if homework.choice_problem_ids is not None:
@@ -778,18 +792,19 @@ def add_banji(request):
         return redirect(reverse('banji_detail', args=(banji.id,)))
     return render(request, 'banji_add.html', context={'classnames': ClassName.objects.all(), 'title': "新建班级"})
 
-
-@permission_required('judge.add_classname')
+@permission_required('is_superuser')
 def add_courser(request):
     """
     新建课程
     :param request: 请求
     :return: 成功返回1
     """
-    courser = ClassName(name=request.POST['name'])
-    courser.save()
-    return HttpResponse(1)
-
+    if 'name' in request.POST.dict():
+        courser = ClassName(name=request.POST['name'])
+        courser.save()
+        return HttpResponse(1)
+    else:
+        raise Http404()
 
 @permission_required('work.add_banji')
 def list_banji(request):
@@ -802,7 +817,6 @@ def list_banji(request):
     context = {'classnames': classnames, 'title': '班级列表', 'position': 'banji_manage'}
     return render(request, 'banji_list.html', context=context)
 
-
 @permission_required('work.add_banji')
 def get_banji_list(request):
     """
@@ -813,6 +827,8 @@ def get_banji_list(request):
     json_data = {}
     recodes = []
     kwargs = {}
+    if {'offset','limit','classname','my'} - set(request.GET.dict()) != set():
+        raise Http404()
     offset = int(request.GET['offset'])
     limit = int(request.GET['limit'])
     classname = request.GET['classname']
@@ -826,7 +842,7 @@ def get_banji_list(request):
     try:  # 对数据按照指定方式排序
         sort = request.GET['sort']
     except MultiValueDictKeyError:
-        sort = 'pk'
+        sort = '-pk'
     json_data['total'] = banjis.count()
     if request.GET['order'] == 'desc':
         sort = '-' + sort
@@ -846,6 +862,8 @@ def get_assign_status(request):
     :param request: 请求
     :return: 含有班级列表信息的json
     """
+    if {'offset','limit','homework_id','classname','my','order'} - set(request.GET.dict()) != set():
+        raise Http404()
     json_data = {}
     records = []
     kwargs = {}
@@ -896,13 +914,14 @@ def del_banji(request):
             return HttpResponse(0)
         return HttpResponse(1)
     else:
-        return HttpResponse(0)
-
+        raise Http404()
 
 # 更新班级信息
 @permission_required('work.change_banji')
 def update_banji(request, id):
     banji = get_object_or_404(BanJi, pk=id)
+    if not request.user.is_superuser and banji.teacher != request.user:
+        raise Http404()
     if request.method == 'POST':
         banji.name = request.POST['name']
         banji.start_time = request.POST['start_time']
@@ -916,10 +935,11 @@ def update_banji(request, id):
                                'courser_id': banji.courser.pk, 'classnames': ClassName.objects.all(),
                                'title': '修改班级信息'})
 
-
 # 复制公共作业到私有作业
 @permission_required('work.add_myhomework')
 def copy_to_my_homework(request):
+    if request.method != 'POST':
+        raise Http404()
     ids = request.POST.getlist('ids[]')
     try:
         for pk in ids:
@@ -953,14 +973,11 @@ def copy_to_my_homework(request):
         return HttpResponse(0)
     return HttpResponse(1)
 
-
 @permission_required('work.add_homework')
 def list_my_homework(request):
     classnames = ClassName.objects.all()
     context = {'classnames': classnames, 'title': '我的私有作业列表', 'position': 'private_work_manage'}
     return render(request, 'my_homework_list.html', context=context)
-
-
 
 @permission_required('work.add_banji')
 def show_banji(request, pk):
@@ -968,6 +985,8 @@ def show_banji(request, pk):
     :return:a list like [{"name":"mike","grades":[100,200,300,400]},{...},...],score is sorted by homework's start time
     """
     banji = get_object_or_404(BanJi, pk=pk)
+    if not request.user.is_superuser and banji.teacher != request.user:
+        raise PermissionDenied
     students_scores = []
     students = banji.students.all()
     homeworks = banji.myhomework_set.all().order_by('start_time')
@@ -987,13 +1006,14 @@ def show_banji(request, pk):
                'title': '班级"' + banji.name + '"的信息', 'scores': students_scores}
     return render(request, 'banji_detail.html', context=context)
 
-@login_required()
-def get_students(request,banji=None):
+@permission_required('work.add_banji')
+def get_students(request,banji):
+    if {'offset','limit'} - set(request.GET.dict()) != set():
+        raise Http404()
     json_data = {}
-    if banji!=None and banji!='':
-        banji = BanJi.objects.get(pk=banji)
-    else:
-        return HttpResponse(json.dumps(json_data))
+    banji = get_object_or_404(BanJi, pk=banji)
+    if not request.user.is_superuser and banji.teacher != request.user:
+        raise PermissionDenied
     users = banji.students
     recodes = []
     offset = int(request.GET['offset'])
@@ -1005,12 +1025,8 @@ def get_students(request,banji=None):
         users = users.filter(qset)
     except:
         pass
-    try:
-        sort = request.GET['sort']
-    except MultiValueDictKeyError:
-        sort = 'id_num'
-    if request.GET['order'] == 'desc':
-        sort = '-' + sort
+    sort = request.GET['sort'] if 'sort' in request.GET.dict() else 'id_num'
+    sort = ('-' + sort) if 'order' in request.GET.dict() and request.GET['order'] == 'desc' else sort
     json_data['total'] = users.count()
     for user in users.all().order_by(sort)[offset:offset + limit]:
         recode = {'username': user.username, 'pk': user.pk,
@@ -1021,6 +1037,9 @@ def get_students(request,banji=None):
 
 @permission_required('work.change_banji')
 def add_students(request, pk):
+    banji = get_object_or_404(BanJi, pk=pk)
+    if not request.user.is_superuser and banji.teacher != request.user:
+        raise PermissionDenied
     if request.FILES.get('names'):
         teacher = MyUser.objects.get(id=request.user.id)
         tea_name = teacher.username
@@ -1042,10 +1061,10 @@ def add_students(request, pk):
     teacher = MyUser.objects.get(id=request.user.id)
     return render(request, 'add_students.html', context={'id': pk, 'teacher':teacher, 'title': '添加学生到班级'})
 
-
 @permission_required('work.change_banji')
 def ajax_add_students(request):
-    
+    if {'judge','banji_id'} - set(request.POST.dict()) != set():
+        raise Http404() 
     if request.POST['judge']=='1':
         banji_id = request.POST['banji_id']
         row = request.POST['nrow']
@@ -1165,41 +1184,41 @@ def ajax_add_students(request):
             return HttpResponse(json.dumps({'result': 0, 'count': 1}))
 
 def reset_stupassword(request):
-    if request.method == 'POST':
+    if request.method == 'POST' and request.user.isTeacher():
         stu_id = request.POST.get('id')
         banji_id = request.POST.get('banji_id')
-        try:
-            student = MyUser.objects.get(pk=stu_id)
-            banji = BanJi.objects.get(pk=banji_id)
-            if student.isTeacher():#不允许重置教师账号的密码
-                return HttpResponse(2)
-            stu_nu = student.id_num
-            student.set_password(stu_nu)
-            student.save()
-        except:
-            return HttpResponse(0)
+        student = get_object_or_404(MyUser, pk=stu_id)
+        banji = get_object_or_404(BanJi, pk=banji_id)
+        if not request.user.is_superuser and banji.teacher != request.user:
+            raise PermissionDenied
+        if student.isTeacher():#不允许重置教师账号的密码
+            return HttpResponse(2)
+        stu_nu = student.id_num
+        student.set_password(stu_nu)
+        student.save()
         return HttpResponse(1)
     else:
-        return HttpResponse(0)
+        raise Http404()
 
 def del_students(request):
-    if request.method == 'POST':
+    if request.method == 'POST' and request.user.isTeacher():
         stu_id = request.POST.get('id')
         banji_id = request.POST.get('banji_id')
-        try:
-            student = MyUser.objects.get(pk=stu_id)
-            banji = BanJi.objects.get(pk=banji_id)
-            if banji.teacher==student:
-                return HttpResponse(2)
-            banji.students.remove(student)
-        except:
-            return HttpResponse(0)
+        student = MyUser.objects.get(pk=stu_id)
+        banji = BanJi.objects.get(pk=banji_id)
+        if not request.user.is_superuser and banji.teacher != request.user:
+            raise PermissionDenied
+        if banji.teacher==student:
+            return HttpResponse(2)
+        banji.students.remove(student)
         return HttpResponse(1)
     else:
-        return HttpResponse(0)
+        raise Http404()
 
 @permission_required('work.add_homework')
 def assign_homework(request):
+    if (request.method != 'POST') and ({'homework_id','id'} - set(request.POST.dict()) != set()):
+        raise Http404()
     homework_id = request.POST['homework_id']
     banji_id = request.POST['id']
     try:
@@ -1212,6 +1231,8 @@ def assign_homework(request):
 
 @permission_required('work.add_homework')
 def unassign_homework(request):
+    if (request.method != 'POST') and ({'homework_id','id'} - set(request.POST.dict()) != set()):
+        raise Http404()
     homework_id = request.POST['homework_id']
     banji_id = request.POST['id']
     try:
@@ -1232,6 +1253,8 @@ def list_do_homework(request):
 # 获取待做作业列表
 @login_required()
 def get_my_homework_todo(request):
+    if {'offset','limit','banji','order'} - set(request.GET.dict()) != set():
+        raise Http404()
     log = "执行动作：读取作业列表，用户信息：{}({}:{})，POST数据：{}".format(request.user.username,request.user.pk,request.user.id_num,request.POST.dict())
     user = request.user
     json_data = {}
@@ -1312,7 +1335,6 @@ def get_my_homework_todo(request):
     json_data['total'] = count
     json_data['xxx'] = homeworks.count()
     return JsonResponse(json_data)
-
 
 def get_problem_score(homework_answer, judged_score=0):
     """
@@ -1400,11 +1422,10 @@ def get_gaicuo_score(homework_answer, judged_score=0):
 @login_required()
 def list_finished_homework(request):
     if not request.user.isTeacher() and not request.user.is_admin:
-        raise PermissionDenied
+        raise Http404()
     banjis = BanJi.objects.filter(students=request.user).all()
     return render(request, 'finidshed_homework_list.html',
                   context={'classnames': banjis, 'position': 'finished', 'title': '查看作业结果'})
-
 
 @login_required()
 def get_finished_homework(request):
@@ -1413,15 +1434,15 @@ def get_finished_homework(request):
     :param request: 请求
     :return: 含有用户已完成作业的json
     """
-    if not request.user.isTeacher() and not request.user.is_admin:
-        raise PermissionDenied
     json_data = {}
     records = []
     user = request.user
-    #offset = int(request.GET['offset'])
-    #limit = int(request.GET['limit'])
+    if {'classname'} - set(request.GET.dict()) != set():
+        raise Http404()
     if request.GET['classname'] != '0':
         banji = BanJi.objects.get(pk=request.GET['classname'])
+        if not request.user.is_superuser and banji.teacher != request.user:
+            raise Http404()
         homeworks = banji.myhomework_set.all().order_by('start_time')
         stuCount = 0
         for student in banji.students.all().order_by('id_num'):
@@ -1456,44 +1477,19 @@ def get_finished_homework(request):
         json_data['rows'] = {}
     return JsonResponse(json_data)
 
-    #homework_answers = HomeworkAnswer.objects.filter(creator=user)
-    #if request.GET['classname'] != '0':
-    #    homework_answers = homework_answers.filter(homework__courser=HomeWork.objects.get(pk=request.GET['classname']))
-    #try:
-    #    homework_answers = homework_answers.filter(homework__name__icontains=request.GET['search'])
-    #except:
-    #    pass
-    #try:
-    #    sort = request.GET['sort']
-    #except MultiValueDictKeyError:
-    #    sort = 'pk'
-    homework_answers = homework_answers.filter()
-    json_data['total'] = homework_answers.count()
-    if request.GET['order'] == 'desc':
-        sort = '-' + sort
-    for homework_answer in homework_answers.all().order_by(sort)[offset:offset + limit]:
-        score = '{}'.format(homework_answer.score) if homework_answer.judged else '<i class="fa fa-spinner fa-spin fa-fw"></i> 作业还在判分中'
-        recode = {'name': homework_answer.homework.name,
-                  'create_time': homework_answer.create_time.strftime('%Y-%m-%d %H:%M:%S'),
-                  'id': homework_answer.pk,
-                  'teacher': 'dd',
-                  'score': score,
-                  'allow_resubmit': homework_answer.homework.allow_resubmit,
-                  'homework_id': homework_answer.homework.id
-                  }
-        recodes.append(recode)
-    json_data['rows'] = recodes
-    #return JsonResponse(json_data)
-
-@permission_required('work.add_homework')
+@login_required()
 def get_finished_homework_workInformation(request):
     """
     在作业结果页面中返回作业的详细信息
     """
     json_data = {}
     record = []
+    if {'class_name'} - set(request.GET.dict()) != set():
+        raise Http404()
     if request.GET.get('class_name','') != '0':
         banji = BanJi.objects.get(pk=request.GET['class_name'])
+        if not request.user.is_superuser and banji.teacher != request.user:
+            raise Http404()
         homeworks = banji.myhomework_set.all().order_by('start_time')
         students = banji.students.all().order_by('id_num')
         stuCount = banji.students.all().count() - 1
@@ -1523,12 +1519,16 @@ def get_finished_homework_workInformation(request):
             record = []
     return JsonResponse(json_data)
 
-@permission_required('work.add_homework')
+@login_required()
 def get_finished_students(request):
+    if {'homework_id','offset','limit','banji_id'} - set(request.GET.dict()) != set():
+        raise Http404()
     json_data = {}
     recodes = []
     homework_id = request.GET['homework_id']
     homework = MyHomework.objects.get(pk=homework_id)
+    if homework.creater != request.user and (not request.user.is_superuser):
+        raise Http404()
     offset = int(request.GET['offset'])
     limit = int(request.GET['limit'])
     homework_answers = homework.homeworkanswer_set
@@ -1578,70 +1578,59 @@ def list_coursers(request):
     coursers = ClassName.objects.all()
     return render(request, 'courser_list.html', {'coursers': coursers, 'title': '课程列表', 'position': 'courser_manage'})
 
-
-@permission_required('judge.add_knowledgepoint1')
+@permission_required('is_superuser')
 def list_kp1s(request, id):
     courser = get_object_or_404(ClassName, id=id)
     kp1s = KnowledgePoint1.objects.filter(classname=courser)
     return render(request, 'kp1_list.html', {'kp1s': kp1s, 'title': '查看课程“%s”的一级知识点' % courser.name, 'id': id})
 
-
-@permission_required('judge.add_knowledgepoint2')
+@permission_required('is_superuser')
 def list_kp2s(request, id):
     kp1 = get_object_or_404(KnowledgePoint1, id=id)
     kp2s = KnowledgePoint2.objects.filter(upperPoint=kp1)
     return render(request, 'kp2s_list.html', context={'kp2s': kp2s, 'id': id, 'title': '查看一级知识点"%s”下的二级知识点' % kp1.name})
 
-
-@permission_required('judge.delete_classname')
+@permission_required('is_superuser')
 def delete_courser(request):
-    if not request.user.is_admin:
-        raise PermissionDenied
     try:
         ClassName.objects.get(id=request.POST['id']).delete()
         return HttpResponse(1)
     except:
-        return HttpResponse(0)
+        raise Http404()
 
-
-@permission_required('judge.delete_knowledgepoint1')
+@permission_required('is_superuser')
 def delete_kp1(request):
-    if not request.user.is_admin:
-        raise PermissionDenied
     try:
         KnowledgePoint1.objects.get(id=request.POST['id']).delete()
         return HttpResponse(1)
     except:
-        return HttpResponse(0)
+        raise Http404()
 
-@permission_required('judge.delete_knowledgepoint2')
+@permission_required('is_superuser')
 def delete_kp2(request):
-    if not request.user.is_admin:
-        raise PermissionDenied
     try:
         KnowledgePoint2.objects.get(id=request.POST['id']).delete()
         return HttpResponse(1)
     except:
-        return HttpResponse(0)
+        raise Http404()
 
-
-@permission_required('judge.add_knowledgepoint1')
+@permission_required('is_superuser')
 def add_kp1(request):
-    if not request.user.is_admin:
-        raise PermissionDenied
-    kp1 = KnowledgePoint1(name=request.POST['name'], classname_id=request.POST['id'])
-    kp1.save()
-    return HttpResponse(1)
+    if 'name' in request.POST.dict():
+        kp1 = KnowledgePoint1(name=request.POST['name'], classname_id=request.POST['id'])
+        kp1.save()
+        return HttpResponse(1)
+    else:
+        raise Http404()
 
-
-@permission_required('judge.add_knowledgepoint2')
+@permission_required('is_superuser')
 def add_kp2(request):
-    if not request.user.is_admin:
-        raise PermissionDenied
-    kp2 = KnowledgePoint2(name=request.POST['name'], upperPoint_id=request.POST['id'])
-    kp2.save()
-    return HttpResponse(1)
-
+    if 'name' in request.POST.dict() and 'id' in request.POST.dict():
+        kp2 = KnowledgePoint2(name=request.POST['name'], upperPoint_id=request.POST['id'])
+        kp2.save()
+        return HttpResponse(1)
+    else:
+        raise Http404()
 
 def judge_homework(homework_answer):
     # todo 效率很低，有待改进
@@ -1732,14 +1721,19 @@ def add_myhomework(request):
     classnames = ClassName.objects.all()
     return render(request, 'homework_add.html', context={'classnames': classnames, 'title': '新建私有作业'})
 
-
+@login_required()
 def test_run(request):
     """
     提交作业前提供的测试运行函数
     :param request: 请求
     :return: 包含运行结果的json数据
     """
+    print(request.POST.dict())
+    if (request.method != 'POST') and ({'type'} - set(request.POST.dict()) != set()):
+        raise Http404()
     if request.POST['type'] == 'upload':  # 当上传代码时
+        if {'problem_id','language','code'} - set(request.POST.dict()) != set():
+            raise Http404()
         try:
             solution = Solution(problem_id=request.POST['problem_id'], user_id=request.user.username,
                                 language=request.POST['language'], ip=request.META['REMOTE_ADDR'],
@@ -1752,7 +1746,8 @@ def test_run(request):
         except Exception as e:
             return HttpResponse(json.dumps({'result': 0, 'info': '出现了问题' + e.__str__(), 'score': 0}))  # 创建失败，返回错误信息
     if request.POST['type'] == 'score':  # 当获取结果时
-
+        if {'solution_id','homework_id'} - set(request.POST.dict()) != set():
+            raise Http404()
         solution = Solution.objects.get(solution_id=request.POST['solution_id'])  # 获取solution
         homework = MyHomework.objects.get(id=request.POST['homework_id'])
         if solution.result in [0, 1, 2, 3]:  # 当题目还在判断中时
@@ -1816,10 +1811,10 @@ def delete_homeworkanswer(request, id):
     :param id: 作业回答id
     :return: 重定向到作业详细界面
     """
-    homeworkanswer = HomeworkAnswer.objects.get(pk=id)
+    homeworkanswer = get_object_or_404(HomeworkAnswer, pk=id)
     homwork_id = homeworkanswer.homework_id
     if homeworkanswer.homework.creater != request.user and not request.user.is_superuser:
-        return JsonResponse({'error': 'you are not admin'})
+        return JsonResponse({'error': 'you are not permitted.'})
     homeworkanswer.homework.finished_students.remove(homeworkanswer.creator)
     #for solution in homeworkanswer.solution_set.all():
     #    SourceCode.objects.get(solution_id=solution.solution_id).delete()
@@ -1836,7 +1831,7 @@ def rejudge_homework(request, id):
     :param id:题目id
     :return:
     """
-    homework_answer = HomeworkAnswer.objects.get(pk=id)
+    homework_answer = get_object_or_404(HomeworkAnswer, pk=id)
     for i in homework_answer.solution_set.all():
         i.result = 0
         i.save()
@@ -1868,10 +1863,10 @@ def save_homework_temp(request):
                 'info': '对不起，暂存作业失败了，请及时联系管理员：' + settings.CONTACT_INFO})
     return redirect(reverse('list_do_homework'))
 
-
+@login_required()
 def init_homework_data(request):
     try:
-        temp = TempHomeworkAnswer.objects.get(homework_id=request.POST['homework_id'], creator=request.user)
+        temp = get_object_or_404(TempHomeworkAnswer, homework_id=request.POST['homework_id'], creator=request.user)
         return JsonResponse({'result': 1, 'data': json.loads(temp.data)})
     except Exception as e:
         return JsonResponse({'result': -1})
@@ -1882,22 +1877,28 @@ def file_download(request):
 
 @login_required()
 def comment_change(request):
-    if request.method == 'POST':
-        answerId = request.POST['answerId']
-        comment = request.POST['teacher_comment']
-        change = request.POST['change']
-        try:
-            homework_answer = HomeworkAnswer.objects.filter(pk=answerId)
-            if eval(change) == -1:
-                homework_answer.update(teacher_comment=comment)
-            else:
-                homework_answer.update(teacher_comment=comment,score=change)
-        except:
-            pass
-        return HttpResponse(1)
+    if (request.method != 'POST') and ({'answerId','teacher_comment','change'} - set(request.POST.dict()) != set()):
+        raise Http404()
+    answerId = request.POST['answerId']
+    comment = request.POST['teacher_comment']
+    change = request.POST['change']
+    try:
+        homework_answer = HomeworkAnswer.objects.filter(pk=answerId)
+        if homework_answer.homework.creater != request.user and (not request.user.is_superuser):
+            raise Http404()
+        if eval(change) == -1:
+            homework_answer.update(teacher_comment=comment)
+        else:
+            homework_answer.update(teacher_comment=comment,score=change)
+    except:
+        pass
+    return HttpResponse(1)
 
 @login_required()
 def send_zipfile(request,id):
+    if not request.user.isTeacher() and not request.user.is_admin:
+        raise Http404()
+ 
     def file_iterator(file_name, chunk_size=512):
         with open(file_name,'rb') as f:
             while True:
@@ -1930,3 +1931,6 @@ def send_zipfile(request,id):
     response['Content-Type'] = 'application/octet-stream'
     response['Content-Disposition'] = 'attachment; filename=%s' %zipfilename
     return response
+
+def emptyView(request):
+    raise Http404()

@@ -1,6 +1,5 @@
 from django.conf.urls import url, include
-from .views import  select_point, delete_problem, add_problem, ProblemDetailView, update_problem, \
-    add_choice,list_problems,list_choices,del_choice_problem,ChoiceProblemDetailView,update_choice_problem, verify_file,list_tiankong,list_gaicuo,add_tiankong,update_tiankong,TiankongProblemDetailView,delete_tiankong,add_gaicuo,update_gaicuo,GaicuoProblemDetailView,delete_gaicuo, add_ducheng, list_ducheng, del_ducheng_problem, update_ducheng, DuchengProblemDetailView, emptyView
+from .views import *
 
 urlpatterns = [
     url(r'^pointslect/$', select_point, name='select_point'),
@@ -27,7 +26,7 @@ urlpatterns = [
     url(r'^del-tiankong/$', delete_tiankong, name='del_tiankong'),
     url(r'^update-tiankong/$', emptyView, name='_update_tiankong'),
     url(r'^update-tiankong/(?P<id>\d+)/$', update_tiankong, name='update_tiankong'),
-    url(r'^tiankong-detail/$', TiankongProblemDetailView.as_view(), name='_tiankong_detail'),
+    url(r'^tiankong-detail/$', emptyView, name='_tiankong_detail'),
     url(r'^tiankong-detail/(?P<pk>\d+)/$', TiankongProblemDetailView.as_view(), name='tiankong_problem_detail'),
 
     url(r'^gaicuo_problem_list/$', list_gaicuo, name='gaicuo_problem_list'),
@@ -45,5 +44,7 @@ urlpatterns = [
     url(r'^update-ducheng/(?P<id>\d*)/$', update_ducheng,name='update_ducheng'),
     url(r'^ducheng-detail/$', emptyView, name='_ducheng_detail'),
     url(r'^ducheng-detail/(?P<pk>\d+)/$', DuchengProblemDetailView.as_view(), name='ducheng_problem_detail'),
+
+    url(r'^get-json-(?P<model_name>\w+)/$', get_json,name='get_json'),
 ]
 

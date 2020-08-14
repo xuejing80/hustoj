@@ -5,7 +5,7 @@ import xlrd
 import shutil
 from django.contrib.auth.models import Group
 from django.core.exceptions import ObjectDoesNotExist, PermissionDenied
-from onlineTest.settings import BASE_DIR
+from onlineTest.settings import BASE_DIR, USER_FILE_DIR
 from os.path import isdir, dirname, join
 from os import mkdir
 from django.core.urlresolvers import reverse
@@ -1040,47 +1040,49 @@ def add_students(request, pk):
     banji = get_object_or_404(BanJi, pk=pk)
     if not request.user.is_superuser and banji.teacher != request.user:
         raise PermissionDenied
-    if request.FILES.get('names'):
+    if request.method == 'POST':
         teacher = MyUser.objects.get(id=request.user.id)
-        tea_name = teacher.username
-        uploadDir = BASE_DIR+'/upload/'+tea_name
+        tea_name = teacher.id_num
+        uploadDir = os.path.join(USER_FILE_DIR, 'students')
+        print(uploadDir)
         if not isdir(uploadDir):
             mkdir(uploadDir)
         uploadedFile = request.FILES.get('names')
         if not uploadedFile:
             return render(request, 'add_students.html', {'msg':'错误：没有选择文件！','id': pk, 'teacher':teacher, 'title': '添加学生到班级'})
-        if not uploadedFile.name.endswith('dmc.xls'):
-            return render(request, 'add_students.html', {'msg':'错误：请选择初始点名文档！','id': pk, 'teacher':teacher, 'title': '添加学生到班级'})
+        if not uploadedFile.name.endswith('.xlsx'):
+            return render(request, 'add_students.html', {'msg':'错误：文件类型错误！','id': pk, 'teacher':teacher, 'title': '添加学生到班级'})
         dstFilename = join(uploadDir, uploadedFile.name)
         newname = join(uploadDir, tea_name+'.xls')
         with open(dstFilename, 'wb') as fp:
             for chunk in uploadedFile.chunks():
                 fp.write(chunk)
         os.rename(dstFilename, newname)
-        return render(request, 'add_students.html', {'msg_s':'上传成功！','id': pk, 'teacher':teacher, 'title': '添加学生到班级'})
+        return render(request, 'add_students.html', {'msg_s':'成功上传学生名单，请点击下方按钮添加学生账号！','id': pk, 'teacher':teacher, 'title': '添加学生到班级'})
     teacher = MyUser.objects.get(id=request.user.id)
     return render(request, 'add_students.html', context={'id': pk, 'teacher':teacher, 'title': '添加学生到班级'})
 
 @permission_required('work.change_banji')
 def ajax_add_students(request):
     if {'judge','banji_id'} - set(request.POST.dict()) != set():
-        raise Http404() 
+        raise Http404()
+    # 用Excel模板方式提交学生信息 
     if request.POST['judge']=='1':
         banji_id = request.POST['banji_id']
         row = request.POST['nrow']
         teacher = MyUser.objects.get(id=request.user.id)
-        tea_name = teacher.username
+        tea_name = teacher.id_num
         allow_num = teacher.allow_num
-        dstFilename = BASE_DIR+'/upload/'+tea_name+'/'+tea_name+'.xls'
+        dstFilename = os.path.join(USER_FILE_DIR, 'students', tea_name+'.xls')
         if not (os.path.exists(dstFilename)):
             return HttpResponse(json.dumps({'result': 1, 'count': 0, 'allow': 1}))
         excel = xlrd.open_workbook(dstFilename) 
         table = excel.sheets()[0]
         rows = table.nrows
-        if int(row)+5 == rows:
-            shutil.rmtree(BASE_DIR+'/upload/'+tea_name)
+        if int(row)+1 == rows:
+            os.remove(dstFilename)
             return HttpResponse(json.dumps({'result': 2, 'count': 0, 'allow': 1}))
-        st = table.row_values(int(row)+5, start_colx=1, end_colx=3)
+        st = table.row_values(int(row)+1, start_colx=0, end_colx=2)
         if len(st) > 1:
             id_num, username = st
             if teacher.create_num < 1:
@@ -1092,17 +1094,11 @@ def ajax_add_students(request):
                         student.groups.add(Group.objects.get(name='学生'))
                     else:
                         return HttpResponse(json.dumps({'stu_name':username, 'result': 0, 'count': 0, 'allow': 1,'message':'该学号被其他用户占用，请联系管理员老师'}))
-                    #if student.username != username:
-                    #    student = MyUser(id_num=id_num, email=id_num + '@njupt.edu.cn', username=username)
-                    #    student.set_password(id_num)
-                    #    student.save()
-                    #    student.groups.add(Group.objects.get(name='学生'))
-                except:
+                except ObjectDoesNotExist:
                     student = MyUser(id_num=id_num, email=id_num + '@njupt.edu.cn', username=username)
                     student.set_password(id_num)
                     student.save()
                     student.groups.add(Group.objects.get(name='学生'))
-                
             else:
                 try:
                     student = MyUser.objects.get(id_num=teacher.school_short+id_num)
@@ -1110,12 +1106,7 @@ def ajax_add_students(request):
                         student.groups.add(Group.objects.get(name='学生'))
                     else:
                         return HttpResponse(json.dumps({'stu_name':username, 'result': 0, 'count': 0, 'allow': 1,'message':'该学号被占用'}))
-                    #if student.username != username:
-                    #    student = MyUser(id_num=teacher.school_short+id_num, email=id_num + '@' + teacher.school_short.lower() + '.edu.cn', username=username, school=teacher.school, school_short=teacher.school_short)
-                    #    student.set_password(teacher.school_short+id_num)
-                    #    student.save()
-                    #    student.groups.add(Group.objects.get(name='学生'))
-                except:
+                except ObjectDoesNotExist:
                     if len(MyUser.objects.filter(email=id_num + '@' + teacher.school_short.lower() + '.edu.cn'))==0:
                         student = MyUser(id_num=teacher.school_short+id_num, email=id_num + '@' + teacher.school_short.lower() + '.edu.cn', username=username, school=teacher.school, school_short=teacher.school_short)
                         student.set_password(teacher.school_short+id_num)
@@ -1129,6 +1120,7 @@ def ajax_add_students(request):
             teacher.create_num -= 1
             teacher.save()
             return HttpResponse(json.dumps({'stu_name':username, 'result': 0, 'count': 1}))
+    # 用文本方式提交学生信息
     if request.POST['judge']=='0':
         banji_id = request.POST['banji_id']
         stu_detail = request.POST['stu_detail']
@@ -1145,17 +1137,11 @@ def ajax_add_students(request):
                         student.groups.add(Group.objects.get(name='学生'))
                     else:
                         return HttpResponse(json.dumps({'result': 0, 'count': 0, 'allow': 1,'message':'该学号被其他用户占用，请联系管理员老师'}))
-                    #if student.username != username:
-                    #    student = MyUser(id_num=id_num, email=id_num + '@njupt.edu.cn', username=username)
-                    #    student.set_password(id_num)
-                    #    student.save()
-                    #    student.groups.add(Group.objects.get(name='学生'))
-                except:
+                except ObjectDoesNotExist:
                     student = MyUser(id_num=id_num, email=id_num + '@njupt.edu.cn', username=username)
                     student.set_password(id_num)
                     student.save()
                     student.groups.add(Group.objects.get(name='学生'))
-                
             else:
                 try:
                     student = MyUser.objects.get(id_num=teacher.school_short+id_num)
@@ -1163,12 +1149,7 @@ def ajax_add_students(request):
                         student.groups.add(Group.objects.get(name='学生'))
                     else:
                         return HttpResponse(json.dumps({'result': 0, 'count': 0, 'allow': 1,'message':'该学号被占用'}))
-                    #if student.username != username:
-                    #    student = MyUser(id_num=teacher.school_short+id_num, email=id_num + '@' + teacher.school_short.lower() + '.edu.cn', username=username, school=teacher.school, school_short=teacher.school_short)
-                    #    student.set_password(teacher.school_short+id_num)
-                    #    student.save()
-                    #    student.groups.add(Group.objects.get(name='学生'))
-                except:
+                except ObjectDoesNotExist:
                     if len(MyUser.objects.filter(email=id_num + '@' + teacher.school_short.lower() + '.edu.cn'))==0:
                         student = MyUser(id_num=teacher.school_short+id_num, email=id_num + '@' + teacher.school_short.lower() + '.edu.cn', username=username, school=teacher.school, school_short=teacher.school_short)
                         student.set_password(teacher.school_short+id_num)

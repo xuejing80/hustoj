@@ -47,7 +47,7 @@ class ShejiUpdateForm(forms.Form):
     newDescribeFile = forms.FileField(label='更新文件', required=False)
     category = forms.ModelChoiceField(label='题目类别', queryset=ProblemCategory.objects.all(),
                                       widget=forms.Select(attrs={'class': 'form-control'}), required=False)
-    def save(self, user, problemid):
+    def save(self, problemid):
         cd = self.cleaned_data
         title = cd['title']
         editorText=cd['editorText']

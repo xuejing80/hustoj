@@ -4,7 +4,7 @@
 <h3>正在进行的课程</h3>
     {% if nowCourses %}
         {% for course in nowCourses %}
-            <a href="/code_week/course_{{ course.id }}">{{ course.name }}</a><br>
+            <a href="/code_week/course_{{ course.id }}/">{{ course.name }}</a><br>
 {#            <a href="{% url 'view_course_for_student' {{ course.id }} %}">{{ course.name }}</a>#}
         {% endfor %}
     {% else %}
@@ -13,7 +13,7 @@
 <h3>还未开始的课程</h3>
     {% if futureCourses %}
         {% for course in futureCourses %}
-            <a href="/code_week/course_{{ course.id }}">{{ course.name }}</a><br>
+            <a href="/code_week/course_{{ course.id }}/">{{ course.name }}</a><br>
         {% endfor %}
     {% else %}
         <p>暂无</p>
@@ -21,7 +21,7 @@
 <h3>已经结束的课程</h3>
     {% if previousCourses %}
         {% for course in previousCourses %}
-            <a href="/code_week/course_{{ course.id }}">{{ course.name }}</a><br>
+            <a href="/code_week/course_{{ course.id }}/">{{ course.name }}</a><br>
         {% endfor %}
     {% else %}
         <p>暂无</p>

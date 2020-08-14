@@ -63,12 +63,12 @@ urlpatterns = [
     url(r'^rejudge-homework/$', emptyView, name='_rejudge_homework'),
     url(r'^rejudge-homework/(?P<id>\d+)/$', rejudge_homework, name='rejudge_homework'),
     url(r'^homework-result-comment_change/$', comment_change, name='comment_change'),
+    url(r'^del-homeworkanswer/$', emptyView, name='_delete_homeworkanswer'),
+    url(r'^del-homeworkanswer/(?P<id>\d+)/$', delete_homeworkanswer, name='delete_homeworkanswer'),
 
     url(r'^list-finished-homework/$', list_finished_homework, name='list_finished_homework'),
     url(r'^get-finished-homework-list/$', get_finished_homework, name='get_finished_homework'),
     url(r'^get-finished-homework-workInformation/$', get_finished_homework_workInformation, name='get_finished_homework_workInformation'),
-    url(r'^del-homeworkanswer/$', emptyView, name='_delete_homeworkanswer'),
-    url(r'^del-homeworkanswer/(?P<id>\d+)/$', delete_homeworkanswer, name='delete_homeworkanswer'),
 
     # 下载模块是静态页面，内容不更新，干脆禁用了
     # url(r'^download/$', file_download, name='download'),

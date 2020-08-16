@@ -31,6 +31,7 @@ urlpatterns = [
     url(r'^teacher-check-student/$', teacher_check_student, name='teacher_check_student'),
     url(r'^teacher-read-code-(?P<courseId>\d+)-(?P<groupId>\d+)-(\d+)/$', teacher_read_code, name='teacher_read_code'),
     url(r'^teacher-all-history-(?P<courseId>\d+)-(?P<groupId>\d+)/$', teacher_get_all_code_history, name='teacher_get_all_history'),
+    url(r'^teacher-single-code-(?P<courseId>\d+)-(?P<fileId>\d+)/$', teacher_get_single_code, name='teacher_get_single_code'),
     url(r'^teacher-code-zip-(?P<courseId>\d+)-(?P<historyId>\d+)/$', teacher_get_code_zip, name='teacher_get_code_zip'),
     url(r'^teacher-get-all-report-history-(?P<courseId>\d+)-(?P<groupId>\d+)/$', teacher_get_all_report_history, name='teacher_get_all_report_history'),
     url(r'^teacher-download-report-(?P<courseId>\d+)-(?P<historyId>\d+)/$', teacher_download_report, name='teacher_download_report'),
@@ -51,5 +52,4 @@ urlpatterns = [
     url(r'^get-code-(?P<fileId>\d+)/$', get_code_file, name='get_code'),
 
     # url(r'^choose-problem-(?P<courseId>\d+)/$', choose_problem, name='choose_problem'),
-    # url(r'^teacher-single-code-(?P<courseId>\d+)-(?P<fileId>\d+)/$', teacher_get_single_code, name='teacher_get_single_code'),
 ]

@@ -6,7 +6,7 @@ from django.contrib.auth.decorators import permission_required, login_required
 from django.shortcuts import redirect, get_object_or_404
 from django.core.urlresolvers import reverse
 from auth_system.models import MyUser, Group
-from django.http import HttpResponse,StreamingHttpResponse, HttpResponseRedirect
+from django.http import HttpResponse,StreamingHttpResponse, HttpResponseRedirect, Http404
 import os, cgi, json, html, zipfile, random, string, chardet, shutil
 from django.views.generic.detail import DetailView
 from django.utils.datastructures import MultiValueDictKeyError
@@ -21,6 +21,9 @@ import xlwt
 import channels
 
 MAX_CODE_TAR_SIZE = 5 * 1024 * 1024
+
+def emptyView(request):
+    raise Http404()
 
 def updateLatestInfo(courseId, infoObject):
     # 将消息发送给教师最新消息查看页面
@@ -51,7 +54,7 @@ def course_list_for_student(request):
 @login_required
 def course_list_for_teacher(request):
     if not request.user.isTeacher() and request.user.is_admin!=True:
-        raise PermissionDenied
+        raise Http404()
     nowtime = datetime.datetime.now()  # 获取当前时间用来判断有关老师的课程是否在进行
     nowCourses = CodeWeekClass.objects.filter(
         teacher=request.user).filter( # 过滤获取老师正在进行的课程
@@ -71,7 +74,7 @@ def course_list_for_teacher(request):
 @login_required
 def add_course(request):
     if not request.user.isTeacher() and request.user.is_admin!=True:
-        raise PermissionDenied
+        raise Http404()
     if request.method == 'POST':
         form = AddCodeWeekForm(request.POST)
         if form.is_valid():
@@ -153,23 +156,21 @@ def add_course(request):
 @login_required
 def view_course(request, courseId):
     if not request.user.isTeacher() and request.user.is_admin!=True:
-        raise PermissionDenied
-    course = CodeWeekClass.objects.filter(id=courseId)
-    if course.count() == 0:
-        return render(request, 'warning.html', {'info' : '查无此课'})
-    elif course[0].teacher != request.user and not request.user.is_admin:
-        return render(request, 'warning.html', {'info': '查无此课'})
+        raise Http404()
+    course = get_object_or_404(CodeWeekClass, id=courseId)
+    if course.teacher != request.user and not request.user.is_admin:
+        return render(request, 'warning.html', {'info': '您无权访问该班级'})
     else:
-        students = course[0].students.all()
-        problems = course[0].problems.all()
-        return render(request, 'code_week/course_detail.html', {'course' : course[0], 'students' : students, 'problems':problems})
+        students = course.students.all()
+        problems = course.problems.all()
+        return render(request, 'code_week/course_detail.html', {'course' : course, 'students' : students, 'problems':problems})
 
 #学生查看课程主页
 @login_required()
 def student_view_course(request, courseId):
     course = CodeWeekClass.objects.filter(id=courseId)
     if course.count() == 0:
-        return render(request, 'warning.html', {'info' : '查无此课'})
+        raise Http404()
     elif request.user in course[0].students.all(): # 请求的用户在课程学生列表中
         group = None
         try:
@@ -181,7 +182,7 @@ def student_view_course(request, courseId):
             problem = group.selectedProblem
         return render(request, 'code_week/student_course_detail.html', {'course' : course[0], 'problem': problem})
     else:
-        return render(request, 'warning.html', {'info': '查无此课'})
+        raise Http404()
 
 # 教师提交描述文件，把文件名修改为提交的id
 def newProblemFileName(fileId):
@@ -192,7 +193,7 @@ def newProblemFileName(fileId):
 @login_required
 def add_sheji(request):
     if not request.user.isTeacher() and request.user.is_admin!=True:
-        raise PermissionDenied
+        raise Http404()
     if request.method == 'POST':  # 当提交表单时
         form = ShejiAddForm(request.POST,request.FILES)  # form 包含提交的数据
         #print(form.errors)
@@ -214,7 +215,7 @@ def add_sheji(request):
 @login_required
 def delete_sheji(request):
     if not request.user.isTeacher() and request.user.is_admin!=True:
-        raise PermissionDenied
+        raise Http404()
     if request.method == 'POST':
         ids = request.POST.getlist('ids[]')
         try:
@@ -234,7 +235,7 @@ class ShejiProblemDetailView(DetailView):
     context_object_name = 'problem'
     def get_context_data(self, **kwargs):
             if not self.request.user.isTeacher() and self.request.user.is_admin!=True:
-                raise PermissionDenied
+                raise Http404()
             context = super( ShejiProblemDetailView, self).get_context_data(**kwargs)
             context['title'] = '程序设计题“' + self.object.title + '”的详细信息'
             return context
@@ -243,9 +244,9 @@ class ShejiProblemDetailView(DetailView):
 @login_required
 def update_sheji(request, id):
     if not request.user.isTeacher() and request.user.is_admin!=True:
-        raise PermissionDenied
+        raise Http404()
     problem = get_object_or_404(ShejiProblem, pk=id)
-    if problem.creator != request.user:
+    if request.user.is_admin!=True and problem.creator != request.user:
         return render(request, 'warning.html', {'info' : "您无法修改不是您创建的题目"})
     initial = {'title': problem.title,
                'editorText':problem.editorText,
@@ -254,7 +255,7 @@ def update_sheji(request, id):
     if request.method == "POST":  # 当提交表单时
         form = ShejiUpdateForm(request.POST,request.FILES)
         if form.is_valid():
-            form.save(user=request.user, problemid=id)
+            form.save(problemid=id)
             f = request.FILES.get('newDescribeFile')
             if f: # 重新上传了文件
                 fobj = open(newProblemFileName(id), 'wb')
@@ -268,12 +269,16 @@ def update_sheji(request, id):
 @login_required()
 def list_sheji(request):
     if not request.user.isTeacher() and request.user.is_admin!=True:
-        raise PermissionDenied
+        raise Http404()
     categorys = ProblemCategory.objects.all()
     return render(request, 'code_week/sheji_problem_list.html', context={'categorys': categorys, 'title': '程序设计题题库', 'position': 'sheji_list'})
 
 @login_required()
 def get_json_sheji(request):
+    if {'offset','limit','category','order'} - set(request.GET.dict()) != set():
+        raise Http404()
+    if not request.user.isTeacher() and not request.user.is_admin:
+        raise Http404()
     json_data = {}
     recodes = []
     offset = int(request.GET['offset'])
@@ -310,6 +315,8 @@ def get_problem_student(request, id):
     json_data = {}
     recodes = []
     course = get_object_or_404(CodeWeekClass, id=id)
+    if request.user not in course.students.all():
+        raise Http404()
     json_data['total'] = course.problems.all().count()
     problems = course.problems.all()
     i = 1
@@ -348,7 +355,7 @@ def encodeFilename(filename):
 @login_required
 def teacher_download(request, problemId):
     if not request.user.isTeacher() and request.user.is_admin!=True:
-        raise PermissionDenied
+        raise Http404()
     problem = None
     try:
         problem = ShejiProblem.objects.get(problem_id=problemId)
@@ -375,11 +382,7 @@ def teacher_download(request, problemId):
 # 实现根据选题情况描述文件的下载功能
 @login_required()
 def download(request, courseId):
-    student = None
-    try:
-        student = CodeWeekClassStudent.objects.get(student=request.user, codeWeekClass=courseId)
-    except:
-        return render(request, 'warning.html', {'info': '找不到描述文件'})
+    student = get_object_or_404(CodeWeekClassStudent, student=request.user, codeWeekClass=courseId)
     if student: #能够匹配到学生
         if not student.group:
             return render(request, 'warning.html', {'info': '您还没有加入小组或者成为组长'})
@@ -408,23 +411,20 @@ def download(request, courseId):
 @login_required()
 def download_problem(request, problemId):
     problem = None
-    try:
-        problem = ShejiProblem.objects.get(problem_id=problemId)
-        def file_iterator(file_name, chunk_size=512):
-            with open(file_name, 'rb') as f:
-                while True:
-                    c = f.read(chunk_size)
-                    if c:
-                        yield c
-                    else:
-                        break
+    problem = get_object_or_404(ShejiProblem, problem_id=problemId)
+    def file_iterator(file_name, chunk_size=512):
+        with open(file_name, 'rb') as f:
+            while True:
+                c = f.read(chunk_size)
+                if c:
+                    yield c
+                else:
+                    break
 
-        response = StreamingHttpResponse(file_iterator(newProblemFileName(problem.problem_id)))
-        response['Content-Type'] = problem.content_type
-        response['Content-Disposition'] = '''attachment;filename*= UTF-8''{0}'''.format(encodeFilename(problem.filename))
-        return response
-    except:
-        return render(request, 'warning.html' ,{'info' : '没有此文件'})
+    response = StreamingHttpResponse(file_iterator(newProblemFileName(problem.problem_id)))
+    response['Content-Type'] = problem.content_type
+    response['Content-Disposition'] = '''attachment;filename*= UTF-8''{0}'''.format(encodeFilename(problem.filename))
+    return response
 
 # 用于学生课程界面有关分组信息的初始化操作
 @login_required()
@@ -464,7 +464,7 @@ def student_info(request, courseId):
                 data['groups'] = groupsData
                 data['name'] = student.get_full_name()
     except ObjectDoesNotExist:
-        return
+        raise Http404()
     return HttpResponse(json.dumps(data))
 
 # 用于教师获取学生课程有关分组信息
@@ -475,11 +475,12 @@ def teacher_get_student_info(request, courseId):
     :param courseId: 正则匹配的课程id
     打包传输现在的学生分组情况用来初始前端显示
     """
-    course = None
+    course = get_object_or_404(CodeWeekClass, id=courseId)
+    if not request.user.is_admin and course.teacher!=request.user:
+        raise Http404()
     data = None
     try:
         with transaction.atomic():
-            course = CodeWeekClass.objects.get(id=courseId)
             if course:
                 data = {'id': course.counter}
                 groups = course.CodeWeekClass_group.all()
@@ -509,11 +510,9 @@ def teacher_get_student_info(request, courseId):
 # 用于教师获取课程信息
 @login_required
 def teacher_course_info(request, courseId):
-    course = None
-    try:
-        course = CodeWeekClass.objects.get(id=courseId, teacher=request.user)
-    except:
-        return HttpResponse(0)
+    course = get_object_or_404(CodeWeekClass, id=courseId)
+    if not request.user.is_admin and course.teacher!=request.user:
+        raise Http404()
     result = {'name':course.name, 'number':course.numberEachGroup,
               'begin_time': course.begin_time.strftime('%Y-%m-%d %H:%M'),
               'end_time': course.end_time.strftime('%Y-%m-%d %H:%M')}
@@ -522,21 +521,16 @@ def teacher_course_info(request, courseId):
 # 用于教师更新课程的信息
 @login_required
 def teacher_update_info(request):
-    if request.method == 'POST':
+    if (request.method != 'POST') and ({'action','id'} - set(request.POST.dict()) != set()):
+        raise Http404()
+    else:
         # 获取需要更新信息的课程id和需要更新的内容
-        courseId = None
-        action = None
-        try:
-            courseId = int(request.POST['id'])
-            action = request.POST['action']
-        except:
-            return HttpResponse(0)
+        courseId = int(request.POST['id'])
+        action = request.POST['action']
         # 检查这个课程是否是用户的
-        course = None
-        try:
-            course = CodeWeekClass.objects.get(id=courseId, teacher=request.user)
-        except:
-            return HttpResponse(0)
+        course = get_object_or_404(CodeWeekClass, id=courseId)
+        if not request.user.is_admin and course.teacher!=request.user:
+            raise Http404()
         if action == 'update_name': # 更新课程的名称
             name = None
             try:
@@ -588,15 +582,18 @@ def teacher_update_info(request):
 @login_required()
 # 用于教师课程界面获取已经选取的题目
 def get_select_problem(request, courseId):
+    if not request.user.isTeacher() and not request.user.is_admin:
+        raise Http404()
+    if {'offset','limit'} - set(request.GET.dict()) != set():
+        raise Http404()
     course = None
     offset = None
     limit = None
-    try:
-        course = CodeWeekClass.objects.get(id=courseId)
-        offset = int(request.GET['offset'])
-        limit = int(request.GET['limit'])
-    except:
-        return HttpResponse(0)
+    course = CodeWeekClass.objects.get(id=courseId)
+    if not request.user.is_admin and course.teacher!=request.user:
+        raise Http404()
+    offset = int(request.GET['offset'])
+    limit = int(request.GET['limit'])
     json_data = {}
     recodes = []
 
@@ -616,11 +613,9 @@ def get_select_problem(request, courseId):
 @login_required()
 #用于教师获取班级中所有选择的题目的序号和标题
 def get_select_problem_title(request, courseId):
-    course = None
-    try:
-        course = CodeWeekClass.objects.get(id=courseId, teacher=request.user)
-    except:
-        return HttpResponse(0)
+    course = get_object_or_404(CodeWeekClass, id=courseId)
+    if not request.user.is_admin and course.teacher!=request.user:
+        raise Http404()
     json_data = {}
     for problem in course.problems.all():
         json_data[problem.problem_id] = html.escape(problem.title)
@@ -629,21 +624,16 @@ def get_select_problem_title(request, courseId):
 @login_required
 # 用于教师移除已经选好的题目
 def remove_select_problem(request):
-    if request.method == 'POST':
-        courseId = None
-        problemId = None
-        try:
-            courseId = request.POST['courseId']
-            problemId = request.POST['problemId']
-        except:
-            return HttpResponse(0)
-        course = None
-        problem = None
-        try:
-            course = CodeWeekClass.objects.get(id=courseId, teacher=request.user)
-            problem = ShejiProblem.objects.get(problem_id=problemId)
-        except:
-            return HttpResponse(0)
+    if (request.method != 'POST') and ({'courseId','problemId'} - set(request.POST.dict()) != set()):
+        raise Http404()
+    else:
+        courseId = request.POST['courseId']
+        problemId = request.POST['problemId']
+
+        course = get_object_or_404(CodeWeekClass, id=courseId)
+        if not request.user.is_admin and course.teacher!=request.user:
+            raise Http404()
+        problem = get_object_or_404(ShejiProblem, problem_id=problemId)
         try:
             with transaction.atomic():
                 # 检查是否有学生已经选了这个题目
@@ -659,12 +649,10 @@ def remove_select_problem(request):
 # 用于教师给课程增加题目和学生
 def add_problem_student(request, courseId):
     if not request.user.isTeacher() and request.user.is_admin!=True:
-        raise PermissionDenied
-    course = None
-    try:
-        course = CodeWeekClass.objects.get(id=courseId, teacher=request.user)
-    except:
-        return HttpResponse(0)
+        raise Http404()
+    course = get_object_or_404(CodeWeekClass, id=courseId)
+    if not request.user.is_admin and course.teacher!=request.user:
+        raise Http404()
     if request.method == 'POST':
         form = UpdateClassForm(request.POST)
         if form.is_valid():
@@ -728,10 +716,9 @@ def add_problem_student(request, courseId):
 # 用于教师获取学生的信息表格
 def get_student_state(request, courseId):
     course = None
-    try:
-        course = CodeWeekClass.objects.get(id=courseId, teacher=request.user)
-    except:
-        return HttpResponse(0)
+    course = get_object_or_404(CodeWeekClass, id=courseId)
+    if not request.user.is_admin and course.teacher!=request.user:
+        raise Http404()
     json_data = {}
     recodes = []
     students = course.CodeWeekClass_student.all()
@@ -806,19 +793,18 @@ def multipStuState(student):
 # 用于教师移除学生
 # 0代表有异常删除失败，1代表删除成功，2代表多人模式无法删除了，3代表单人模式无法删除
 def remove_student(request):
-    courseId = None
-    studentId = None
-    try:
-        courseId = request.POST['courseId']
-        studentId = request.POST['studentId']
-    except:
-        return HttpResponse(0)
-    student = None
-    try:
-        course = CodeWeekClass.objects.get(id=courseId, teacher=request.user)
-        student = CodeWeekClassStudent.objects.get(codeWeekClass=course, id=studentId)
-    except:
-        return HttpResponse(0)
+    if (request.method != 'POST') and ({'courseId','studentId'} - set(request.POST.dict()) != set()):
+        raise Http404()
+
+    courseId = request.POST['courseId']
+    studentId = request.POST['studentId']
+
+    course = get_object_or_404(CodeWeekClass, id=courseId)
+    if not request.user.is_admin and course.teacher!=request.user:
+        raise Http404()
+
+    student = get_object_or_404(CodeWeekClassStudent, codeWeekClass=course, id=studentId)
+
     # 如果是每组一个人，检查是否有选题
     if course.numberEachGroup == 1:
         if student.group.selectedProblem == None:
@@ -1008,11 +994,7 @@ def sha1(filepath):
 # 组长提交代码，保存提交的zip文件并且将压缩包内的所有文件都解压标号，生成目录序列化字符串
 def submit_code(request, courseId):
     # 检查是否是组长，现在的逻辑是只有组长才能上传代码，而且需要组长手动填写贡献量
-    student = None
-    try:
-        student = CodeWeekClassStudent.objects.get(student=request.user, codeWeekClass=courseId)
-    except:  # 没有查到学生或者课程
-        return render(request, 'warning.html', {'info': '出现问题'})
+    student = get_object_or_404(CodeWeekClassStudent, student=request.user, codeWeekClass=courseId)
     try:
         group = student.group
         if not group:
@@ -1132,11 +1114,7 @@ def returnUtf8FileStr(fileName):
 @login_required
 # 返回代码文件
 def get_code_file(request, fileId):
-    file = None
-    try:
-        file = CodeFile.objects.get(id=fileId)
-    except:
-        return HttpResponse("", status=404)
+    file = get_object_or_404(CodeFile, id=fileId)
     # 检查请求者是否是这个文件的所有者
     for member in file.group.Group_member.all():
         if request.user == member.student:
@@ -1205,7 +1183,7 @@ def handle_upload_report(request, courseId):
             updateLatestInfo(courseId, infoObject)
             return HttpResponseRedirect(reverse('submit_code', args=(student.codeWeekClass.id,)))
     else:
-        return render(request, 'warning.html', {"info":"不支持的HTTP方法"})
+        raise Http404()
 
 @login_required
 # 返回学生提交的所有课程报告记录
@@ -1224,11 +1202,7 @@ def get_all_report_history(request, courseId):
 @login_required
 # 提供学生下载自己以前提交过的课程报告
 def download_report(request, historyId):
-    report = None
-    try:
-        report = ReportHistory.objects.get(id=historyId)
-    except:
-        return render(request, 'warning.html', {'info': '找不到课程报告'})
+    report = get_object_or_404(ReportHistory, id=historyId)
     if report:  # 能够匹配到课程报告，检查学生是否是这个课程报告的所有者
         student = None
         try:
@@ -1263,11 +1237,7 @@ def download_report(request, historyId):
 # 实现代码打包文件的下载功能
 @login_required
 def download_codeZip(request, historyId):
-    codeHistory = None
-    try:
-        codeHistory = CodeDirHistory.objects.get(id = historyId)
-    except:
-        return render(request, 'warning.html', {'info': '找不到代码文件'})
+    codeHistory = get_object_or_404(CodeDirHistory, id = historyId)
     if codeHistory: #能够匹配到历史代码,检查学生是否是这个代码的所有者
         student = None
         try:
@@ -1304,11 +1274,9 @@ def download_codeZip(request, historyId):
 @login_required
 def teacher_read_code(request, courseId, groupId):
     # 检查是否是该课程的老师
-    course = None
-    try:
-        course = CodeWeekClass.objects.get(teacher=request.user, id=courseId)
-    except:
-        return render(request, 'warning.html', {'info': '没有查到这个课程'})
+    course = get_object_or_404(CodeWeekClass, id=courseId)
+    if not request.user.is_admin and course.teacher!=request.user:
+        raise Http404()
     group = None
     try:
         group = CodeWeekClassGroup.objects.get(id=groupId)
@@ -1334,16 +1302,10 @@ def teacher_read_code(request, courseId, groupId):
 @login_required
 def teacher_get_all_code_history(request, courseId, groupId):
     # 检查是否是该课程的老师
-    course = None
-    try:
-        course = CodeWeekClass.objects.get(teacher=request.user, id=courseId)
-    except:
-        return HttpResponse("")
-    group = None
-    try:
-        group = CodeWeekClassGroup.objects.get(id=groupId)
-    except:
-        return HttpResponse("")
+    course = get_object_or_404(CodeWeekClass, id=courseId)
+    if not request.user.is_admin and course.teacher!=request.user:
+        raise Http404()
+    group = get_object_or_404(CodeWeekClassGroup, id=groupId)
     result = []
     for record in group.Code_history.all():
         result.append({'time': record.submitTime.strftime('%Y/%m/%d %X'), 'text': record.dirText,
@@ -1354,16 +1316,10 @@ def teacher_get_all_code_history(request, courseId, groupId):
 @login_required
 def teacher_get_all_report_history(request, courseId, groupId):
     # 检查是否是该课程的老师
-    course = None
-    try:
-        course = CodeWeekClass.objects.get(teacher=request.user, id=courseId)
-    except:
-        return HttpResponse("")
-    group = None
-    try:
-        group = CodeWeekClassGroup.objects.get(id=groupId)
-    except:
-        return HttpResponse("")
+    course = get_object_or_404(CodeWeekClass, id=courseId)
+    if not request.user.is_admin and course.teacher!=request.user:
+        raise Http404()
+    group = get_object_or_404(CodeWeekClassGroup, id=groupId)
     result = []
     for record in group.Report_history.all():
         result.append({'time': record.uploadTime.strftime('%Y/%m/%d %X'),'id': record.id})
@@ -1378,16 +1334,10 @@ def get_encoding(file):
 @login_required
 def teacher_get_single_code(request, courseId, fileId):
     # 检查是否是该课程的老师
-    course = None
-    try:
-        course = CodeWeekClass.objects.get(teacher=request.user, id=courseId)
-    except:
-        return HttpResponse("", status=404)
-    file = None
-    try:
-        file = CodeFile.objects.get(id=fileId)
-    except:
-        return HttpResponse("", status=404)
+    course = get_object_or_404(CodeWeekClass, id=courseId)
+    if not request.user.is_admin and course.teacher!=request.user:
+        raise Http404()
+    file = get_object_or_404(CodeFile, id=fileId)
     if file.group.cwclass == course:
         fileName = singleFileName(fileId)
         return HttpResponse(returnUtf8FileStr(fileName))
@@ -1396,16 +1346,10 @@ def teacher_get_single_code(request, courseId, fileId):
 @login_required
 def teacher_get_code_zip(request, courseId, historyId):
     # 检查是否是该课程的老师
-    course = None
-    try:
-        course = CodeWeekClass.objects.get(teacher=request.user, id=courseId)
-    except:
-        return HttpResponse("", status=404)
-    codeHistory = None
-    try:
-        codeHistory = CodeDirHistory.objects.get(id=historyId)
-    except:
-        return render(request, 'warning.html', {'info': '找不到代码文件'})
+    course = get_object_or_404(CodeWeekClass, id=courseId)
+    if not request.user.is_admin and course.teacher!=request.user:
+        raise Http404()
+    codeHistory = get_object_or_404(CodeDirHistory, id=historyId)
     if codeHistory:
         if codeHistory.group.cwclass == course:
             file = codeHistory.zipFile
@@ -1430,11 +1374,9 @@ def teacher_get_code_zip(request, courseId, historyId):
 @login_required
 def teacher_download_report(request, courseId, historyId):
     # 检查是否是该课程的老师
-    course = None
-    try:
-        course = CodeWeekClass.objects.get(teacher=request.user, id=courseId)
-    except:
-        return HttpResponse("", status=404)
+    course = get_object_or_404(CodeWeekClass, id=courseId)
+    if not request.user.is_admin and course.teacher!=request.user:
+        raise Http404()
     report = None
     try:
         report = ReportHistory.objects.get(id=historyId)
@@ -1660,33 +1602,31 @@ def tarFiles(courseId, className, teacherName):
 # 处理教师打包请求
 @login_required
 def handelTeacherTar(request, courseId):
-    if request.method == "POST":
-        course = None
-        className = None
-        teacherName = None
-        # pdb.set_trace()
-        try:
-            course = CodeWeekClass.objects.get(id=courseId, teacher=request.user)
-            className = request.POST['class_name']
-            teacherName = request.POST['teacher_name']
-        except:
-            return HttpResponse(-1)
-        ckResult = check_time(course)
-        if ckResult == TimeResult.NOTSTART:
-            return HttpResponse(1) # 课程还没开始，不要打包了
-        if tarFiles(courseId,str(className), str(teacherName)):
-            return HttpResponse(0) # 打包成功，并且还合并了题目文档
-        else:
-            return HttpResponse(2) # 打包成功，但是无法合并题目文档
+    if (request.method != 'POST') and ({'class_name','teacher_name'} - set(request.POST.dict()) != set()):
+        raise Http404()
+    course = None
+    className = None
+    teacherName = None
+    # pdb.set_trace()
+    course = get_object_or_404(CodeWeekClass, id=courseId)
+    if not request.user.is_admin and course.teacher!=request.user:
+        raise Http404()
+    className = request.POST['class_name']
+    teacherName = request.POST['teacher_name']
+    ckResult = check_time(course)
+    if ckResult == TimeResult.NOTSTART:
+        return HttpResponse(1) # 课程还没开始，不要打包了
+    if tarFiles(courseId,str(className), str(teacherName)):
+        return HttpResponse(0) # 打包成功，并且还合并了题目文档
+    else:
+        return HttpResponse(2) # 打包成功，但是无法合并题目文档
 
 # 教师下载打包文件
 @login_required
 def teacherDownloadTar(request, courseId):
-    course = None
-    try:
-        course = CodeWeekClass.objects.get(id=courseId, teacher=request.user)
-    except:
-        return
+    course = get_object_or_404(CodeWeekClass, id=courseId)
+    if not request.user.is_admin and course.teacher!=request.user:
+        raise Http404()
     historys = TarHistory.objects.filter(course=course).order_by("-id")
     if historys.count() != 0:
         latest = historys[0]
@@ -1709,21 +1649,17 @@ def teacherDownloadTar(request, courseId):
 # 教师查看课程最新信息
 @login_required
 def teacherViewLatestInfo(request, courseId):
-    course = None
-    try:
-        course = CodeWeekClass.objects.get(id=courseId, teacher=request.user)
-    except:
-        return
+    course = get_object_or_404(CodeWeekClass, id=courseId)
+    if not request.user.is_admin and course.teacher!=request.user:
+        raise Http404()
     return render(request, 'code_week/latest_info.html', {'course': course})
 
 # 教师Ajax获取课程的最新信息
 @login_required
 def teacherGetLatestInfo(request, courseId):
-    course = None
-    try:
-        course = CodeWeekClass.objects.get(id=courseId, teacher=request.user)
-    except:
-        return
+    course = get_object_or_404(CodeWeekClass, id=courseId)
+    if not request.user.is_admin and course.teacher!=request.user:
+        raise Http404()
     results = []
     records = LatestInfo.objects.filter(course=course).order_by("time")
     for record in records:
@@ -1739,8 +1675,8 @@ def teacherGetContribution(request, groupId):
         group = CodeWeekClassGroup.objects.get(id=groupId)
     except:
         return HttpResponse()
-    if not group.cwclass.teacher == request.user:
-        return HttpResponse()
+    if not request.user.is_admin and group.cwclass.teacher!=request.user:
+        raise Http404()
     leader = None
     members = []
     for stu in group.Group_member.all():

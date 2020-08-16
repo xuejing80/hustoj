@@ -28,37 +28,36 @@
     {% if members %}
 <form method="post" id="submit-form" enctype="multipart/form-data" onsubmit="return checkContribution()">
     {% csrf_token %}
-    <p>请选择组员的贡献度等级:</p>
+    <p>请提交本小组的程序设计代码：</p>
+    <p>并选择在本次提交的代码中，组员的贡献度等级：</p>
     {% if members %}
         {% for member in members %}
-            <lable class="member_name">{{ member.get_full_name }}</lable>
+            <p><lable class="member_name">{{ member.get_full_name }}</lable>
             <select>
                 <option value="1">高</option>
                 <option value="2">较高</option>
                 <option value="3" selected>中等</option>
                 <option value="4">较低</option>
                 <option value="5">低</option>
-            </select>
-            <br>
+            </select></p>
         {% endfor %}
     {% endif %}
     <input type="file" name="codeFile" accept="application/zip">
     <br>
     <input type="text" id="ctext" name="contribution" hidden="true">
     <button type="submit">提交代码</button>
-</form>
+</form><hr>
     <form method="post" id="submit-report-form" enctype="multipart/form-data" action={% url 'upload_report' course.id %}>
     {% csrf_token %}
-        <br>
-        <p>课程报告（完成了程序编写再提交）</p>
-        {% load static %}
-        <a href="{% static 'file/南京邮电大学程序设计报告样稿（个体报告2018.e版）.docx' %}">南京邮电大学程序设计报告样稿（个体报告2018.e版）</a><br>
-        <a href="{% static 'file/南京邮电大学程序设计报告样稿（团体报告2018.e版）.docx' %}">南京邮电大学程序设计报告样稿（团体报告2018.e版）</a>
-        <input type="file" name="report" accept=".doc,.docx">
+        <p>请提交本小组的课程报告（完成了程序编写再提交）：</p>
+        <p>{% load static %}
+        模板一：<a href="{% static 'file/南京邮电大学程序设计报告样稿（个体报告2018.e版）.docx' %}">南京邮电大学程序设计报告样稿（个体报告2018.e版）</a><br>
+        模板二：<a href="{% static 'file/南京邮电大学程序设计报告样稿（团体报告2018.e版）.docx' %}">南京邮电大学程序设计报告样稿（团体报告2018.e版）</a><br></p>
+        <input type="file" name="report" accept=".doc,.docx"><br>
         <button type="submit">提交课程报告</button>
     </form>
     {% endif %}
-    <br>
+    <hr>
     <div id="selects"></div>
     <div class="content_wrap">
 	<div class="zTreeDemoBackground left">

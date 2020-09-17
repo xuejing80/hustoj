@@ -389,7 +389,7 @@ def show_homework_result(request, id=0):
     show_answer = homework.show_answer  # 答案显示时机
     remained_number = homework_answer.remained_number  # 已经提交次数
     resubmit_number = homework.resubmit_number # 提交次数限制
-    is_end = False if homework.start_time < timezone.now() < homework.end_time else True  # 作业是否截止
+    is_end = timezone.now() > homework.end_time # 作业是否截止
 
     for info in json.loads(homework.choice_problem_info):  # 载入作业的选择题信息，并进行遍历
         if str(info['id']) in wrong_id:  # 如果答案有错
@@ -524,7 +524,7 @@ def show_homework_result(request, id=0):
                        'current_score': current_score, 'problems': problems,
                        'tiankong_problems': tiankong_problems, 'gaicuo_problems': gaicuo_problems,
                        'work_kind': homework.work_kind, 'summary': homework_answer.summary,
-                       'teacher_comment': homework_answer.teacher_comment,
+                       'teacher_comment': '无' if homework_answer.teacher_comment==None else homework_answer.teacher_comment,
                        'allow_similarity': allow_similarity,
                        'title': ' {}的"{}"详细'.format(homework_answer.creator.username, homework.name),
                        'show_answer': show_answer, 'remained_number': remained_number,
@@ -1039,12 +1039,11 @@ def get_students(request,banji):
 def add_students(request, pk):
     banji = get_object_or_404(BanJi, pk=pk)
     if not request.user.is_superuser and banji.teacher != request.user:
-        raise PermissionDenied
+        raise Http404()
     if request.method == 'POST':
         teacher = MyUser.objects.get(id=request.user.id)
         tea_name = teacher.id_num
         uploadDir = os.path.join(USER_FILE_DIR, 'students')
-        print(uploadDir)
         if not isdir(uploadDir):
             mkdir(uploadDir)
         uploadedFile = request.FILES.get('names')
@@ -1346,7 +1345,10 @@ def get_problem_score(homework_answer, judged_score=0):
                 if solution.oi_info is None:
                     break
                 if json.loads(solution.oi_info)[str(case['desc']) + '.in']['result'] == 4:  # 参照测试点，依次加测试点分数
-                    score += eval(case['score'])
+                    if type(case['score'])==str:
+                        score += eval(case['score'])
+                    else:
+                        score += case['score']
             #print("判题完毕，本题共{}分，得分为{}".format(total_score,score))
             if solution.result == 4:
                 id = solution.solution_id # 更新答案库
@@ -1373,7 +1375,10 @@ def get_tiankong_score(homework_answer, judged_score=0):
                     if solution.oi_info is None:
                         break
                     if json.loads(solution.oi_info)[str(case['desc'])+'.in']['result'] == 4:
-                        score += eval(case['score'])
+                        if type(case['score'])==str:
+                            score += eval(case['score'])
+                        else:
+                            score += case['score']
             except ObjectDoesNotExist:
                 user = homework_answer.creator;
                 logger_request.exception("获取程序填空题得分失败{{homework_id:{},answer_id:{},problem_id:{},user:{}({},{})}}".format(homework.pk,homework_answer.pk,info['id'],user.username,user.id_num,user.email))
@@ -1394,7 +1399,10 @@ def get_gaicuo_score(homework_answer, judged_score=0):
                     if solution.oi_info is None:
                         break
                     if json.loads(solution.oi_info)[str(case['desc'])+'.in']['result'] == 4:
-                        score += eval(case['score'])
+                        if type(case['score'])==str:
+                            score += eval(case['score'])
+                        else:
+                            score += case['score']
         except ObjectDoesNotExist:
             user = homework_answer.creator;
             logger_request.exception("获取程序改错题得分失败{{homework_id:{},answer_id:{},problem_id:{},user:{}({},{})}}".format(homework.pk,homework_answer.pk,info['id'],user.username,user.id_num,user.email))
@@ -1767,7 +1775,10 @@ def test_run(request):
                             oi_info = json.loads(solution.oi_info)
                             if oi_info[str(case['desc']) + '.in']['result'] == 4:  # 参照测试点，依次加测试点分数
                                 case['result'] = True
-                                score += eval(case['score'])
+                                if type(case['score'])==str:
+                                    score += eval(case['score'])
+                                else:
+                                    score += case['score']
                                 right_num += 1
                             else:
                                 case['result'] = False

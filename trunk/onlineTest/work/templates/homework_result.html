@@ -19,7 +19,7 @@
             {% if choice_problem.right %}
             <div class="panel panel-success">
                 <div class="panel-heading"><span class="glyphicon glyphicon-ok"
-                                                 aria-hidden="true"></span> {{ forloop.counter }}. {{ choice_problem.detail.title }}
+                                                 aria-hidden="true"></span> {{ forloop.counter }}. {{ choice_problem.detail.title|myFilter|safe|linebreaksbr }}
                 </div>
                 <div class="panel-body">
 
@@ -44,7 +44,7 @@
                 {% if show_answer == "每次提交后" %}
                 正确答案是: {{ choice_problem.detail.right_answer|upper }}
                 {% elif show_answer == "提交次数用完后" %}
-                    {% if remained_number != resubmit_number %}
+                    {% if remained_number != resubmit_number and not is_end %}
                     请在作业完成后查看答案     
                     {% else %}
                     正确答案是: {{ choice_problem.detail.right_answer|upper }}
@@ -61,7 +61,7 @@
             {% else %}
             <div class="panel panel-danger">
                 <div class="panel-heading"><span class="glyphicon glyphicon-remove"
-                                                 aria-hidden="true"></span> {{ forloop.counter }}. {{ choice_problem.detail.title }}
+                                                 aria-hidden="true"></span> {{ forloop.counter }}. {{ choice_problem.detail.title|myFilter|safe|linebreaksbr }}
                 </div>
                 <div class="panel-body">
 
@@ -87,7 +87,7 @@
                     正确答案是: {{ choice_problem.detail.right_answer|upper }}
                     你的答案是: {{ choice_problem.info|upper }}
                     {% elif show_answer == "提交次数用完后" %}
-                        {% if remained_number != resubmit_number %}
+                        {% if remained_number != resubmit_number and not is_end %}
                         请在作业完成后查看答案
                         {% else %}
                         正确答案是: {{ choice_problem.detail.right_answer|upper }}
@@ -113,7 +113,7 @@
             {% if ducheng_problem.right %}
             <div class="panel panel-success">
                 <div class="panel-heading"><span class="glyphicon glyphicon-ok"
-                                                 aria-hidden="true"></span> {{ forloop.counter }}. {{ ducheng_problem.detail.title }}
+                                                 aria-hidden="true"></span> {{ forloop.counter }}. {{ ducheng_problem.detail.title|myFilter|safe|linebreaksbr }}
                 </div>
             <!-- <div class="section">
                         <h4><span class="label label-primary">程序代码</span></h4>
@@ -121,9 +121,9 @@
             </div> -->
             <div class="panel-footer">
             {% if show_answer == "每次提交后" %}
-                正确答案是: {{ ducheng_problem.detail.answer|myFilter }}
+                正确答案是: {{ ducheng_problem.detail.answer|myFilter|safe }}
                 {% elif show_answer == "提交次数用完后" %}
-                    {% if remained_number != resubmit_number %}
+                    {% if remained_number != resubmit_number and not is_end %}
                     请在作业完成后查看答案
                     {% else %}
                     正确答案是: {{ ducheng_problem.detail.answer|myFilter }}
@@ -140,7 +140,7 @@
             {% else %}
             <div class="panel panel-danger">
                 <div class="panel-heading"><span class="glyphicon glyphicon-remove"
-                                                 aria-hidden="true"></span> {{ forloop.counter }}. {{ ducheng_problem.detail.title }}
+                                                 aria-hidden="true"></span> {{ forloop.counter }}. {{ ducheng_problem.detail.title|myFilter|safe|linebreaksbr }}
                 </div>
             <!-- <div class="section">
                         <h4><span class="label label-primary">程序代码</span></h4>
@@ -148,10 +148,10 @@
             </div> -->
             <div class="panel-footer">
             {% if show_answer == "每次提交后" %}
-                正确答案是: {{ ducheng_problem.detail.answer|myFilter }}
+                正确答案是: {{ ducheng_problem.detail.answer|myFilter|safe }}
                 你的答案是: {{ ducheng_problem.info }}
                 {% elif show_answer == "提交次数用完后" %}
-                    {% if remained_number != resubmit_number %}
+                    {% if remained_number != resubmit_number and not is_end %}
                     请在作业完成后查看答案
                     {% else %}
                     正确答案是: {{ ducheng_problem.detail.answer|myFilter }}

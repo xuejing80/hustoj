@@ -9,6 +9,7 @@
 {% endblock %}
 
 {% block content %}
+<script type="text/javascript" src="https://api.map.baidu.com/api?v=2.0&ak=NW1qGiEHfWeZLoVMg6ZtxeC9dyswLbGR"></script>
     <ol class="breadcrumb">
         <li><a href="{% url 'index' %}">主页</a></li>
         <li class="active">签到管理</li>
@@ -58,14 +59,27 @@
         </button>
         
         <h3>请假</h3>
-
-        <input id="file_input" type="file">
-        <img id="result"></img>
+  <div class="form-group">
+    <label for="file_input">点击“选择文件”上传假条照片</label>
+    <input type="file" id="file_input">
+    <img id="result" width="80%"></img>
+  </div>
+        <!--input id="file_input" type="file"-->
+            <div class="col-lg-6">
+                <div class="input-group">
+                    <input id="message" type="text" class="form-control" placeholder="请输入你的请假理由">
+                    <span class="input-group-btn">
+                        <button id="sub-btn" class="btn btn-info" type="submit">请假</button>
+                    </span>
+                </div><!-- /input-group -->
+            </div><!-- /.col-lg-6 -->
+<!--
         <input id="message" type="text" class="form-control" placeholder="请输入你的请假理由">
         <button id="sub-btn" type="submit" class="btn btn-info">请假</button>
+-->
     </div>
 
-
+    <br/><hr/>
     <h3>签到记录</h3>
     <div class="table-responsive">
         <table class="table">
@@ -111,8 +125,8 @@
                 strokeOpacity: 0.5
             })
             let attend = $('#attend')
-            if(attend.attr('onGoing') !== '0')
-                attend.removeAttr('disabled').html('签到')
+            //if(attend.attr('onGoing') !== '0')
+            attend.removeAttr('disabled').html('签到')
         } else {
             alert('failed' + this.getStatus())
         }
@@ -124,9 +138,10 @@
         const url = '/sign/checkout/' + eventId
         if (lengthNow === undefined) {
             alert("获取地理位置失败，请在数秒后重试。")
-        } else if (lengthNow >= 200) {
-            alert("签到失败（不在指定位置）")
-        } else if (lengthNow < 200) {
+        //} else if (lengthNow >= 200) {
+        //    alert("签到失败（不在指定位置）")
+        //} else if (lengthNow < 200) {
+        } else {
             $.post(url, function (res, status) {
                 if (status === 'success') {
                     if (res.success) {

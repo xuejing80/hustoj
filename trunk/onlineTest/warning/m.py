@@ -139,7 +139,7 @@ def warning():
 					copydict = gcp.getCopyGroups(homework.id,stuids)
 				
 				msghomework = "\n%s 班级的作业《%s》(起止时间：%s--%s) 完成情况如下：\n  全班共有%d人，已交作业%d份。"%(banji.name,homework.name,homework.start_time.strftime("%Y-%m-%d"),homework.end_time.strftime("%Y-%m-%d"),len(studentList),total)
-				msghomework = msghomework + " 详情请点击链接查看： http://"+ domain + "/work/my-homework-detail-" + str(homework.id) + "\n"
+				msghomework = msghomework + " 详情请点击链接查看： http://"+ domain + "/work/my-homework-detail/" + str(homework.id) + "\n"
 				if goodstu:
 					msghomework = msghomework + "  成绩较好的同学有:" + goodstu + "\n"
 				if badstu:

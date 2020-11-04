@@ -1,4 +1,4 @@
-{% extends 'base.html' %} {% block title %} 我的作业列表 {% endblock %} {% block extrahead %} {% load static %}
+{% extends 'base.html' %} {% block title %} 签到管理 {% endblock %} {% block extrahead %} {% load static %}
 <style>
     .data_input {
         height: 34px;
@@ -11,6 +11,7 @@
 <script src="{% static 'assets/js/bootstrap-datetimepicker.min.js' %}"></script>
 <script src="{% static 'assets/js/moment/moment.min.js' %}"></script>
 <script src="{% static 'assets/js/moment/zh-cn.js' %}"></script>
+<script type="text/javascript" src="https://api.map.baidu.com/api?v=2.0&ak=NW1qGiEHfWeZLoVMg6ZtxeC9dyswLbGR"></script>
 {% endblock %} {% block content %}
 <ol class="breadcrumb">
     <li>
@@ -20,22 +21,22 @@
     <li class="active">布置签到</li>
 </ol>
 
-<h1>签到布置</h1>
+<!--<h1>签到布置</h1>-->
 
 <!-- Button trigger modal -->
-<button type="button" class="btn btn-primary" data-toggle="modal" data-target="#modal">
-    布置签到
-</button>
+<!--<button type="button" class="btn btn-primary" data-toggle="modal" data-target="#modal">-->
+    <!--布置签到-->
+<!--</button>-->
 
 <!-- Modal -->
-<div class="modal fade" id="modal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
-    <div class="modal-dialog" role="document">
+<!--<div class="modal fade" id="modal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">-->    
+    <!--<div class="modal-dialog" role="document">-->
         <div class="modal-content">
             <div class="modal-header">
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-                <h4 class="modal-title">签到布置</h4>
+                <!--<button type="button" class="close" data-dismiss="modal" aria-label="Close">-->
+                    <!--<span aria-hidden="true">&times;</span>-->
+                <!--</button>-->
+                <h4 class="modal-title">签到布置(建议手机端上使用)</h4>
 
             </div>
 
@@ -73,44 +74,54 @@
                         </div>
                     </div>
 
-                    <div class='col-sm-4'>
-                        <div class="form-group">
-                            <label for="end_time">开始周</label>
-                            <div>
-                                <input type='text' class="form-control" name="startWeek" value="1" id="startWeek"/>
-                            </div>
-                        </div>
-                    </div>
+                   <!--<div class='col-sm-4'>-->
+                        <!--<div class="form-group">-->
+                            <!--<label for="end_time">开始周</label>-->
+                            <!--<div>-->
+                                <!--<input type='text' class="form-control" name="startWeek" value="0" id="startWeek"/>-->
+                            <!--</div>-->
+                        <!--</div>-->
+                    <!--</div>-->
 
                     <div class='col-sm-4'>
                         <div class="form-group">
-                            <label for="end_time">结束周</label>
+                            <label for="end_time">持续时间(周)</label>
                             <div>
                                 <input type='text' class="form-control" name="endWeek" value="18" id="endWeek"/>
                             </div>
                         </div>
                     </div>                   
                     
-                    <div class='col-sm-4'>
-                        <div class="form-group">
-                            <label for="end_time">间隔</label>
-                            <div>
-                                <input type='text' class="form-control" name="interval" value="1" id="interval"/>
-                            </div>
-                        </div>
+                    <!--<div class='col-sm-4'>-->
+                        <!--<div class="form-group">-->
+                            <!--<label for="end_time">间隔(周)</label>-->
+                            <!--<div>-->
+                                <!--<input type='text' class="form-control" name="interval" value="1" id="interval"/>-->
+                            <!--</div>-->
+                        <!--</div>-->
+                    <!--</div>-->
+
+                    <div class="form-group col-sm-4">
+                        <label for="end_time">间隔(周)</label>
+                            <select id="interval" class="form-control" name="interval">
+                                
+                                <option  value="1">{{ 1 }}</option>
+                                <option  value="2">{{ 2 }}</option>
+                               
+                            </select>
                     </div>
 
-                    <div style="width:96%; margin: auto; height:400px; font-size:12px" id="allmap"></div>
+                    <div style="width:90%; margin: auto; height:200px; font-size:12px" id="allmap"></div>
                 </form>
             </div>
 
             <div class="modal-footer">
-                <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
-                <button id="sub-btn" type="button" class="btn btn-primary" disabled="disabled">点击地图拾取位置</button>
+                <!--<button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>-->
+                <button id="sub-btn" type="button" class="btn btn-primary">布置</button>
             </div>
         </div>
-    </div>
-</div>
+    <!--</div>-->
+<!--</div>-->
 
 <h1>我布置的签到</h1>
 <div class="table-responsive">
@@ -154,27 +165,29 @@
     var geolocation = new BMap.Geolocation();
     geolocation.getCurrentPosition(function(r){
         if(this.getStatus() == BMAP_STATUS_SUCCESS){
+            position = new BMap.Marker(r.point);
+            position = JSON.stringify([r.point.lng, r.point.lat])
             var mk = new BMap.Marker(r.point);
             map.addOverlay(mk);
+            map.addOverlay(position);
             map.panTo(r.point);
         }
         else {
             alert('failed'+this.getStatus());
-        }        
+        }       
     });
 
 
     map.addEventListener("click", function (e) {
-        $('#sub-btn').removeAttr('disabled').html('布置')
+        
         map.clearOverlays()
 
         position = JSON.stringify([e.point.lng, e.point.lat])
         point = new BMap.Point(e.point.lng, e.point.lat)
-
         var marker = new BMap.Marker(point);
         map.addOverlay(marker);
     });
-
+    
 
     $(function () {
         $('#datetimepicker1').datetimepicker({
@@ -216,8 +229,7 @@
                     alert(result.errMsg)
                 }
             } else {
-                alert('服务器抽风了QAQ，程序员小哥哥维修中')
-            }
+                alert('服务器抽风了QAQ，程序员小哥哥维修中')            }
         })
     });
 
@@ -232,3 +244,4 @@
 </script>
 
 {% endblock %}
+

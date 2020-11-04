@@ -11,7 +11,8 @@
 {% load static %}
 <script src="{% static 'assets/js/bootstrap-table.min.js' %}"></script>
 <link href="{% static 'assets/css/bootstrap-table.min.css' %}" rel="stylesheet">
-<script src="{% static 'assets/js/bootstrap-table-zh-CN.min.js' %}"></script> 
+<script src="{% static 'assets/js/bootstrap-table-zh-CN.min.js' %}"></script>
+<script type="text/javascript" src="https://api.map.baidu.com/api?v=2.0&ak=NW1qGiEHfWeZLoVMg6ZtxeC9dyswLbGR"></script> 
 {% endblock %} 
 
 
@@ -39,7 +40,7 @@
             <div class="modal-body">
                 <h4 id="leave-cause"></h4>
                 <div class="col-sm-12"> 
-                    <img id="img-src">
+                    <img id="img-src" width="60%" class="img-responsive">
                 </div>
             </div>
             <div class="modal-footer">
@@ -67,6 +68,7 @@
 <div class="table-responsive">
     <table class="table">
         <tr>
+            <th>学生学号</th>
             <th>学生姓名</th>
             <th>签到时间</th>
             <th>备注</th>
@@ -74,6 +76,7 @@
 
         {% for i in data %}
             <tr>
+                <th>{{ i.id_num }}</th>
                 <th>
                     {{ i.username }}
                 </th>

@@ -39,7 +39,7 @@
         </tr>
         <tr>
             <th>结束时间</th>
-            <td>{{ end_time }}秒</td>
+            <td>{{ end_time }}</td>
         </tr>
         <tr>
             <th>布置到的班级</th>
@@ -85,10 +85,10 @@
         <thead>
         <tr>
             <th data-field="creator__id_num" data-valign="middle" data-sortable="true">学号</th>
-            <th data-field="username" data-valign="middle">姓名</th>
-            <th data-field="create_time" data-sortable="true">完成时间</th>
-            <th data-field="score" data-sortable="true">最终得分</th>
-            <th data-field="id" data-valign="middle" data-formatter="editFormatter" oncl>操作</th>
+            <th class="nobr" data-field="username" data-valign="middle">姓名</th>
+            <th class="nobr" data-field="create_time" data-valign="middle" data-sortable="true">完成时间</th>
+            <th data-field="score" data-sortable="true" data-valign="middle">最终得分</th>
+            <th class="nobr" data-field="id" data-valign="middle" data-formatter="editFormatter" oncl>操作</th>
         </tr>
         </thead>
     </table>

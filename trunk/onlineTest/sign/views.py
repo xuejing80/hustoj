@@ -9,13 +9,13 @@ from django.shortcuts import render
 from django.core.paginator import Paginator, EmptyPage
 from django.views.decorators.csrf import csrf_exempt
 from datetime import datetime, timedelta
-from onlineTest.settings import BASE_DIR
+from onlineTest.settings import BASE_DIR,USER_FILE_DIR,STATIC_ROOT
 from django.contrib.auth.decorators import permission_required, login_required
 
 def teacher_index(request):
     user = request.user
 
-    if request.method == 'GET' and (user.is_admin or user.isTeacher):
+    if request.method == 'GET' and user.isTeacher:
 
         cursor = connection.cursor()
         classesSql = 'select id, name\
@@ -39,7 +39,7 @@ def teacher_index(request):
 def create(request):
     user = request.user
 
-    if request.method == 'POST' and user.is_admin:   #judge HTTP method and user identity
+    if request.method == 'POST' and user.isTeacher:   #judge HTTP method and user identity
         timeNow = datetime.now()
 
         position = request.POST.get('position')   #点名发起的位置，以此来判断学生是否在指定范围内签到
@@ -48,12 +48,12 @@ def create(request):
         banjiId = int(request.POST.get('banjiId'))
         all_student_count = BanJi.objects.get(id = banjiId).students.count()
         teacher_id = user.id
-        start_week = int(request.POST.get('startWeek', 1))
+        start_week = 0
         end_week = int(request.POST.get('endWeek', 18))
         interval = int(request.POST.get('interval', 1))
 
         queryList = []
-        for i in range(start_week, end_week + 1, interval):
+        for i in range(start_week, end_week, interval):
             queryList.append(Event(
                 position = position,
                 has_signed_count = 0,
@@ -82,20 +82,20 @@ def detail(request, eventId):
     cursor = connection.cursor()
 
     sql = '\
-        SELECT s.id, u.username, s.type_of, s.is_checked, s.created_time, sl.cause, sl.path\
+        SELECT s.id, u.id_num, u.username, s.type_of, s.is_checked, s.created_time, sl.cause, sl.path\
             FROM work_banji_students AS bj_stu\
                 INNER JOIN auth_system_myuser AS u\
                 ON u.id = bj_stu.myuser_id\
                 LEFT JOIN sign_sign AS s\
                 ON u.id = s.user_id and bj_stu.banji_id = (\
-                    SELECT banji_id FROM sign_event WHERE id = %d\
+                    SELECT banji_id FROM sign_event WHERE id = %d and id = s.event_id\
                 )\
                 LEFT JOIN sign_leave AS sl\
                 ON s.id = sl.sign_id\
                 WHERE bj_stu.banji_id = %d' % ( int(eventId), event.banji_id )
 
     cursor.execute(sql)
-    studentsList = list(map(lambda x: dict(zip(['id', 'username', 'type_of', 'is_checked', 'created_time', 'cause', 'path'], x)), cursor.fetchall()))
+    studentsList = list(map(lambda x: dict(zip(['id', 'id_num', 'username', 'type_of', 'is_checked', 'created_time', 'cause', 'path'], x)), cursor.fetchall()))
 
     return render(request, "sign_detail.html", {
         'data': studentsList,
@@ -218,7 +218,8 @@ def leave(request, eventId):
         return JsonResponse({'success': False, 'state': 0, 'msg': 'upload file can only be .jpg .jpeg .png'})
 
     date = datetime.now().strftime('%Y/%m/%d/').split('/')
-    pathdir = os.path.join(BASE_DIR, 'static', 'pic', date[0], date[1], date[2])
+    pathdir = os.path.join(STATIC_ROOT, 'pic', date[0], date[1], date[2])
+    print(pathdir)
     if not os.path.exists(pathdir):
         os.makedirs(pathdir)
     
@@ -255,7 +256,8 @@ def accept (request, signId):
     sql = 'SELECT path FROM sign_leave WHERE sign_id = %d' % int(signId)
     cursor.execute(sql)
     lPath = cursor.fetchall()
-    os.remove(BASE_DIR + '/static/' + lPath[0][0])
+    os.remove(STATIC_ROOT + '/' + lPath[0][0])
+    #os.remove(BASE_DIR + '/static/' + lPath[0][0])
 
     sql = 'DELETE FROM sign_leave WHERE sign_id = %d' % int(signId)
     cursor.execute(sql)
@@ -267,13 +269,18 @@ def accept (request, signId):
 def decline (request, signId):
 
     cursor = connection.cursor()
-    sql = 'DELETE FROM sign_sign WHERE id = %d' % int(signId)
-    cursor.execute(sql)
+    #sql = 'DELETE FROM sign_sign WHERE id = %d' % int(signId)
+    #cursor.execute(sql)
     
     sql = 'SELECT path FROM sign_leave WHERE sign_id = %d' % int(signId)
     cursor.execute(sql)
     lPath = cursor.fetchall()
-    os.remove(BASE_DIR + '/static/' + lPath[0][0])
+    os.remove(STATIC_ROOT + '/' + lPath[0][0])
+    #os.remove(BASE_DIR + '/static/' + lPath[0][0])
+
+    id = int(signId)
+    Sign.objects.filter(pk = id).delete()
+
 
     sql = 'DELETE FROM sign_leave WHERE sign_id = %d' % int(signId)
     cursor.execute(sql)

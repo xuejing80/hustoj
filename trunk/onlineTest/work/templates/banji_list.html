@@ -108,7 +108,8 @@
         function editFormatter(value) {
             return '<a class="btn btn-primary btn-xs" href="{% url '_update_banji' %}' + value + '/" title="编辑" aria-label="编辑" data-pjax="0"><span class="glyphicon glyphicon glyphicon-edit"></span></a>' +
                     ' <a class="btn btn-success btn-xs" href="{% url '_banji_detail' %}' + value + '/" title="查看" aria-label="查看" data-pjax="0"><span class="glyphicon glyphicon-eye-open"></span></a>' +
-                    ' <a class="btn btn-info btn-xs" href="{% url '_add_students' %}' + value + '/" title="批量添加学生" aria-label="批量添加学生" data-pjax="0"><span class="glyphicon glyphicon-plus-sign"></span></a>';
+                    ' <a class="btn btn-info btn-xs" href="{% url '_add_students' %}' + value + '/" title="批量添加学生" aria-label="批量添加学生" data-pjax="0"><span class="glyphicon glyphicon-plus-sign"></span></a>' +
+                    ' <a class="btn btn-info btn-xs" href="{% url 'once' %}'+ '?classname='+ value + '" title="慕课成绩分析" aria-label="慕课成绩分析" data-pjax="0"><span class="glyphicon glyphicon-equalizer"></span></a>';
         }
     </script>
 

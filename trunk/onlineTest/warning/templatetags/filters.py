@@ -17,5 +17,5 @@ def myFilter(value):
     return tempstr
 
 @register.filter
-def div(value, div):
-	return str("%.2f"%(round((value * 100 / div), 2)))+'%'
+def myDiv(value,total):
+	return str("%.2f"%(round((value * 100 / total), 2)))+'%'

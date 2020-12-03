@@ -45,39 +45,34 @@
         <div class="form-group">
             <label for="work_kind">作业类型：</label>
             <label class="radio-inline">
-                <input type="radio" id="work_kind" value="作业" name="work_kind" checked>作业
+                <input type="radio" id="work_kind_0" value="作业" name="work_kind" checked>作业
             </label>
             <label class="radio-inline">
-                <input type="radio" id="work_kind" value="实验" name="work_kind">实验
+                <input type="radio" id="work_kind_1" value="实验" name="work_kind">实验
             </label>
-            <!--
-	    <label class="radio-inline">
-	        <input type="radio" id="work_kind" value="课堂练习" name="work_kind">课堂练习
-	    </label>
-            -->
         </div>
         <div class="form-group">
             <label for="languages">允许的编译器类型：</label>
             <label class="checkbox-inline">
-                <input type="checkbox" id="inlineCheckbox1" value="0" name="languages" checked> C
+                <input type="checkbox" id="languages_0" value="0" name="languages" checked> C
             </label>
             <label class="checkbox-inline">
-                <input type="checkbox" id="inlineCheckbox1" value="1" name="languages" checked> C++
+                <input type="checkbox" id="languages_1" value="1" name="languages" checked> C++
             </label>
             <label class="checkbox-inline">
-                <input type="checkbox" id="inlineCheckbox1" value="3" name="languages" checked> Java
+                <input type="checkbox" id="languages_3" value="3" name="languages" checked> Java
             </label>
             <label class="checkbox-inline">
-                <input type="checkbox" id="inlineCheckbox1" value="6" name="languages" checked> Python
+                <input type="checkbox" id="languages_6" value="6" name="languages" checked> Python
             </label>
         </div>
         <div class="form-group">
             <label for="allow_resubmit">是否允许重复提交：</label>
             <label class="radio-inline">
-                <input type="radio" id="allow_resubmit" value="1" name="allow_resubmit" onclick="al_resubmit()" checked>是
+                <input type="radio" id="allow_resubmit_1" value="1" name="allow_resubmit" onclick="al_resubmit()" checked>是
             </label>
             <label class="radio-inline">
-                <input type="radio" id="allow_resubmit" value="0" name="allow_resubmit" onclick="nal_resubmit()">否
+                <input type="radio" id="allow_resubmit_0" value="0" name="allow_resubmit" onclick="nal_resubmit()">否
             </label>
         </div>
         
@@ -97,47 +92,47 @@
 	 <div class="form-group">
             <label for="allow_random">是否打乱选择题显示顺序：</label>
             <label class="radio-inline">
-                <input type="radio" id="allow_random" value="1" name="allow_random" checked>是
+                <input type="radio" id="allow_random_1" value="1" name="allow_random" checked>是
             </label>
             <label class="radio-inline">
-                <input type="radio" id="allow_random" value="0" name="allow_random">否
+                <input type="radio" id="allow_random_0" value="0" name="allow_random">否
             </label>
         </div>
 
         <div class="form-group" style="display:none;">
             <label for="allow_similarity">是否开启相似度判分：</label>
             <label class="radio-inline">
-                <input type="radio" id="allow_similarity" value="1" name="allow_similarity" >是
+                <input type="radio" id="allow_similarity_1" value="1" name="allow_similarity" >是
             </label>
             <label class="radio-inline">
-                <input type="radio" id="allow_similarity" value="0" name="allow_similarity" checked>否
+                <input type="radio" id="allow_similarity_0" value="0" name="allow_similarity" checked>否
             </label>
         </div>
 
 	<div class="form-group">
 		<label for="show_answer">何时显示答案：</label>
 		<label class="radio-inline">
-			<input type="radio" id="show_answer" value="每次提交后" name="show_answer" checked>每次提交后
+			<input type="radio" id="show_answer_0" value="每次提交后" name="show_answer" checked>每次提交后
 		</label>
 		<label class="radio-inline">
-                    <input type="radio" id="show_answer" value="提交次数用完后" name="show_answer">提交次数用完后
+                    <input type="radio" id="show_answer_1" value="提交次数用完后" name="show_answer">提交次数用完后
 		</label>
                 <label class="radio-inline">
-                    <input type="radio" id="show_answer" value="作业截止后" name="show_answer">作业截止后
+                    <input type="radio" id="show_answer_2" value="作业截止后" name="show_answer">作业截止后
                 </label> 
 	</div>	
 
     <div class="form-group">
         <label for="show_score">多次提交有效得分为：</label>
         <label class="radio-inline">
-            <input type="radio" id="show_score" value="最高分值" name="show_score" checked>最高分值
+            <input type="radio" id="show_score_0" value="最高分值" name="show_score" checked>最高分值
         </label>
         <label class="radio-inline">
-                    <input type="radio" id="show_score" value="平均分值" name="show_score">平均分值
+            <input type="radio" id="show_score_1" value="平均分值" name="show_score">平均分值
         </label>
-                <label class="radio-inline">
-                    <input type="radio" id="show_score" value="最后一次分值" name="show_score">最后一次分值
-                </label> 
+        <label class="radio-inline">
+            <input type="radio" id="show_score_2" value="最后一次分值" name="show_score">最后一次分值
+        </label> 
     </div>  
 
         <div class="row">
@@ -1103,15 +1098,17 @@
                             if(end_time!='')
                                 $('#end_time').val(end_time);
                             $("#course option[value='{{ courser_id }}']").prop("selected", true);
-                            $('#allow_resubmit[value="{{ allow_resubmit }}"]').attr('checked', true);
+                            $('input[name="allow_resubmit"][value="{{ allow_resubmit }}"]').attr('checked', true);
+                            if({{ allow_resubmit }}==0)
+                                $("#resubmit_number").attr("disabled", "disabled");
                             $("#resubmit_number option[value='{{ resubmit_number }}']").prop('selected', true);
-                            $('#allow_random[value="{{ allow_random }}"]').attr('checked', true);
-                            $('#allow_similarity[value="{{ allow_similarity }}"]').attr('checked', true);
-                            $('#work_kind[value="{{ work_kind }}"]').attr('checked',true);
-                            $('#show_answer[value="{{ show_answer }}"]').attr('checked',true);
-                            $('#show_score[value="{{ show_score }}"]').attr('checked',true);
+                            $('input[name="allow_random"][value="{{ allow_random }}"]').attr('checked', true);
+                            $('input[name="allow_similarity"][value="{{ allow_similarity }}"]').attr('checked', true);
+                            $('input[name="work_kind"][value="{{ work_kind }}"]').attr('checked',true);
+                            $('input[name="show_answer"][value="{{ show_answer }}"]').attr('checked',true);
+                            $('input[name="show_score"][value="{{ show_score }}"]').attr('checked',true);
 			    hw_id = window.location.pathname.split('/').slice(-2)[0];
-                            if(hw_id=="myhomework")
+                            if(hw_id=="myhomework"||hw_id=="add-myhomework")
                                 return;
                             $.ajax({
                                 type: "post",

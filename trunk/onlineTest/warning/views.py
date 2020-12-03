@@ -23,7 +23,7 @@ def warning(request):
 
 	if user:
 		if user.id:
-			if str(user.id) != str(tid):
+			if not user.is_admin and str(user.id) != str(tid):
 				mydict = {"error":"您没有查看的权限！"}
 				return render(request,'error.html',mydict)
 		else:

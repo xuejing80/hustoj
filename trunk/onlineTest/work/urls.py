@@ -74,4 +74,8 @@ urlpatterns = [
     # url(r'^download/$', file_download, name='download'),
     url(r'^send_zipfile/$', emptyView, name='_send_zipfile'),
     url(r'^send_zipfile/(\d+)/$', send_zipfile, name='send_zipfile'),
+
+    # 2020年11月增加了关于MOOC成绩统计的功能
+    url(r'^mooc-once-analyse-', once, name='once'),
+    url(r'^get_score_list', get_score_list, name='get_score_list'),
 ]

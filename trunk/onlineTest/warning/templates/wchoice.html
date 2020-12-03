@@ -26,7 +26,7 @@
                href="#collapse{{ item.choice.id }}"
                aria-expanded="{% if forloop.first %}true{% else %}false{% endif %}"
                aria-controls="collapse{{ item.choice.id }}">
-               ID:{{ item.choice.id }}. (<font color="red">{{ item.count.w |div:item.count.t }}</font>) {{ item.choice.title|myFilter|safe|linebreaksbr }}
+               ID:{{ item.choice.id }}. (<font color="red">{{ item.count.w |myDiv:item.count.t }}</font>) {{ item.choice.title|myFilter|safe|linebreaksbr }}
             </a>
         </h4>
         </div>
@@ -35,10 +35,10 @@
          aria-labelledby="heading{{ item.choice.id }}">
         <div class="panel-body" name='nhh'>
             <ul>
-                    <li>A.(<font color="{% if item.choice.right_answer = 'a'%}green{%else%}red{%endif%}">{{ item.count.a |div:item.count.t }}</font>) &nbsp; {{ item.choice.a}}</li>
-                    <li>B.(<font color="{% if item.choice.right_answer = 'b'%}green{%else%}red{%endif%}">{{ item.count.b |div:item.count.t }}</font>) &nbsp; {{ item.choice.b}}</li>
-                    <li>C.(<font color="{% if item.choice.right_answer = 'c'%}green{%else%}red{%endif%}">{{ item.count.c |div:item.count.t }}</font>) &nbsp; {{ item.choice.c}}</li>
-                    <li><span>D.(<font color="{% if item.choice.right_answer = 'd'%}green{%else%}red{%endif%}">{{ item.count.d |div:item.count.t }}</font>) &nbsp; {{ item.choice.d}}</li>
+                    <li>A.(<font color="{% if item.choice.right_answer = 'a'%}green{%else%}red{%endif%}">{{ item.count.a|myDiv:item.count.t }}</font>) &nbsp; {{ item.choice.a}}</li>
+                    <li>B.(<font color="{% if item.choice.right_answer = 'b'%}green{%else%}red{%endif%}">{{ item.count.b|myDiv:item.count.t }}</font>) &nbsp; {{ item.choice.b}}</li>
+                    <li>C.(<font color="{% if item.choice.right_answer = 'c'%}green{%else%}red{%endif%}">{{ item.count.c|myDiv:item.count.t }}</font>) &nbsp; {{ item.choice.c}}</li>
+                    <li>D.(<font color="{% if item.choice.right_answer = 'd'%}green{%else%}red{%endif%}">{{ item.count.d|myDiv:item.count.t }}</font>) &nbsp; {{ item.choice.d}}</li>
                     <li><span>答案:{{ item.choice.right_answer |upper}}</span></li>
             </ul>
             

@@ -1,7 +1,8 @@
 # encoding: utf-8
-import os, shutil, zipfile, string, json, datetime, time, random
+import os, shutil, zipfile, string, json, datetime, time, random, re
 import _thread
-import xlrd
+import xlrd,xlwt
+import xlutils.copy as xlcopy
 import shutil
 from django.contrib.auth.models import Group
 from django.core.exceptions import ObjectDoesNotExist, PermissionDenied
@@ -216,7 +217,7 @@ def ajax_for_homework_info(request):
     if (request.method != 'POST') and ({'homework_id'} - set(request.POST.dict()) != set()):
         raise Http404()
     homework_id = request.POST['homework_id']
-    result = []
+    result = {}
     try:
         if request.POST['my'] == 'true':
             homework = MyHomework.objects.get(pk=homework_id)
@@ -585,9 +586,9 @@ def do_homework(request, homework_id=0):
         wrong_ids, wrong_info = '', ''
         wrong_ducheng_ids, wrong_ducheng_info = '', ''
         log = "执行动作：提交作业，用户信息：{}({}:{})，作业ID：{}，POST数据：{}".format(request.user.username,request.user.pk,request.user.id_num,homework_id,request.POST.dict())
-        if time.mktime(homework.end_time.timetuple()) < time.time():
-            logger.info(log + "，执行结果：失败（时间不允许）")
-            return render(request, 'warning.html', context={'info': '提交时间晚于作业的截止时间，提交失败'})
+        # if time.mktime(homework.end_time.timetuple()) < time.time():
+        #     logger.info(log + "，执行结果：失败（时间不允许）")
+        #     return render(request, 'warning.html', context={'info': '提交时间晚于作业的截止时间，提交失败'})
         if not homework.allow_resubmit:
             if request.user in homework.finished_students.all():  # 防止重复提交
                 logger.info(log + "，执行结果：失败（重复提交）")
@@ -1226,7 +1227,7 @@ def unassign_homework(request):
 # 显示我的待做作业
 @login_required()
 def list_do_homework(request):
-    banjis = BanJi.objects.filter(students=request.user).all()
+    banjis = BanJi.objects.filter(students=request.user).all()[::-1]
     return render(request, 'do_homework_list.html',
                   context={'banjis': banjis, 'title': '我的作业列表', 'position': 'unfinished'})
 
@@ -1329,7 +1330,7 @@ def get_problem_score(homework_answer, judged_score=0):
     solutions = homework_answer.solution_set
     problem_info = []
     for info in json.loads(homework.problem_info):
-        #print("开始判题，题目信息如下：",str(info))
+        # print("开始判题，题目信息如下：",str(info))
         try:
             solution = solutions.get(problem_id=info['id'])  # 获取题目
             # 根据测试用例获取编程题总分
@@ -1344,7 +1345,7 @@ def get_problem_score(homework_answer, judged_score=0):
                         break
                 if solution.oi_info is None:
                     break
-                if json.loads(solution.oi_info)[str(case['desc']) + '.in']['result'] == 4:  # 参照测试点，依次加测试点分数
+                if str(case['desc'])+'.in' in json.loads(solution.oi_info) and json.loads(solution.oi_info)[str(case['desc']) + '.in']['result'] == 4:  # 参照测试点，依次加测试点分数
                     if type(case['score'])==str:
                         score += eval(case['score'])
                     else:
@@ -1374,7 +1375,7 @@ def get_tiankong_score(homework_answer, judged_score=0):
                         break
                     if solution.oi_info is None:
                         break
-                    if json.loads(solution.oi_info)[str(case['desc'])+'.in']['result'] == 4:
+                    if str(case['desc'])+'.in' in json.loads(solution.oi_info) and json.loads(solution.oi_info)[str(case['desc'])+'.in']['result'] == 4:
                         if type(case['score'])==str:
                             score += eval(case['score'])
                         else:
@@ -1398,7 +1399,7 @@ def get_gaicuo_score(homework_answer, judged_score=0):
                         break
                     if solution.oi_info is None:
                         break
-                    if json.loads(solution.oi_info)[str(case['desc'])+'.in']['result'] == 4:
+                    if str(case['desc'])+'.in' in json.loads(solution.oi_info) and json.loads(solution.oi_info)[str(case['desc'])+'.in']['result'] == 4:
                         if type(case['score'])==str:
                             score += eval(case['score'])
                         else:
@@ -1412,7 +1413,7 @@ def get_gaicuo_score(homework_answer, judged_score=0):
 def list_finished_homework(request):
     if not request.user.isTeacher() and not request.user.is_admin:
         raise Http404()
-    banjis = BanJi.objects.filter(students=request.user).all()
+    banjis = BanJi.objects.filter(students=request.user).all()[::-1]
     return render(request, 'finidshed_homework_list.html',
                   context={'classnames': banjis, 'position': 'finished', 'title': '查看作业结果'})
 
@@ -1717,7 +1718,7 @@ def test_run(request):
     :param request: 请求
     :return: 包含运行结果的json数据
     """
-    print(request.POST.dict())
+    # print(request.POST.dict())
     if (request.method != 'POST') and ({'type'} - set(request.POST.dict()) != set()):
         raise Http404()
     if request.POST['type'] == 'upload':  # 当上传代码时
@@ -1786,7 +1787,7 @@ def test_run(request):
                                 result = 1
                             cases.append(case)
                         except:
-                            logger_request.exception("Exception Logged")
+                            logger_request.exception("Exception Logged:{homework_id:"+str(homework.id)+"}")
             #2017年3月22日，注释以下两句，保留学生做作业的过程
             #SourceCode.objects.get(solution_id=solution.solution_id).delete()
             #solution.delete()
@@ -1923,6 +1924,183 @@ def send_zipfile(request,id):
     response['Content-Type'] = 'application/octet-stream'
     response['Content-Disposition'] = 'attachment; filename=%s' %zipfilename
     return response
+
+@login_required()
+def once(request):
+    if {'classname'} - set(request.GET.dict()) != set():
+        raise Http404()
+    class_id = request.GET.get('classname')
+    banji = get_object_or_404(BanJi, pk=class_id)
+    classname = str(banji)
+    teacher = MyUser.objects.get(id=request.user.id)
+    if not request.user.is_superuser and not request.user.is_teacher:
+        raise Http404()
+    tea_name = banji.teacher.id_num
+    classes = BanJi.objects.filter(teacher=teacher)
+
+    #上传
+    if request.FILES.get('names'):
+        uploadDir = USER_FILE_DIR+'mooc/'+tea_name #上传到的路径
+        if not isdir(uploadDir):
+            mkdir(uploadDir)
+        uploadedFile = request.FILES.get('names')
+        if not uploadedFile:
+            return render(request, 'once.html', {'msg':'错误：没有选择文件！','class_id':class_id})
+        dstFilename = join(uploadDir, uploadedFile.name)
+        with open(dstFilename, 'wb') as fp:
+            for chunk in uploadedFile.chunks():
+                fp.write(chunk)
+
+        banji = BanJi.objects.filter(name=classname)
+        excel_path1 = dstFilename
+        workbook1 = xlrd.open_workbook(excel_path1)
+        sheet1 = workbook1.sheet_by_index(0)
+        length1 = sheet1.nrows
+        recode = {}
+        if not os.path.isfile(USER_FILE_DIR+'mooc/'+tea_name+'/'+classname+'.xls'):
+            workbook = xlwt.Workbook()
+            worksheet = workbook.add_sheet('score')
+            workbook.save(USER_FILE_DIR+'mooc/'+tea_name+'/'+classname+'.xls')
+        data = xlrd.open_workbook(USER_FILE_DIR+'mooc/'+tea_name+'/'+classname+'.xls')
+        new_workbook = xlcopy.copy(data)
+        data_sheet2 = new_workbook.get_sheet(0)
+        data_sheet1 = data.sheet_by_index(0)
+        
+        j=1
+        #获取满分
+        max_score = sheet1.cell_value(0, 4)[3:7]
+        length2 = data_sheet1.ncols if data_sheet1.ncols>0 else 1
+        
+        data_sheet2.write(0, length2, max_score)
+        stuDict = {}
+        for student in banji[0].students.all():
+            if not student.is_teacher:
+                stuDict[student.id_num] = student.username
+        for i in range(1, length1):
+            # 如果是认证过的信息
+            stu_id = sheet1.cell_value(i, 2)
+            if stu_id in stuDict and sheet1.cell_value(i, 1)==stuDict[stu_id]:
+                recode[stu_id]=sheet1.cell_value(i, 4)
+                del stuDict[stu_id]
+            # 利用真实姓名去反查学号
+            realname = sheet1.cell_value(i, 1)
+            for stu_id,stu_name in stuDict.copy().items():
+                if realname==stu_name and stu_id in sheet1.cell_value(i, 0):
+                    recode[stu_id]=sheet1.cell_value(i, 4)
+                    del stuDict[stu_id]
+        # 最后处理既没有认证也没有真实姓名的学生，对上传文档进行暴力搜索
+        for stu_id,stu_name in stuDict.copy().items():
+            for i in range(1, length1):
+                if stu_id in sheet1.cell_value(i, 0) and stu_name in sheet1.cell_value(i, 0):
+                    recode[stu_id]=sheet1.cell_value(i, 4)
+                    del stuDict[stu_id]
+        # 将搜索到的分数信息写入汇总文件
+        for student in banji[0].students.all():
+            if student.is_teacher:
+                continue 
+            if not student.id_num in recode:
+                recode[student.id_num]='无'
+            data_sheet2.write(j, 0, student.id_num)
+            data_sheet2.write(j, length2, recode[student.id_num])
+            j+=1
+        new_workbook.save(USER_FILE_DIR+'mooc/'+tea_name+'/'+classname+'.xls')
+        data = xlrd.open_workbook(USER_FILE_DIR+'mooc/'+tea_name+'/'+classname+'.xls')
+        sheet = data.sheet_by_index(0)
+        cols = sheet.ncols
+        return render(request, 'once.html', {'msg_s':'上传成功！','nums':cols, 'classes':classes,'class_id':class_id })
+    else:
+        if os.path.isfile(USER_FILE_DIR+'mooc/'+tea_name+'/'+classname+'.xls'):
+            data = xlrd.open_workbook(USER_FILE_DIR+'mooc/'+tea_name+'/'+classname+'.xls')
+            sheet = data.sheet_by_index(0)
+            cols = sheet.ncols
+            return render(request, 'once.html', {'nums':cols, 'classes':classes, 'class_id':class_id})
+        else:
+            return render(request, 'once.html',{'nums':0, 'classes':classes, 'class_id':class_id})
+
+@login_required()
+def get_score_list(request):
+    if {'classname'} - set(request.GET.dict()) != set():
+        raise Http404()
+    class_id = request.GET.get('classname')
+    banji = get_object_or_404(BanJi, pk=class_id)
+    classname = str(banji)
+    if not request.user.is_superuser and not request.user.is_teacher:
+        raise Http404()
+    teacher = MyUser.objects.get(id=request.user.id)
+    tea_name = banji.teacher.id_num
+    uploadDir = USER_FILE_DIR+'mooc/'+tea_name+'/'+classname+'.xls'
+    banji = BanJi.objects.filter(name=classname)
+    s_score=[]
+    json_data = {}
+    recodes=[]
+    recode={}
+    maxscore=[]
+    scores=[]
+    dstFilename = uploadDir
+    excel_path2 = dstFilename
+    try:
+        workbook2 = xlrd.open_workbook(excel_path2)
+        sheet2 = workbook2.sheet_by_index(0)
+        r_length = sheet2.nrows
+        c_length = sheet2.ncols
+    except:
+        return JsonResponse(json_data)
+    #获取最大成绩
+    for col in range(1, c_length):
+        max_score=sheet2.cell_value(0, col)
+        if max_score is not None and max_score!="":
+            maxscore.append(float(max_score))
+        else:
+            st_score=[]
+            for i in range (1, r_length):
+                st_score.append(sheet2.cell_value(i, col) if sheet2.cell_value(i, col)!='无' else '0')
+            st_score=[ int(float(x)) for x in st_score ]
+            maxscore.append(max(st_score))
+    maxscore=[ int(float(x)) for x in maxscore ]
+    for student in banji[0].students.all():
+        if student.is_teacher:
+            continue
+        recode['pk']=student.id_num
+        recode['name']=student.username
+        #获取该学生每次的成绩
+        for k in range(1, c_length):
+            for i in range(0, r_length):
+                if student.id_num in sheet2.cell_value(i, 0):
+                    recode['score'+str(k)]=sheet2.cell_value(i, k)
+                    break
+        
+            if not 'score'+str(k) in recode:
+                recode['score'+str(k)]='无'
+
+        #获取该学生满分次数，85分以上的成绩次数，60分到85分的次数，60分以下次数
+        for row in range(0, r_length):
+            if student.id_num in sheet2.cell_value(row, 0):
+                for col in range(1, c_length):
+                    s_score.append(sheet2.cell_value(row, col))
+                s_score=[0 if i == '无' else i for i in s_score]
+                s_score=[ int(float(x)) for x in s_score ]
+                s_score=list(map(lambda x,y:x/y,s_score,maxscore))
+                x1=x2=x3=x4=0
+                for score in s_score:
+                    if score==1:
+                        x1+=1
+                    elif score>=0.85 and score<1:
+                        x2+=1
+                    elif score>=0.6 and score<0.85:
+                        x3+=1
+                    elif score>0 and score<0.6:
+                        x4+=1
+                con=(1.69418604996397+x1*95.2455067895217+x2*64.9542807218118+x3*61.1247310059428+x4*68.1478600272293)/len(s_score)
+                recode['general']=round(con,2)
+                s_score.clear()
+
+        if not 'general' in recode:
+            recode['general'] = '无法判定'
+        
+        recodes.append(recode)
+        recode={}
+    json_data['rows'] = recodes
+    return JsonResponse(json_data)
 
 def emptyView(request):
     raise Http404()

@@ -56,6 +56,7 @@ def add_homework(request):
     :return: post时返回新建题目的详细页面，get时返回新建题目页面
     """
     if request.method == 'POST':
+        time_allowed=request.POST['time_allowed'] if request.POST['time_allowed'] == "-1" else request.POST['time-allowed_s']
         homework = HomeWork(name=request.POST['name'],
                             choice_problem_ids=request.POST['choice-problem-ids'],
                             ducheng_problem_ids=request.POST['ducheng-problem-ids'],
@@ -77,7 +78,8 @@ def add_homework(request):
                             allow_random = True if request.POST['allow_random'] == '1' else False,
                             allow_similarity = True if request.POST['allow_similarity'] == '1' else False,
                             show_answer = request.POST['show_answer'],
-                            show_score = request.POST['show_score'])
+                            show_score = request.POST['show_score'],
+                            time_allowed = time_allowed)
 
         homework.save()
         return redirect(reverse("homework_detail", args=[homework.pk]))
@@ -123,6 +125,7 @@ def get_json_work(request):
                   'start_time': homework.start_time.strftime('%Y-%m-%d %H:%M:%S'),
                   'end_time': homework.end_time.strftime('%Y-%m-%d %H:%M:%S'),
                   'creator': homework.creater.username,
+                  'courserid': homework.courser.id,
                   'isMine': request.user.is_admin or request.user==homework.creater,}
         recodes.append(recode)
     json_data['rows'] = recodes
@@ -278,6 +281,7 @@ def update_public_homework(request, pk):
         homework.resubmit_number = request.POST['resubmit_number']
         homework.show_answer = request.POST['show_answer']
         homework.show_score = request.POST['show_score']
+        homework.time_allowed=request.POST['time_allowed'] if request.POST['time_allowed'] == "-1" else request.POST['time-allowed_s']
         homework.save()
         return redirect(reverse('homework_detail', args=[homework.pk]))
     else:
@@ -290,8 +294,9 @@ def update_public_homework(request, pk):
                    'allow_random': '1' if homework.allow_random else '0',
                    'allow_similarity': '1' if homework.allow_similarity else '0',
                    'allow_resubmit': '1' if homework.allow_resubmit else '0',
-	               'show_answer': homework.show_answer,
-                   'show_score': homework.show_score}
+	           'show_answer': homework.show_answer,
+                   'show_score': homework.show_score,
+                   'time_allowed_s':homework.time_allowed}
     return render(request, 'homework_add.html', context=context)
 
 @permission_required('work.change_homework')
@@ -328,6 +333,7 @@ def update_my_homework(request, pk):
         homework.allow_resubmit = True if request.POST['allow_resubmit'] == '1' else False
         homework.allow_random = True if request.POST['allow_random'] == '1' else False
         homework.allow_similarity = True if request.POST['allow_similarity'] == '1' else False
+        homework.time_allowed = request.POST['time_allowed'] if request.POST['time_allowed'] == "-1" else request.POST['time-allowed_s']
         homework.show_answer = request.POST['show_answer']
         homework.show_score = request.POST['show_score']
         homework.work_kind = request.POST['work_kind']
@@ -348,7 +354,8 @@ def update_my_homework(request, pk):
                    'allow_similarity': '1' if homework.allow_similarity else '0',
                    'show_answer': homework.show_answer,
                    'show_score': homework.show_score,
-                   'work_kind': homework.work_kind}
+                   'work_kind': homework.work_kind,
+                   'time_allowed_s' : homework.time_allowed}
     return render(request, 'homework_add.html', context=context)  # 查看作业结果
 
 @login_required()
@@ -764,16 +771,32 @@ def do_homework(request, homework_id=0):
             last_homeworkAnswer = homeworkAnswers.order_by('-create_time') [0]
             remained_number = homework.resubmit_number - last_homeworkAnswer.remained_number
         # 第一次请求作业
-
         if remained_number <= 0:
             logger.info(log + "，执行结果：失败（提交次数达上限）")
             return render(request, 'warning.html', context={'info': '您的提交次数已达上限！'})
         else:
+            # 作业开始时间获取
+            tempHomeworkAnswer = TempHomeworkAnswer.objects.get_or_create(creator=request.user, homework=homework)
+            if homework.time_allowed == -1 or homework.time_allowed is None:
+                # 时间不限
+                timeset = 0
+                timeleft = -1
+            else:
+                # 计算剩余时间
+                timeset = 1
+                if tempHomeworkAnswer[0].start_time is None:
+                    timeleft = homework.time_allowed * 60
+                else:
+                    timeleft = datetime.datetime.now() - tempHomeworkAnswer[0].start_time
+                    timeleft = datetime.timedelta(minutes=homework.time_allowed)-timeleft
+                    timeleft = timeleft.total_seconds()
+                    timeleft = int(timeleft)
             return render(request, 'do_homework.html',
                         context={'homework': homework, 'problemsType': ['编程题','程序填空题','程序改错题'],
                                 'choice_problems': choice_problems,
                                 'ducheng_problems': ducheng_problems,
                                 'problemsList':[problems, tiankong_problems, gaicuo_problems],
+                                'timeleft': timeleft, 'timeset': timeset,'userid': request.user.id_num,
                                 'title': homework.name, 'work_kind': homework.work_kind, 'remained_number': remained_number})
 
 @permission_required('work.add_banji')
@@ -967,9 +990,48 @@ def copy_to_my_homework(request):
                                   total_score=old_homework.total_score,  # todo 有更好的方法
                                   resubmit_number = old_homework.resubmit_number,
                                   show_answer = old_homework.show_answer,
-                                  show_score = old_homework.show_score)
+                                  show_score = old_homework.show_score,
+                                  time_allowed = old_homework.time_allowed)
             homework.save()
     except:
+        logger_request.exception("Exception Logged")
+        return HttpResponse(0)
+    return HttpResponse(1)
+
+#复制私有作业到公有作业
+@permission_required('work.add_homework')
+def copy_to_homework(request):
+    ids = request.POST.getlist('ids[]')
+    try:
+        for pk in ids:
+            old_homework = MyHomework.objects.get(pk=pk)
+            homework = HomeWork(name=old_homework.name, courser=old_homework.courser, creater=request.user,
+                                start_time=time.strftime("%Y-%m-%d %H:%M"),
+                                end_time=(datetime.datetime.now()+datetime.timedelta(days=14)).strftime("%Y-%m-%d %H:%M"),
+                                problem_ids=old_homework.problem_ids,
+                                choice_problem_ids=old_homework.choice_problem_ids,
+                                ducheng_problem_ids=old_homework.ducheng_problem_ids,
+                                problem_info=old_homework.problem_info,
+                                choice_problem_info=old_homework.choice_problem_info,
+                                ducheng_problem_info=old_homework.ducheng_problem_info,
+                                #2017年9月16日增加新题型
+                                tiankong_problem_ids=old_homework.tiankong_problem_ids,
+                                gaicuo_problem_ids=old_homework.gaicuo_problem_ids,
+                                tiankong_problem_info=old_homework.tiankong_problem_info,
+                                gaicuo_problem_info=old_homework.gaicuo_problem_info,
+                                allowed_languages=old_homework.allowed_languages,
+                                allow_resubmit=old_homework.allow_resubmit,
+                                allow_similarity=old_homework.allow_similarity,
+                                allow_random=old_homework.allow_random,
+                                work_kind=old_homework.work_kind,
+                                total_score=old_homework.total_score,  # todo 有更好的方法
+                                resubmit_number = old_homework.resubmit_number,
+                                show_answer = old_homework.show_answer,
+                                show_score = old_homework.show_score,
+                                time_allowed = old_homework.time_allowed)
+            homework.save()
+    except:
+        raise
         logger_request.exception("Exception Logged")
         return HttpResponse(0)
     return HttpResponse(1)
@@ -1116,9 +1178,10 @@ def ajax_add_students(request):
                         return HttpResponse(json.dumps({'stu_name':username, 'result': 0, 'count': 0, 'allow': 1,'message':'该邮箱被占用'}))
         banji = BanJi.objects.get(pk=banji_id)
         if teacher.create_num > 0:
-            banji.students.add(student)
-            teacher.create_num -= 1
-            teacher.save()
+            if student not in banji.students.all():
+                banji.students.add(student)
+                teacher.create_num -= 1
+                teacher.save()
             return HttpResponse(json.dumps({'stu_name':username, 'result': 0, 'count': 1}))
     # 用文本方式提交学生信息
     if request.POST['judge']=='0':
@@ -1159,9 +1222,10 @@ def ajax_add_students(request):
                         return HttpResponse(json.dumps({'result': 0, 'count': 0, 'allow': 1,'message':'该邮箱被占用'}))
         banji = BanJi.objects.get(pk=banji_id)
         if teacher.create_num > 0:
-            banji.students.add(student)
-            teacher.create_num -= 1
-            teacher.save()
+            if student not in banji.students.all():
+                banji.students.add(student)
+                teacher.create_num -= 1
+                teacher.save()
             return HttpResponse(json.dumps({'result': 0, 'count': 1}))
 
 def reset_stupassword(request):
@@ -1332,7 +1396,9 @@ def get_problem_score(homework_answer, judged_score=0):
     for info in json.loads(homework.problem_info):
         # print("开始判题，题目信息如下：",str(info))
         try:
-            solution = solutions.get(problem_id=info['id'])  # 获取题目
+            solution = solutions.filter(problem_id=info['id']).order_by('solution_id').last()  # 获取题目
+            if solution is None:
+                continue
             # 根据测试用例获取编程题总分
             total_score = int(info['total_score'])
             for case in info['testcases']:  # 获取题目的测试分数
@@ -1353,12 +1419,12 @@ def get_problem_score(homework_answer, judged_score=0):
             #print("判题完毕，本题共{}分，得分为{}".format(total_score,score))
             if solution.result == 4:
                 id = solution.solution_id # 更新答案库
-                update_ansdb(id)
+                # update_ansdb(id)
         except ObjectDoesNotExist:
             user = homework_answer.creator;
             logger_request.exception("获取编程题得分失败{{homework_id:{},answer_id:{},problem_id:{},user:{}({},{})}}".format(homework.pk,homework_answer.pk,info['id'],user.username,user.id_num,user.email))
-            #print("error on get problem score！homework_id: %d ,error : %s args: %s" % (
-            #    homework.pk, e, e.args.__str__()))
+        except:
+            raise
     return score
 
 def get_tiankong_score(homework_answer, judged_score=0):
@@ -1687,6 +1753,7 @@ def add_myhomework(request):
     :return: 如果为GET请求，返回新建作业页面，如果为POST，返回到新建的题目的
     """
     if request.method == 'POST':
+        time_allowed = request.POST['time_allowed'] if request.POST['time_allowed'] == "-1" else request.POST['time-allowed_s']
         allow_resubmit = True if request.POST['allow_resubmit'] == "1" else False
         homework = MyHomework(name=request.POST['name'],
                               choice_problem_ids=request.POST['choice-problem-ids'],
@@ -1705,9 +1772,14 @@ def add_myhomework(request):
                               resubmit_number = request.POST["resubmit_number"],
                               work_kind=request.POST['work_kind'],
                               show_answer = request.POST['show_answer'],
-                              show_score = request.POST['show_score'])
-        homework.save()
-        return redirect(reverse("my_homework_detail", args=[homework.pk]))
+                              show_score = request.POST['show_score'],
+                              time_allowed = time_allowed)
+        try:
+            homework.save()
+            return redirect(reverse("my_homework_detail", args=[homework.pk]))
+        except ValueError:
+            logger_request.info("保存私有作业信息有错误！")
+            logger_request.info(request.POST.dict())
     classnames = ClassName.objects.all()
     return render(request, 'homework_add.html', context={'classnames': classnames, 'title': '新建私有作业'})
 
@@ -1833,28 +1905,29 @@ def rejudge_homework(request, id):
     homework_answer.homework.finished_students.add(homework_answer.creator)
     return redirect(reverse('my_homework_detail', args=(homework_answer.homework.id,)))
 
-@login_required()
-def save_homework_temp(request):
-    """
-    暂存作业
-    :param request: 请求
-    :return: 重定向到作业列表
-    """
-    log = "执行动作：暂存作业，用户信息：{}({}:{})，POST数据：{}".format(request.user.username,request.user.pk,request.user.id_num,request.POST.dict())
+def save_homework_temp(request): 
+    if (request.method != 'POST') and ({'homework_id'} - set(request.POST.dict()) != set()):
+        raise Http404()
     data = request.POST.dict()
+    if request.user.is_authenticated():
+        user = request.user
+    else:
+        user = MyUser.objects.get(id_num=data['userid'])
+    log = "执行动作：暂存作业，用户信息：{}({}:{})，POST数据：{}".format(user.username,user.pk,user.id_num,data)
     if data:
         try:
             homework = MyHomework.objects.get(id=data['homework_id'])
             del data['csrfmiddlewaretoken']  # 去除表单中的scrf项
+            urlstr = data['homework_id']
             del data['homework_id']  # 去除表单中的homework_id项
-            TempHomeworkAnswer.objects.update_or_create(homework=homework, creator=request.user,
+            TempHomeworkAnswer.objects.update_or_create(homework=homework, creator=user,
                                                 defaults={'data': json.dumps(data)})
             logger.info(log + "，执行结果：成功")
         except:
             logger_request.exception(log + "，执行结果：失败")
             return render(request, 'warning.html', context={
                 'info': '对不起，暂存作业失败了，请及时联系管理员：' + settings.CONTACT_INFO})
-    return redirect(reverse('list_do_homework'))
+    return redirect(reverse('_do_homework') + urlstr)
 
 @login_required()
 def init_homework_data(request):

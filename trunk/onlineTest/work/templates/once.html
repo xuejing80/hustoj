@@ -27,10 +27,10 @@
             <button type="submit" class="btn btn-default form-control-file">上传</button>
             </div>
             {% if msg %}
-            <script>toastr.options.positionClass='toast-top-center';toastr.error("{{msg}}"); </script>
+            <script>toastr.error("{{msg}}"); </script>
             {% endif %}
             {% if msg_s %}
-            <script>toastr.options.positionClass='toast-top-right';toastr.success("{{msg_s}}"); </script>
+            <script>toastr.success("{{msg_s}}"); </script>
             {% endif %}
           </form>
       </div>
@@ -45,13 +45,14 @@
           data-query-params="queryParams"
           data-toolbar="#toolbar"
           data-sort-name="pk"
+          data-striped="true"
 >
     <thead>
     <tr>
         <th data-field="pk" data-sortable="true" data-valign="middle">学号</th>
         <th data-field="name" data-sortable="true" data-valign="middle">姓名</th>
         {% for i in nums|get_range %}
-        <th data-field="score{{i}}" data-sortable="true" data-valign="middle">第{{i}}次成绩</th>
+        <th data-field="score{{i}}" data-valign="middle">第{{i}}次成绩</th>
         {% endfor %}
         <th data-field="general" data-sortable="true" data-valign="middle">预测成绩</th>
         

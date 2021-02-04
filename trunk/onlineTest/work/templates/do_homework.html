@@ -1,93 +1,91 @@
 {% extends 'base.html' %}
 {% load filters %}
+
 {% block extrahead %}
 {% load static %}
 <script src="{% static 'assets/js/jquery-confirm.min.js' %}"></script>
 <link href="{% static 'assets/css/jquery-confirm.min.css' %}" rel="stylesheet">
-<link rel="stylesheet" href="{% static 'assets/css/codemirror/codemirror.css' %}">
-<link rel="stylesheet" href="{% static 'assets/css/codemirror/material.css' %}">
+<link href="{% static 'assets/css/codemirror/codemirror.css' %}" rel="stylesheet">
+<link href="{% static 'assets/css/codemirror/material.css' %}"  rel="stylesheet">
 <script src="{% static 'assets/js/codemirror/lib/codemirror.js' %}"></script>
 <script src="{% static 'assets/js/codemirror/addon/display/autorefresh.js' %}"></script>
 <script src="{% static 'assets/js/codemirror/mode/clike.js' %}"></script>
 <script src="{% static 'assets/js/codemirror/mode/python.js' %}"></script>
-
-
 {% endblock %}
+
 {% block content %}
 {% if homework.allow_resubmit and homework.resubmit_number == 100 %}
-    <div class="alert alert-success" role="alert">此份作业允许无限次重复提交，对成绩不满意可到作业列表中点击
+    <div class="alert alert-success" role="alert">此份试卷允许无限次重复提交，对成绩不满意可到作业列表中点击
         <a class="btn btn-danger btn-xs" href="#"><span class="glyphicon glyphicon-repeat"></span></a>重新提交
     </div>
 {% elif homework.allow_resubmit and remained_number > 1 %}
-    <div class="alert alert-success" role="alert">此份作业允许重复提交，你还可以提交{{ remained_number }}次，对成绩不满意可到作业列表中点击
+    <div class="alert alert-success" role="alert">此份试卷允许重复提交，你还可以提交{{ remained_number }}次，对成绩不满意可到作业列表中点击
         <a class="btn btn-danger btn-xs" href="#"><span class="glyphicon glyphicon-repeat"></span></a>重新提交
     </div>
 {% elif homework.allow_resubmit %}
     <div class="alert alert-danger" role="alert"><strong>注意！</strong>你还剩余{{ remained_number }}次提交机会！
     </div>
 {% else %}
-    <div class="alert alert-danger" role="alert"><strong>注意！</strong>此作业只能提交一次！(临时保存次数无限制)</div>
+    <div class="alert alert-danger" role="alert"><strong>注意！</strong>此份试卷只允许提交一次！(临时保存次数无限制)</div>
 {% endif %}
+
 <form method="post">
 {% csrf_token %}
 <input type="hidden" name="homework_id" size="20" value="{{ homework.id }}"/>
 <div class="panel-group" id="accordion" role="tablist" aria-multiselectable="true">
-
+<input type="hidden" name="userid" id="userid" value="{{ userid }}">
+<input type="hidden" name="status" id="status" value=0>
+ 
 {% if choice_problems %}
 <h2>选择题</h2>
     {% for choice_problem in choice_problems %}
-	<div class="panel panel-default" name='sss'>
-	    <div class="panel-heading" role="tab" id="heading_xz_{{ choice_problem.detail.id }}">
-		<h4 class="panel-title">
-		    <a style="line-height:150%" {% if not forloop.first %}class="collapsed"{% endif %} role="button"
-		       data-toggle="collapse"
-		       data-parent="#accordion"
-		       href="#collapse_xz_{{ choice_problem.detail.id }}"
-		       aria-expanded="{% if forloop.first %}true{% else %}false{% endif %}"
-		       aria-controls="collapse_xz_{{ choice_problem.detail.id }}">
-		       {{ forloop.counter }}. ({{ choice_problem.score }}分) {{ choice_problem.detail.title|myFilter|safe|linebreaksbr }}
-		    </a>
-		</h4>
-	    </div>
-	    <div id="collapse_xz_{{ choice_problem.detail.id }}"
- 		 class="panel-collapse collapse {% if forloop.first %}in{% endif %}" role="tabpanel"
-		 aria-labelledby="heading_xz_{{ choice_problem.detail.id }}">
-		<div class="panel-body" name='nhh'>
-		    <!--<div class="row">-->
-			<div class="col-lg-6 col-md-6">
-			    <label class="radio-inline">
-				<input type="radio" id="selection-{{ choice_problem.detail.id }}" value="a"
-				       name="selection-{{ choice_problem.detail.id }}">
-				{{ choice_problem.detail.a|myFilter|safe|linebreaks }}
-			    </label>
-			</div>
-			<div class="col-lg-6 col-md-6">
-			    <label class="radio-inline">
-				<input type="radio" id="selection-{{ choice_problem.detail.id }}" value="b"
-				       name="selection-{{ choice_problem.detail.id }}">
-				{{ choice_problem.detail.b|myFilter|safe|linebreaks }}
-			    </label>
-			</div>
-		    <!--</div>
-		    <div class="row">-->
-			<div class="col-lg-6 col-md-6">
-			    <label class="radio-inline">
-				<input type="radio" id="selection-{{ choice_problem.detail.id }}" value="c"
-				       name="selection-{{ choice_problem.detail.id }}">
-				{{ choice_problem.detail.c|myFilter|safe|linebreaks }}
-			    </label>
-			</div>
-			<div class="col-lg-6 col-md-6">
-			    <label class="radio-inline">
-				<input type="radio" id="selection-{{ choice_problem.detail.id }}" value="d"
-				       name="selection-{{ choice_problem.detail.id }}">
-				{{ choice_problem.detail.d|myFilter|safe|linebreaks }}
-			    </label>
-			</div>
-		    <!--</div>-->
-		</div>
-	    </div>
-	</div>
+    <div class="panel panel-default" name='sss'>
+        <div class="panel-heading" role="tab" id="heading_xz_{{ choice_problem.detail.id }}">
+            <h4 class="panel-title">
+                <a style="line-height:150%" {% if not forloop.first %}class="collapsed"{% endif %} role="button"
+                    data-toggle="collapse" data-parent="#accordion"
+                    href="#collapse_xz_{{ choice_problem.detail.id }}"
+                    aria-expanded="{% if forloop.first %}true{% else %}false{% endif %}"
+                    aria-controls="collapse_xz_{{ choice_problem.detail.id }}">
+                    {{ forloop.counter }}. ({{ choice_problem.score }}分) {{ choice_problem.detail.title|myFilter|safe|linebreaksbr }}
+                </a>
+            </h4>
+        </div>
+        <div id="collapse_xz_{{ choice_problem.detail.id }}"
+             class="panel-collapse collapse {% if forloop.first %}in{% endif %}" role="tabpanel"
+             aria-labelledby="heading_xz_{{ choice_problem.detail.id }}">
+            <div class="panel-body" name='nhh'>
+                <div class="col-lg-6 col-md-6">
+                    <label class="radio-inline">
+                        <input type="radio" id="selection-{{ choice_problem.detail.id }}" value="a"
+                               name="selection-{{ choice_problem.detail.id }}">
+                               {{ choice_problem.detail.a|myFilter|safe|linebreaks }}
+                    </label>
+                </div>
+                <div class="col-lg-6 col-md-6">
+                    <label class="radio-inline">
+                        <input type="radio" id="selection-{{ choice_problem.detail.id }}" value="b"
+                               name="selection-{{ choice_problem.detail.id }}">
+                               {{ choice_problem.detail.b|myFilter|safe|linebreaks }}
+                    </label>
+                </div>
+                <div class="col-lg-6 col-md-6">
+                    <label class="radio-inline">
+                        <input type="radio" id="selection-{{ choice_problem.detail.id }}" value="c"
+                               name="selection-{{ choice_problem.detail.id }}">
+                               {{ choice_problem.detail.c|myFilter|safe|linebreaks }}
+                    </label>
+                </div>
+                <div class="col-lg-6 col-md-6">
+                    <label class="radio-inline">
+                        <input type="radio" id="selection-{{ choice_problem.detail.id }}" value="d"
+                               name="selection-{{ choice_problem.detail.id }}">
+                               {{ choice_problem.detail.d|myFilter|safe|linebreaks }}
+                    </label>
+                </div>
+            </div>
+        </div>
+    </div>
     {% endfor %}
 {% endif %}
 
@@ -112,20 +110,13 @@
                  aria-labelledby="heading_dc_{{ ducheng_problem.detail.ducheng_id }}">
                 <div class="panel-body">
                     <div class="section">
-                        <!-- <h4><span class="label label-primary">程序代码</span></h4>
-                        <div id="program">{{ ducheng_problem.detail.program|myFilter|safe|linebreaks }}</div>
-                            </div> -->
-                           <!-- <div class="section">-->
-                               <!-- <h4><span class="label label-primary">正确结果</span></h4>-->
-                               <!-- <div id="answer">{{ ducheng_problem.detail.answer|myFilter|safe|linebreaks }}</div>-->
-                               <!-- </div>-->
-                            <div class="form-group">
-                                <label for="source{{ ducheng_problem.detail.ducheng_id }}">答案</label>
+                        <div class="form-group">
+                            <label for="source{{ ducheng_problem.detail.ducheng_id }}">答案</label>
                                 <input type="text" class="form-control" cols="20" rows="1"
-                                          name="ducheng-{{ ducheng_problem.detail.ducheng_id }}"
-                                          id="ducheng-{{ ducheng_problem.detail.ducheng_id }}" spellcheck="false"
-                                  >{% if ducheng_problem.sample_answer %}{{ ducheng_problem.sample_answer }}{% endif %}</input>
-                            </div>
+                                       name="ducheng-{{ ducheng_problem.detail.ducheng_id }}"
+                                       id="ducheng-{{ ducheng_problem.detail.ducheng_id }}" spellcheck="false"
+                                >{% if ducheng_problem.sample_answer %}{{ ducheng_problem.sample_answer }}{% endif %}</input>
+                        </div>
                     </div>        
                 </div>
             </div>
@@ -135,383 +126,486 @@
 
 {% for problems in problemsList %}
     {% if forloop.counter == 1 and problems %}
-	<h2>编程题</h2>
+        <h2>编程题</h2>
     {% elif forloop.counter == 2 and problems %}
-	<h2>程序填空题</h2>
+        <h2>程序填空题</h2>
     {% elif forloop.counter == 3 and problems %}
-	<h2>程序改错题</h2>
+        <h2>程序改错题</h2>
     {% endif %}
 
     {% for problem in problems %}
-	<div class="panel panel-default">
-	    <div class="panel-heading" role="tab" id="heading-{{ problem.problem_id }}">
-		<h4 class="panel-title">
-		    <a role="button"
-		       data-toggle="collapse"
-		       data-parent="#accordion"
-		       href="#collapse-{{ problem.problem_id }}"
-		       aria-expanded="{% if forloop.first %}true{% else %}false{% endif %}"
-		       aria-controls="collapse-{{ problem.problem_id }}">
-			{{ forloop.counter }}. ({{ problem.score }}分) {{ problem.title }}
-		    </a>
-		</h4>
-	    </div>
-	    <div id="collapse-{{ problem.problem_id }}"
-		 class="panel-collapse collapse "
-		 role="tabpanel"
-		 aria-labelledby="heading-{{ problem.problem_id }}">
-		<div class="panel-body">
-		    <div class="section">
-			<h4><span class="label label-primary">题目描述</span></h4>
-			<div id="description">{{ problem.description|myFilter|safe|linebreaks }}</div>
-                            </div>
-                            <div class="section">
-                                <h4><span class="label label-primary">输入描述</span></h4>
-                                <div id="input">{{ problem.input|myFilter|safe|linebreaks }}</div>
-                            </div>
-                            <div class="section">
-                                <h4><span class="label label-primary">输出描述</span></h4>
-                                <div id="output">{{ problem.output|myFilter|safe|linebreaks }}</div>
-                            </div>
-                            {% if problem.sample_output %}
-                                <div class="section">
-                                    <h4><span class="label label-info">样例输入1:</span></h4>
-                                    <div id="sample_input">
-                                        <pre>{{ problem.sample_input|myFilter|safe|linebreaksbr }}</pre>
-                                    </div>
-                                </div>
-                                <div class="section">
-                                    <h4><span class="label label-info">样例输出1:</span></h4>
-                                    <div id="sample_output">
-                                        <pre>{{ problem.sample_output|myFilter|safe|linebreaksbr }}</pre>
-                                    </div>
-                                </div>
-                            {% endif %}
-                            {% if problem.sample_output2 %}
-                                <div class="section">
-                                    <h4><span class="label label-primary">样例输入2:</span></h4>
-                                    <div id="sample_input2">
-                                        <pre>{{ problem.sample_input2|myFilter|safe|linebreaksbr }}</pre>
-                                    </div>
-                                </div>
-                                <div class="section">
-                                    <h4><span class="label label-primary">样例输出2:</span></h4>
-                                    <div id="sample_output2">
-                                        <pre>{{ problem.sample_output2|myFilter|safe|linebreaksbr }}</pre>
-                                    </div>
-                                </div>
-                            {% endif %}
-                            <div id="answer-area">
-                                <div class="form-group">
-                                    <label for="language" class="control-label">语言</label>
-                                    <select name="language-{{ problem.problem_id }}" class="form-control language"
-                                            id="language-{{ problem.problem_id }}">
-
-                                    </select>
-                                </div>
-                                <div class="form-group">
-                                    <label for="source{{ problem.problem_id }}">代码（请注意：Java语言程序的主类名称必须为Main！）</label>
-                                    <textarea class="form-control code-input" cols="50" rows="10"
-                                              name="source-{{ problem.problem_id }}"
-                                              id="source{{ problem.problem_id }}" spellcheck="false"
-                                    >{% if problem.sample_code %}{{ problem.sample_code }}{% endif %}</textarea>
-                                </div>
-                            </div>
-                            <div id="result-{{ problem.problem_id }}"></div>
-                            <button class="btn btn-success" id="button-{{ problem.problem_id }}"
-                                    onclick="test_run({{ problem.problem_id }});return false;"><span
-                                    class="glyphicon glyphicon-play"></span>测试运行
-                            </button>
-                            测试运行得分：<span id="score-{{ problem.problem_id }}"></span>
-                            <input type="hidden" name="score-{{ problem.problem_id }}"
-                                   id='score-input-{{ problem.problem_id }}'>
-                            <input type="hidden" name="solution-{{ problem.problem_id }}"
-                                   id='solution-{{ problem.problem_id }}'>
+    <div class="panel panel-default">
+        <div class="panel-heading" role="tab" id="heading-{{ problem.problem_id }}">
+            <h4 class="panel-title">
+                <a role="button"
+                   data-toggle="collapse"
+                   data-parent="#accordion"
+                   href="#collapse-{{ problem.problem_id }}"
+                   aria-expanded="{% if forloop.first %}true{% else %}false{% endif %}"
+                   aria-controls="collapse-{{ problem.problem_id }}">
+                   {{ forloop.counter }}. ({{ problem.score }}分) {{ problem.title }}
+                </a>
+            </h4>
+        </div>
+        <div id="collapse-{{ problem.problem_id }}" class="panel-collapse collapse "
+             role="tabpanel" aria-labelledby="heading-{{ problem.problem_id }}">
+            <div class="panel-body">
+                <div class="section">
+                    <h4><span class="label label-primary">题目描述</span></h4>
+                    <div id="description">{{ problem.description|myFilter|safe|linebreaks }}</div>
+                </div>
+                <div class="section">
+                    <h4><span class="label label-primary">输入描述</span></h4>
+                    <div id="input">{{ problem.input|myFilter|safe|linebreaks }}</div>
+                </div>
+                <div class="section">
+                    <h4><span class="label label-primary">输出描述</span></h4>
+                    <div id="output">{{ problem.output|myFilter|safe|linebreaks }}</div>
+                </div>
+                {% if problem.sample_output %}
+                    <div class="section">
+                        <h4><span class="label label-info">样例输入1:</span></h4>
+                        <div id="sample_input">
+                            <pre>{{ problem.sample_input|myFilter|safe|linebreaksbr }}</pre>
                         </div>
                     </div>
+                    <div class="section">
+                        <h4><span class="label label-info">样例输出1:</span></h4>
+                        <div id="sample_output">
+                            <pre>{{ problem.sample_output|myFilter|safe|linebreaksbr }}</pre>
+                        </div>
+                    </div>
+                {% endif %}
+                {% if problem.sample_output2 %}
+                    <div class="section">
+                        <h4><span class="label label-primary">样例输入2:</span></h4>
+                        <div id="sample_input2">
+                            <pre>{{ problem.sample_input2|myFilter|safe|linebreaksbr }}</pre>
+                        </div>
+                    </div>
+                    <div class="section">
+                        <h4><span class="label label-primary">样例输出2:</span></h4>
+                        <div id="sample_output2">
+                            <pre>{{ problem.sample_output2|myFilter|safe|linebreaksbr }}</pre>
+                        </div>
+                    </div>
+                {% endif %}
+                <div id="answer-area">
+                    <div class="form-group">
+                        <label for="language" class="control-label">语言</label>
+                        <select name="language-{{ problem.problem_id }}" class="form-control language"
+                                id="language-{{ problem.problem_id }}">
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="source{{ problem.problem_id }}">代码（请注意：Java语言程序的主类名称必须为Main！）</label>
+                        <textarea class="form-control code-input" cols="50" rows="10"
+                                    name="source-{{ problem.problem_id }}"
+                                    id="source{{ problem.problem_id }}" spellcheck="false"
+                        >{% if problem.sample_code %}{{ problem.sample_code }}{% endif %}</textarea>
+                    </div>
                 </div>
-            {% endfor %}
+                <div id="result-{{ problem.problem_id }}"></div>
+                <button class="btn btn-success" id="button-{{ problem.problem_id }}"
+                        onclick="test_run( {{ problem.problem_id }} );return false;"><span
+                        class="glyphicon glyphicon-play"></span>测试运行
+                </button>
+                测试运行得分：<span id="score-{{ problem.problem_id }}"></span>
+                <input type="hidden" name="score-{{ problem.problem_id }}"
+                        id='score-input-{{ problem.problem_id }}'>
+                <input type="hidden" name="solution-{{ problem.problem_id }}"
+                        id='solution-{{ problem.problem_id }}'>
+            </div>
+        </div>
+    </div>
         {% endfor %}
+    {% endfor %}
 
-        {% ifequal work_kind '实验' %}
-          <div class="form-group">
+    {% ifequal work_kind '实验' %}
+        <div class="form-group">
             <label for="summary"><h2>实验小结</h2></label>
             <textarea name="summary" id="summary" class="form-control" rows="6" placeholder="包括问题和解决方法、心得体会、意见与建议等，200字以上"></textarea>
             <span><span id="textNum">0</span>/500</span>
-          </div>
-        {% endifequal %}
         </div>
-    </div>
+    {% endifequal %}
+</form><br>
+<button class="btn btn-primary" onclick="check();return false;">提交答案</button>
+<button class="btn btn-default" onclick="save();return false;">暂存答案，不提交</button>
 
-    </form>
-    <button class="btn btn-primary" onclick="check();return false;">提交作业</button>
-    <button class="btn btn-default" onclick="save();return false;">暂存作业，不提交</button>
-
-    <script>
-        var languages = {
-            0: 'C',
-            1: 'C++',
-            2: 'Pascal',
-            3: 'Java',
-            4: 'Ruby',
-            5: 'Bash',
-            6: 'Python'
-        };
-
-        function sync_code() {
-            //使用code mirror之后用于同步输入内容到textarea
-            $('.code-input').each(function (index, element) {
-                element.value = editors[element.id].getValue()
-            });
+<div id="time-warning" name="time-warning" style="position:fixed;top:80px;right:20px;height:50px;width:85px;color:grey" hidden>
+    <button type="button" id="time-warning-b" name="time-warning-b" class="close" onclick="changestyle()" value="1">&#9672;</button>
+    <div id="timeinner" name='timeinner'><span></span></div>
+</div>
+<script>
+    let timeinner = document.getElementById('timeinner').getElementsByTagName("span")[0];
+    let timewarningbutton = document.getElementById('time-warning-b');
+    let status = document.getElementById("status");
+    let timeleft = {{ timeleft }};
+    let localhostTime = new Date();
+    let second = 0;
+    let timeout = 0;
+    let color = true;
+    //是否开启计时器
+    if({{ timeset }} == 0){
+        timeinner.innerHTML = "剩余时间：无限制";
+    }
+    else{
+        $("#time-warning").removeAttr('hidden');
+    }
+    //改变悬浮计时窗形式
+    function changestyle(){
+        if(timewarningbutton.value == '1' && {{ timeset }} == 1){
+            timewarningbutton.value = '0';
         }
-
-        var allowed_languages = '{{ homework.allowed_languages }}'.split(',');
-        for (var i = 0; i < allowed_languages.length; i++) {
-            $(".language").append("<option value=\"" + allowed_languages[i] + "\">" + languages[allowed_languages[i]] + "</option>");
+        else if(timewarningbutton.value == '0' && {{ timeset }} == 1){
+            timewarningbutton.value = '1';
         }
+    }
+    //时间显示格式化
+    function tow(n) {
+        return n >= 0 && n < 10 ? '0' + n : '' + n;
+    }
 
-        var mylang = new Array()
-        $('.language').each(function(index,element) {
-            mylang[index] = element.value;
-            $(this).change(function(){
-                var strmode;
-                switch(parseInt($(this).val())){
-                    case 0:strmode = "text/x-csrc";break;
-                    case 1:strmode = "text/x-c++src";break;
-                    case 3:strmode = "text/x-java";break;
-                    case 6:strmode = "text/x-python";break;
-                }
-                var name = $(this).attr('name').replace('language-','source');
-                $('.code-input').each(function(index,element){
-                    if(element.id == name){
-                        editors[element.id].setOption('mode',strmode);
-                    }
-                });
-            });
+    var languages = {
+        0: 'C',
+        1: 'C++',
+        2: 'Pascal',
+        3: 'Java',
+        4: 'Ruby',
+        5: 'Bash',
+        6: 'Python'
+    };
+
+    function sync_code() {
+        //使用code mirror之后用于同步输入内容到textarea
+        $('.code-input').each(function (index, element) {
+            element.value = editors[element.id].getValue()
         });
+    }
 
-        jQuery(document).ready(function ($) {
-            editors = {};
-            $('.code-input').each(function (index, element) {
-                var strmode;
-                var strname = element.id.replace('source','#language-');
-                switch(parseInt($(strname).val())){
-                    case 0:strmode = "text/x-csrc";break;
-                    case 1:strmode = "text/x-c++src";break;
-                    case 3:strmode = "text/x-java";break;
-                    case 6:strmode = "text/x-python";break;
-                }
-                editors[element.id] = CodeMirror.fromTextArea(element, {
-                        mode: strmode,
-                        lineNumbers: true,
-                        tabMode: "indent",
-                        theme: 'material',
-                        autoRefresh: true
-                    }
-                );
-            });
-        });
+    var allowed_languages = '{{ homework.allowed_languages }}'.split(',');
+    for (var i = 0; i < allowed_languages.length; i++) {
+        $(".language").append("<option value=\"" + allowed_languages[i] + "\">" + languages[allowed_languages[i]] + "</option>");
+    }
 
-        function check() {
-            sync_code();
-            if(typeof($('#summary').val())!='undefined' && $('#summary').val().length<200){
-                $.alert({
-                    title: '实验小结',
-                    content: '字数未达到要求（>200）',
-                    confirmButton: '确认',
-                    confirmButtonClass: 'btn-info',
-                })
-                return;
+    var mylang = new Array()
+    $('.language').each(function(index,element) {
+        mylang[index] = element.value;
+        $(this).change(function(){
+            var strmode;
+            switch(parseInt($(this).val())){
+                case 0:strmode = "text/x-csrc";break;
+                case 1:strmode = "text/x-c++src";break;
+                case 3:strmode = "text/x-java";break;
+                case 6:strmode = "text/x-python";break;
             }
+            var name = $(this).attr('name').replace('language-','source');
+            $('.code-input').each(function(index,element){
+                if(element.id == name){
+                    editors[element.id].setOption('mode',strmode);
+                }
+            });
+        });
+    });
+
+    jQuery(document).ready(function ($) {
+        editors = {};
+        $('.code-input').each(function (index, element) {
+            var strmode;
+            var strname = element.id.replace('source','#language-');
+            switch(parseInt($(strname).val())){
+                case 0:strmode = "text/x-csrc";break;
+                case 1:strmode = "text/x-c++src";break;
+                case 3:strmode = "text/x-java";break;
+                case 6:strmode = "text/x-python";break;
+            }
+            editors[element.id] = CodeMirror.fromTextArea(element, {
+                mode: strmode,
+                lineNumbers: true,
+                tabMode: "indent",
+                theme: 'material',
+                autoRefresh: true
+            });
+        });
+    });
+
+    function check() {
+        sync_code();
+        if(typeof($('#summary').val())!='undefined' && $('#summary').val().length<200){
+            $.alert({
+                title: '实验小结',
+                content: '字数未达到要求（>200）',
+                confirmButton: '确认',
+                confirmButtonClass: 'btn-info',
+            })
+            return;
+        }
+        if(status.value == 0){
             $.confirm({
                 title: '确认提交',
-                content: '确定要提交作业吗？{% if homework.allow_resubmit %}此次作业允许提交多次，如果对成绩不满意，可以去已完成作业列表中选择重做{% else %} \
-                    此作业只允许<strong>提交一次</ strong>!提交后无法重新提交{% endif %}',
+                content: '确定要提交答案吗？{% if homework.allow_resubmit %}此份试卷允许提交多次，如果对成绩不满意，可以去已完成作业列表中选择重做{% else %} \
+                    此份试卷只允许<strong>提交一次</ strong>!提交后无法重新提交{% endif %}',
                 confirmButton: '我已检查完成，确定提交',
                 cancelButton: '取消',
                 confirmButtonClass: 'btn-info',
                 cancelButtonClass: 'btn-danger',
                 confirm: function () {
+                    // 此处强制在提交之前暂存一次作业，下方的判定如果为1，即表示已经暂存过了，可以直接提交
+                    status.value = 1;
+                    save();
+                },
+            });
+        }else{
+            $.confirm({
+                title: false,
+                confirmButton: '好的',
+                cancelButton: false,
+                autoClose: 'confirm|3000',
+                content: '<i class="fa fa-spinner fa-spin fa-3x fa-fw"></i> 正在完成最后的提交，请稍等',
+                onClose: function() {
+                    $("form").submit();
+                }
+            });
+        }
+    }
+    $.ajaxSetup({
+        data: {csrfmiddlewaretoken: '{{ csrf_token }}'}
+    });
+    function save() {
+        sync_code();
+        $.confirm({
+            title: false,
+            confirmButton: '好的',
+            cancelButton: false,
+            content: '<i class="fa fa-spinner fa-spin fa-3x fa-fw"></i> 正在保存你的答案数据，请不要关闭本页面！',
+            autoClose: 'confirm|3000',
+            confirm: function(){
+                $("form").attr("action", "{% url 'save_homework' %}");
+                $("form").submit();
+            },
+        });
+    }
+    function test_run(id) {
+        var result_div = $("#result-" + id);
+        var score_span = $("#score-" + id);
+        var score_input = $("#score-input-" + id);
+        var code = editors['source' + id].getValue();
+        var btn = $("#button-" + id);
+        if(code==""){
+            result_div.html('<div class="alert alert-danger" role="alert">错误！代码不可以为空！</div>')
+            return false;
+        }
+        result_div.html('<div class="alert alert-default" role="alert"><i class="fa fa-spinner fa-spin fa-3x fa-fw"></i>正在判断程序运行情况</div>');
+        btn.attr('disabled',true);
+        $.ajax({
+            type: "post",
+            url: "{% url 'test_run' %}",
+            dataType: "json",
+            data: {
+                'type': 'upload',
+                'problem_id': id,
+                'code': editors['source' + id].getValue(),
+                'language': $('#language-' + id).val(),
+                'homework_id':{{ homework.id }}
+            },
+            success: function(data){
+                if (data.result == 1) {
+                    $("#solution-" + id).val(data.solution_id);
+                    var int = setInterval(function () {
+                        $.ajax({
+                            type: "post",
+                            url: "{% url 'test_run' %}",
+                            dataType: "json",
+                            data: {
+                                'type': 'score',
+                                'solution_id': data.solution_id,
+                                'problem_id': id,
+                                'homework_id':{{ homework.id }}
+                            },
+                            success: function (data) {
+                                console.log(data);
+                                if (data.status == 1) {
+                                    switch (data.result) {
+                                        case 0:
+                                            result_div.html('<div class="alert alert-danger" role="alert"><pre>' + data.info.info + '</pre></div>');
+                                            break;
+                                        case 1:
+                                            var count=1;
+                                            str = '<div class="alert alert-warning" role="alert">' + '总共' + data.info.total_cases + '个测试点，你通过了其中的' + data.info.right_num + '个：<ul>';
+                                            data.testcase.forEach(function(val,index,arr){
+                                                str += '<li>测试用例'+count+'：'+arr[index].info.replace(/#/g,"")+' - <strong>'+(arr[index].result?'正确':'错误')+'</strong></li>';
+                                                count++;
+                                            });
+                                            str += '</ul></div>';
+                                            result_div.html(str);
+                                            break;
+                                        case 2:
+                                            result_div.html('<div class="alert alert-success" role="alert">恭喜你通过了所有的测试点</div>');
+                                    }
+                                    score_span.html(data.info.score);
+                                    score_input.val(data.info.score);
+                                    int = window.clearInterval(int);
+                                    btn.attr('disabled',false);
+                                } else{
+                                    result_div.html('<div class="alert alert-default" role="alert"><i class="fa fa-spinner fa-spin fa-3x fa-fw"></i>正在判断程序运行情况</div>');
+                                }
+                            },
+                        });
+                    },3000);
+                }
+            }
+        });
+        return false;
+    }
+
+    //导入暂存作业数据
+    $(document).ready(function(){
+        $.ajax({
+            type: "post",
+            url: "{% url 'get_init_homework_data' %}",
+            dataType: "json",
+            data: {
+                'homework_id':{{ homework.id }}
+            },
+            success: function (data) {//alert(JSON.stringify(data));
+                if (data.result == 1) {
+                    console.log(data.data);
+                    $.each(data.data, function (key, value) {
+                        if (key.indexOf('language') != -1)
+                            $("select[name=" + key + "] option[value=" + value + "]").attr("selected", true);
+                        if (key.indexOf('selection') != -1)
+                            $("input[type='radio'][name=" + key + "][value=" + value + "]").prop("checked", true)
+                        if (key.indexOf('ducheng') != -1)
+                            $("input[name=" + key + "]").val(value)
+                        if (key.indexOf('source') != -1)
+                            editors[key.replace('-', '')].setValue(value)
+                        if (key.indexOf('score') != -1)
+                            if(value!='NaN'){
+                                $("input[name=" + key + "]").val(parseInt(value));
+                                $("#" + key).html(value);
+                            }
+                        if (key.indexOf('solution') != -1)
+                            $("#" + key).val(parseInt(value));
+                        if (key.indexOf('summary') !=-1){
+                            $("#" + key).val(value);
+                            $('#textNum').text($('#summary').val().length);//这句是在刷新的时候仍然显示字数
+                        }
+                        if (key.indexOf('userid') != -1)
+                            document.getElementById('userid').value = value;
+                        if (key.indexOf('status') != -1)
+                            status.value = value;
+                    });
+                    if (status.value==1)
+                        check();
+                }else{
+                    $.confirm({
+                        content: '提交或者暂存答案之前，请勿离开本页面，否则之前的答题内容会丢失！',
+                        title: '重要提醒',
+                        cancelButton: false,
+                        confirmButton: '我知道了！',
+                    });
+                }
+                setTimeout(checkTime,500);
+            }
+        });
+    });
+
+    function checkTime(){
+        let goTime = new Date();
+        let diffTime = goTime.getTime() - localhostTime.getTime();
+        second = Math.floor(diffTime/1000);
+        var timetemp = timeleft - second; timetemp %= 86400;
+        var hour = Math.floor(timetemp/3600); timetemp %= 3600;
+        var minutes = Math.floor(timetemp/60); timetemp %= 60;
+        if(timeout == 0 && {{ timeset }} == 1){
+            var str = tow(hour) + '<span class="time">:</span>'
+                + tow(minutes) + '<span class="time">:</span>'
+                + tow(timetemp) + '<span class="time"></span>';
+            if(timewarningbutton.value == '1'){
+                document.getElementById("timeinner").style.color="grey";
+                document.getElementById("time-warning-b").style.color="grey";
+                timeinner.innerHTML = "剩余时间：" + str;
+            }else if(timewarningbutton.value == '0'){
+                document.getElementById("time-warning-b").style.color="grey";
+                timeinner.innerHTML = "";
+            }
+            if(timeleft - second == 300 || timeleft - second == 600 || timeleft - second == 900){
+                timewarningbutton.value = '1';
+                document.getElementById("timeinner").style.color="red";
+                document.getElementById("time-warning-b").style.color="red";
+            }
+            if(timeleft - second == 30){
+                timewarningbutton.value = '1';
+            }
+            if(timeleft - second <= 30){
+                if(color){
+                    document.getElementById("timeinner").style.color="red";
+                    document.getElementById("time-warning-b").style.color="red";
+                    color = !color;
+                }else{
+                    color = !color;
+                }
+            }
+            if(timeleft < second){
+                timeinner.innerHTML = "剩余时间：00:00:00";
+                if(status.value!=2){
+                    $.confirm({
+                        content: '你的答题时间已用完',
+                        title: false,
+                        cancelButton: false,
+                        confirmButton: '好的',
+                        autoClose: 'confirm|3000',
+                        onClose: function(){
+                            status.value=2;
+                            save();
+                        }
+                    });
+                }else{
+                    timeout = 1;
+                    sync_code();
                     $.confirm({
                         title: false, // hides the title.
                         cancelButton: false,// hides the cancel button.
-                        confirmButton: false, // hides the confirm button.
-                        closeIcon: false, // hides the close icon.
-                        content: '<i class="fa fa-spinner fa-spin fa-3x fa-fw"></i> <span class="sr-only">正在上传你的答案,请稍等</span>正在上传你的答案,请稍等' // hides content block.
+                        confirmButton: '好的', // hides the confirm button.
+                        autoClose: 'confirm|3000',
+                        content: '<i class="fa fa-spinner fa-spin fa-3x fa-fw"></i> 正在完成最后的提交，请稍等...',
+                        onClose: function(){
+                            $("form").submit();
+                        }
                     });
-                    $("form").submit();
-                },
-            });
-        }
-        $.ajaxSetup({
-            data: {csrfmiddlewaretoken: '{{ csrf_token }}'}
-        });
-        function save() {
-            sync_code();
-            $.confirm({
-                title: false, // hides the title.
-                cancelButton: false,// hides the cancel button.
-                confirmButton: false, // hides the confirm button.
-                closeIcon: false, // hides the close icon.
-                content: '<i class="fa fa-spinner fa-spin fa-3x fa-fw"></i> <span class="sr-only">正在上传你的答案,请稍等</span>正在上传你的答案,请稍等' // hides content block.
-            });
-            //var htmlstr = '<input type="hidden" name="homework_id" size="20" value="{{ homework.id }}"/>';
-            //$("form").append(htmlstr);
-            $("form").attr("action", "{% url 'save_homework' %}");
-            $("form").submit()
-        }
-        function test_run(id) {
-            var result_div = $("#result-" + id);
-            var score_span = $("#score-" + id);
-            var score_input = $("#score-input-" + id);
-            var code = editors['source' + id].getValue();
-            var btn = $("#button-" + id);
-            if(code==""){
-                result_div.html('<div class="alert alert-danger" role="alert">错误！代码不可以为空！</div>')
-                return false;
-            }
-            result_div.html('<div class="alert alert-default" role="alert"><i class="fa fa-spinner fa-spin fa-3x fa-fw"></i>正在判断程序运行情况</div>');
-            btn.attr('disabled',true);
-            $.ajax({
-                type: "post",
-                url: "{% url 'test_run' %}",
-                dataType: "json",
-                data: {
-                    'type': 'upload',
-                    'problem_id': id,
-                    'code': editors['source' + id].getValue(),
-                    'language': $('#language-' + id).val(),
-                    'homework_id':{{ homework.id }}
-                },
-                success: function (data) {
-                    console.log(data);
-                    if (data.result == 1) {
-                        $("#solution-" + id).val(data.solution_id);
-                        var int = setInterval(function () {
-                                $.ajax({
-                                    type: "post",
-                                    url: "{% url 'test_run' %}",
-                                    dataType: "json",
-                                    data: {
-                                        'type': 'score',
-                                        'solution_id': data.solution_id,
-                                        'problem_id': id,
-                                        'homework_id':{{ homework.id }}
-                                    },
-                                    success: function (data) {
-                                        console.log(data);
-                                        if (data.status == 1) {
-                                            switch (data.result) {
-                                                case 0:
-                                                    result_div.html('<div class="alert alert-danger" role="alert"><pre>' + data.info.info + '</pre></div>');
-                                                    break;
-                                                case 1:
-                                                    var count=1;
-                                                    str = '<div class="alert alert-warning" role="alert">' + '总共' + data.info.total_cases + '个测试点，你通过了其中的' + data.info.right_num + '个：<ul>';
-                                                    data.testcase.forEach(function(val,index,arr){
-                                                        str += '<li>测试用例'+count+'：'+arr[index].info.replace(/#/g,"")+' - <strong>'+(arr[index].result?'正确':'错误')+'</strong></li>';
-                                                        count++;
-                                                    });
-                                                    str += '</ul></div>';
-                                                    result_div.html(str);
-                                                    break;
-                                                case 2:
-                                                    result_div.html('<div class="alert alert-success" role="alert">恭喜你通过了所有的测试点</div>');
-                                            }
-                                            score_span.html(data.info.score);
-                                            score_input.val(data.info.score);
-                                            int = window.clearInterval(int);
-                                            btn.attr('disabled',false);
-                                        } else{
-                                            result_div.html('<div class="alert alert-default" role="alert"><i class="fa fa-spinner fa-spin fa-3x fa-fw"></i>正在判断程序运行情况</div>');
-                                        }
-                                    },
-                                    error: function(XMLHttpRequest, textStatus, errorThrown) {
-                                        //alert(XMLHttpRequest.status);
-                                        //alert(XMLHttpRequest.readyState);
-                                        //alert(textStatus);
-                                    },
-                                })
-                            },
-                            3000);
-                    }
                 }
-            });
-            return false;
-        }
-
-        //导入暂存作业数据
-        $(function () {
-            $.ajax({
-                type: "post",
-                url: "{% url 'get_init_homework_data' %}",
-                dataType: "json",
-                data: {
-                    'homework_id':{{ homework.id }}
-                },
-                success: function (data) {//alert(JSON.stringify(data));
-                    if (data.result == 1) {
-                        $.each(data.data, function (key, value) {
-                            if (key.indexOf('language') != -1) {
-                                $("select[name=" + key + "] option[value=" + value + "]").attr("selected", true);
-                            }
-                            if (key.indexOf('selection') != -1) {
-                                $("input[type='radio'][name=" + key + "][value=" + value + "]").prop("checked", true)
-                            }
-                            if (key.indexOf('ducheng') != -1) {
-                                $("input[name=" + key + "]").val(value)
-                            }
-                            if (key.indexOf('source') != -1) {
-                                editors[key.replace('-', '')].setValue(value)
-                            }
-                            if (key.indexOf('score') != -1) {
-                                if(value!='NaN'){
-                                    $("input[name=" + key + "]").val(parseInt(value));
-                                    $("#" + key).html(value);
-                                }
-                            }
-                            if (key.indexOf('solution') != -1) {
-                                $("#" + key).val(parseInt(value));
-                                //window.alert(value);
-                            }
-                            if(key.indexOf('summary') !=-1){
-                                $("#" + key).val(value);
-                                $('#textNum').text($('#summary').val().length);//这句是在刷新的时候仍然显示字数
-                            }
-                        });
-                    }
-                }
-            })
-        })
-
-        $('#summary').on("keyup",function(){
-            $('#textNum').text($('#summary').val().length);//这句是在键盘按下时，实时的显示字数
-            if($('#summary').val().length > 500){
-                $('#textNum').text(500);//长度大于1000时0处显示的也只是1000
-                $('#summary').val($('#summary').val().substring(0,500));//长度大于1000时截取钱1000个字符
+            }else{
+                setTimeout(checkTime,500);
             }
-        })
-     
-      {% if homework.allow_random %}
-       $(document).ready(function(){　　
-         var arr = new Array(1, 2, 3, 4);
-         var ul = document.getElementsByName("nhh");
-         var UL = document.getElementsByName("sss"); 
-         var len1 = arr.length;  
-         var len2 = UL.length;
-         var len = len1;  　　　　
-              for (var i = 0; i < len2; i++)
-              {　　
-                var _ul = ul[i]
-                var index = parseInt(Math.random() * (len1));
-                _ul.appendChild(_ul.children[index]);　　
-                arr.pop(index);　　
-                len = arr.length;　　
-                index = parseInt(Math.random() * (len));　　
-              }
-      })
-      {% endif %}
+        }
+    }
 
-    </script>
+    $('#summary').on("keyup",function(){
+        $('#textNum').text($('#summary').val().length);//这句是在键盘按下时，实时的显示字数
+        if($('#summary').val().length > 500){
+            $('#textNum').text(500);//长度大于1000时0处显示的也只是1000
+            $('#summary').val($('#summary').val().substring(0,500));//长度大于1000时截取前1000个字符
+        }
+    })
+    
+{% if homework.allow_random %}
+    $(document).ready(function(){　　
+        var arr = new Array(1, 2, 3, 4);
+        var ul = document.getElementsByName("nhh");
+        var UL = document.getElementsByName("sss"); 
+        var len1 = arr.length;  
+        var len2 = UL.length;
+        var len = len1;  　　　　
+        for (var i = 0; i < len2; i++){　　
+            var _ul = ul[i]
+            var index = parseInt(Math.random() * (len1));
+            _ul.appendChild(_ul.children[index]);　　
+            arr.pop(index);　　
+            len = arr.length;　　
+            index = parseInt(Math.random() * (len));　　
+        }
+    });
+{% endif %}
+</script>
 
 {% endblock %}

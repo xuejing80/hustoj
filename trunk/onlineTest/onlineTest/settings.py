@@ -64,6 +64,7 @@ INSTALLED_APPS = [
 
 CRONJOBS = [
     ('0 20 * * 7', 'warning.m.warning', '>> /home/judge/log/warning.log'),
+    ('59 15 * * *', 'warning.m.getUpdateQuestion', '>> /home/judge/log/warning.log'),
     ('55 15 * * *', 'census.views.Record', '>> /home/judge/log/census.log'),
 ]
 

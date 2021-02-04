@@ -48,6 +48,7 @@ class HomeWork(models.Model):
     allow_random = models.BooleanField(default=True, verbose_name='是否打乱选择题选项顺序>？')
     show_answer = models.CharField(max_length=20,verbose_name='何时显示答案',default='每次提交后')
     show_score = models.CharField(max_length=20,verbose_name='多次提交有效得分为',default='最高分值')
+    time_allowed = models.IntegerField(null=True, verbose_name='允许时长')
     def __str__(self):
         return str(self.id)
 
@@ -80,12 +81,13 @@ class MyHomework(models.Model):
     # 新增 null=False,blank=False,
     resubmit_number = models.IntegerField(default=100, verbose_name="提交次数限制")
     allow_random = models.BooleanField(default=True, verbose_name='是否打乱选择题选项顺序？')
-    # resubmit_time = models.IntegerField(default=100)
     allow_similarity = models.BooleanField(default=False, verbose_name='是否开启相似度判分？')
     work_kind = models.CharField(max_length=20,verbose_name="作业类型",default='作业')
     total_score = models.FloatField()
     show_answer = models.CharField(max_length=20,verbose_name='何时显示答案',default='每次提交后')
     show_score = models.CharField(max_length=20,verbose_name='多次提交有效得分为',default='最高分值')
+    # 2020年12月，作业计时
+    time_allowed = models.IntegerField(null=True, verbose_name='允许时长')
 
     def __str__(self):
         return str(self.id)
@@ -127,3 +129,5 @@ class TempHomeworkAnswer(models.Model):
     homework = models.ForeignKey(MyHomework)
     creator = models.ForeignKey(MyUser)
     data = models.TextField(null=True)
+    # 2020年12月，作业计时
+    start_time = models.DateTimeField(auto_now_add=True, null=True, blank=True)

@@ -5,6 +5,8 @@
     <script src="{% static 'assets/js/bootstrap-table.min.js' %}"></script>
     <link href="{% static 'assets/css/bootstrap-table.min.css' %}" rel="stylesheet">
     <script src="{% static 'assets/js/bootstrap-table-zh-CN.min.js' %}"></script>
+    <link href="{% static 'assets/css/toastr.min.css' %}" rel="stylesheet">
+    <script src="{% static 'assets/js/toastr.min.js' %}"></script>
 {% endblock %}
 {% block content %}
     <ol class="breadcrumb">
@@ -124,11 +126,11 @@
                             data: {'ids': ids, 'my': false},
                             success: function (data) {
                                 if (data == 1) {
-                                    alert('成功将指定公共作业复制到我的作业列表');
+                                    toastr.success('成功将指定公共作业复制到我的作业列表');
                                     $table.bootstrapTable('refresh');
                                     return false
                                 } else {
-                                    alert('复制时出现问题');
+                                    toastr.error('复制时出现问题');
                                 }
                             },
                             error: function () {

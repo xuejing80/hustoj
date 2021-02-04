@@ -134,7 +134,18 @@
             <input type="radio" id="show_score_2" value="最后一次分值" name="show_score">最后一次分值
         </label> 
     </div>  
-
+    <div class="form-group">
+        <label for="time_allowed">测验时长：</label>
+        <label class="radio-inline">
+            <input type="radio" id="time_allowed_0" value="-1" name="time_allowed" onclick="nal_time()">无限制
+        </label>
+        <label class="radio-inline">
+            <input type="radio" id="time_allowed_1" value="-2" name="time_allowed" onclick="al_time()" checked>时长:
+        </label>
+        <label for="time-allowed_s" class="form-inline">
+            <input type="number" id="time_allowed_s" name="time-allowed_s" min="1" max="180" value="60">分钟
+        </label>
+    </div>
         <div class="row">
             <div class='col-sm-6'>
                 <div class="form-group">
@@ -699,24 +710,37 @@
         </div>
     </div>
     <script type="text/javascript">
+        let time_allowed = document.getElementById('time_allowed_s');
+        function nal_time() {
+            $("#time_allowed_s").attr("disabled", "disabled");
+
+        }
+        function al_time() {
+            $("#time_allowed_s").removeAttr('disabled');
+        }
+ 
         function nal_resubmit() {
             $("#resubmit_number ").val(1);
-            $("#resubmit_number").attr("disabled", "disabled").css('background-color', '#eaeaea');
+            $("#resubmit_number").attr("disabled", "disabled");
     
         }
     
         function al_resubmit() {
-            $("#resubmit_number").removeAttr('disabled').css('background-color', '#FFFFFF');
-             $("#resubmit_number ").val(100);
+            $("#resubmit_number").removeAttr('disabled');
+            $("#resubmit_number ").val(100);
         }
-            $(function(){
-                $('#saveButton').click(function(){
-                    if ($("#resubmit_number").prop("disabled") == true) {
-                        $("#resubmit_number").removeAttr('disabled');
-                        $('#resubmit_number option:eq(1)').attr('selected','selected');
-                    }
-                })
-             })
+        $(function(){
+            $('#saveButton').click(function(){
+                if ($("#resubmit_number").prop("disabled") == true) {
+                    $("#resubmit_number").removeAttr('disabled');
+                    $('#resubmit_number option:eq(1)').attr('selected','selected');
+                }
+                if ($("#time_allowed_s").prop("disabled") == true) {
+                    $("#time_allowed_s").removeAttr('disabled');
+                    $('#time_allowed_s option:eq(1)').attr('selected','selected');
+                }
+            })
+        })
         $(function () {
             $('#datetimepicker1').datetimepicker({
                 format: 'yyyy-mm-dd hh:ii',
@@ -1097,9 +1121,17 @@
                             end_time = '{{ end_time|date:"Y-m-d H:i" }}'
                             if(end_time!='')
                                 $('#end_time').val(end_time);
+                            allowedTime = '{{ time_allowed_s }}';
+                            if(allowedTime=="-1"||allowedTime==""||allowedTime=="None"){
+                                $('input[name="time_allowed"][value="-1"]').attr('checked', true);
+                                nal_time();
+                            }
+                            else if (allowedTime!=''){
+                                $("#time_allowed_s").prop('value', allowedTime);
+                            }
                             $("#course option[value='{{ courser_id }}']").prop("selected", true);
                             $('input[name="allow_resubmit"][value="{{ allow_resubmit }}"]').attr('checked', true);
-                            if({{ allow_resubmit }}==0)
+                            if("{{ allow_resubmit }}"=="0")
                                 $("#resubmit_number").attr("disabled", "disabled");
                             $("#resubmit_number option[value='{{ resubmit_number }}']").prop('selected', true);
                             $('input[name="allow_random"][value="{{ allow_random }}"]').attr('checked', true);

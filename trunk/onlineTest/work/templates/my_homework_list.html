@@ -5,6 +5,8 @@
     <script src="{% static 'assets/js/bootstrap-table.min.js' %}"></script>
     <link href="{% static 'assets/css/bootstrap-table.min.css' %}" rel="stylesheet">
     <script src="{% static 'assets/js/bootstrap-table-zh-CN.min.js' %}"></script>
+    <link href="{% static 'assets/css/toastr.min.css' %}" rel="stylesheet">
+    <script src="{% static 'assets/js/toastr.min.js' %}"></script>
 {% endblock %}
 {% block content %}
     <ol class="breadcrumb">
@@ -19,6 +21,7 @@
 
         <a class="btn btn-primary btn-l" href="{% url 'add_myhomework' %}" role="button"><i
                 class="glyphicon glyphicon-plus">新建私有作业</i></a>
+        <button type="button" id="copy"   class="btn btn-success"><i class="glyphicon glyphicon-copy">分享到公有作业</i></button>
     </div>
     <div id="toolbar">
         <div class="form-inline" role="form">
@@ -46,6 +49,7 @@
            data-query-params="queryParams"
            data-search="true"
            data-unique-id="id"
+           data-click-to-select="true"
     >
         <thead>
         <tr>
@@ -54,7 +58,8 @@
             <th data-field="courser" data-valign="middle">所属课程</th>
             <th data-field="start_time" data-valign="middle" data-sortable="true">开始时间</th>
             <th data-field="end_time" data-valign="middle" data-sortable="true">结束时间</th>
-            <th class="nobr" data-field="id" data-valign="middle" data-formatter="editFormatter">操作</th>
+            <th class="nobr" data-field="id" data-valign="middle" data-formatter="editFormatter" data-click-to-select="false">操作</th>
+            <th data-field="courserid" data-visible="false">所属课程id</th>
         </tr>
         </thead>
     </table>
@@ -73,7 +78,7 @@
                     <div id="toolbar2">
                         <div class="form-inline" role="form">
                             <div class="form-group">
-                                <select class="form-control" id="classname" name="classname">
+                                <select class="form-control" id="classname1" name="classname">
                                     <option value="0" selected="selected">全部课程</option>
                                     {% for classname in classnames %}
                                         <option value="{{ classname.pk }}">{{ classname.name }}</option>
@@ -85,6 +90,7 @@
                         </div>
                     </div>
                     <table id="table2"
+                           data-click-to-select="true"
                            data-toggle="table"
                            data-url="{% url 'get_assign_status' %}"
                            data-side-pagination="server"
@@ -177,8 +183,15 @@
             row = $table.bootstrapTable('getRowByUniqueId', id);
             $('#modalTable').modal('show');
             $('#homework_id').val(id);
+            $("#homework_title").html(row.name);
+            var obj=document.getElementById("classname1");
+            var courserid=row.courserid;
+            for(var i=0;i<obj.length;i++){
+                if(courserid==obj[i].value){
+                    obj[i].selected=true;
+                }
+            }
             $table2.bootstrapTable('refresh');
-            $("#homework_title").html(row.name)
         }
 
         $(function () {
@@ -305,6 +318,37 @@
                             },
                             error: function () {
                                 alert("删除失败")
+                            }
+                        });
+                    }
+                } else {
+                    alert('您尚未选择作业')
+                }
+            });
+        });
+        $copy=$("#copy");
+        $(function () {
+            $copy.click(function () {
+                var ids = $.map($table.bootstrapTable('getSelections'), function (row) {
+                    return row.pk;
+                });
+                if (ids.length > 0) {
+                    if (confirm("确定要分享这些作业到公有作业列表吗？")) {
+                        $.ajax({
+                            type: 'POST',
+                            url: "{% url 'copy_to_homework' %}",
+                            data: {'ids': ids, 'my': true},
+                            success: function (data) {
+                                if (data == 1) {
+                                    toastr.success('成功将指定私有作业复制到公有作业列表');
+                                    $table.bootstrapTable('refresh');
+                                    return false
+                                } else {
+                                    toastr.error('复制时出现问题');
+                                }
+                            },
+                            error: function () {
+                                alert("网络异常")
                             }
                         });
                     }

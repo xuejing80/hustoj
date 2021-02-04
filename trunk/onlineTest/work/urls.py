@@ -47,6 +47,7 @@ urlpatterns = [
     url(r'^get-finished-student/$', get_finished_students, name="get_finished_students"),
  
     url(r'^copy-to-myhomework/$', copy_to_my_homework, name='copy_to_my_homework'),
+    url(r'^copy_to_homework/$', copy_to_homework, name='copy_to_homework'),
     url(r'^get_assign_status/$', get_assign_status, name='get_assign_status'),
     url(r'^assign-homework/$', assign_homework, name='assign_homework'),
     url(r'^unassign-homework/$', unassign_homework, name='unassign_homework'),

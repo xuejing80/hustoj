@@ -12,12 +12,16 @@ function stop(){
     video.pause();
 }
 $(document).ready(function(){
-    Liy_Info = new Array('每天进步一点点',
-                         '好好学习，天天向上',
-                         '差之毫厘，谬以千里',
+    Liy_Info = new Array('每天进步一点点！','好好学习，天天向上！',
+                         '差之毫厘，谬以千里。','工欲善其事，必先利其器。',
                          '不积跬步，无以至千里，<br>不积小流，无以成江海。',
-                         '黑发不知勤学早，白首方悔读书迟。',
-                         '书山有路勤为径，学海无涯苦作舟。',);
+                         '黑发不知勤学早，白首方悔读书迟。','书山有路勤为径，学海无涯苦作舟。',
+                         '业精于勤，荒于嬉，<br>行成于思，毁于随。','学而不思则罔，思而不学则殆。',
+                         '三人行，必有我师焉。<br>择其善者而从之，其不善者而改之。',
+                         '温故而知新，可以为师矣。','知之为知之，不知为不知，是知也。',
+                         '粗缯大布裹生涯，腹有诗书气自华。',
+                         '夫君子之行，静以修身，俭以养德，<br>非淡泊无以明志，非宁静无以致远。',
+                         '千里之行，始于足下。',);
     Liy_InfoId = Math.floor(Math.random()*Liy_Info.length);
     $('#tips').html(Liy_Info[Liy_InfoId]);
 });
@@ -82,7 +86,7 @@ $(document).ready(function(){
                             本课程是面向计算机新人的程序设计入门课程，Java语言是教学的媒介，但不是课程的目标。</p>
 
                         <p><a class="btn btn-default"
-                              href="http://pan.baidu.com/s/1ciWcJs#list/path=%2F"
+                              href="https://www.jetbrains.com/zh-cn/idea/promo/"
                               target="_blank">下载开发环境 &raquo;</a></p>
                     </div>
                     <div class="col-lg-4">
